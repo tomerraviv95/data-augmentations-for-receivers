@@ -1,5 +1,5 @@
 # general
-run_name: 'testing_new_augmentations'
+run_name: 'augmented_version'
 
 # coding parameters
 use_ecc: True # Either run with/without ECC. values: [True, False].
@@ -18,7 +18,7 @@ gamma: 0.5 # gamma value for time decay fading
 
 # validation hyperparameters
 val_block_length: 2000 # coherence block time. values: int.
-val_frames: 30 # number of validation frames. values: int.
+val_frames: 25 # number of validation frames. values: int.
 val_SNR_start: 10 # start SNR value. values: float.
 val_SNR_end: 10 # end SNR value. values: float.
 val_SNR_step: 1 # step. values: float.
