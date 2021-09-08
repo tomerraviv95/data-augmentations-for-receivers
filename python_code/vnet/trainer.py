@@ -1,8 +1,8 @@
 from time import time
-from typing import Tuple
+from typing import Tuple, Union
 
 from python_code.channel.channel_dataset import ChannelModelDataset
-from python_code.ecc.rs_main import decode
+from python_code.ecc.rs_main import decode, encode
 from python_code.utils.metrics import calculate_error_rates
 from dir_definitions import CONFIG_PATH, WEIGHTS_DIR
 from torch.nn import CrossEntropyLoss, BCELoss, MSELoss
@@ -176,7 +176,7 @@ class Trainer(object):
         self.block_lengths = {'train': self.train_block_length, 'val': self.val_block_length}
         self.channel_coefficients = {'train': 'time_decay', 'val': self.channel_coefficients}
         self.transmission_lengths = {
-            'train': self.train_block_length if not self.use_ecc else self.train_block_length + 8 * self.n_symbols,
+            'train': self.train_block_length,
             'val': self.val_block_length if not self.use_ecc else self.val_block_length + 8 * self.n_symbols}
         self.channel_dataset = {
             phase: ChannelModelDataset(channel_type=self.channel_type,
@@ -217,17 +217,9 @@ class Trainer(object):
             decoded_words = [decode(detected_word, self.n_symbols) for detected_word in detected_words.cpu().numpy()]
             detected_words = torch.Tensor(decoded_words).to(device)
 
-        ser, fer, err_indices = calculate_error_rates(detected_words,
-                                                      transmitted_words)
+        ser, fer, err_indices = calculate_error_rates(detected_words, transmitted_words)
 
         return ser
-
-    def evaluate(self) -> np.ndarray:
-        """
-        Evaluation either happens in a point aggregation way, or in a word-by-word fashion
-        """
-        # eval with training
-        return self.evaluate_at_point()
 
     def gamma_eval(self, gamma: float) -> np.ndarray:
         """
@@ -252,6 +244,98 @@ class Trainer(object):
             ser_total += self.gamma_eval(self.gamma)
             print(f'Done. time: {time() - start}, ser: {ser_total}')
         return ser_total
+
+    def eval_by_word(self, snr: float, gamma: float) -> Union[float, np.ndarray]:
+        if self.self_supervised:
+            self.deep_learning_setup()
+        total_ser = 0
+        # draw words of given gamma for all snrs
+        transmitted_words, received_words = self.channel_dataset['val'].__getitem__(snr_list=[snr], gamma=gamma)
+        ser_by_word = np.zeros(transmitted_words.shape[0])
+        # saved detector is used to initialize the decoder in meta learning loops
+        # query for all detected words
+        if self.buffer_empty:
+            buffer_rx = torch.empty([0, received_words.shape[1]]).to(device)
+            buffer_tx = torch.empty([0, received_words.shape[1]]).to(device)
+            buffer_ser = torch.empty([0]).to(device)
+        else:
+            # draw words from different channels
+            buffer_tx, buffer_rx = self.channel_dataset['train'].__getitem__(snr_list=[snr], gamma=gamma)
+            buffer_ser = torch.zeros(buffer_rx.shape[0]).to(device)
+            buffer_tx = torch.cat([
+                torch.Tensor(encode(transmitted_word.int().cpu().numpy(), self.n_symbols).reshape(1, -1)).to(device) for
+                transmitted_word in buffer_tx], dim=0)
+
+        for count, (transmitted_word, received_word) in enumerate(zip(transmitted_words, received_words)):
+            transmitted_word, received_word = transmitted_word.reshape(1, -1), received_word.reshape(1, -1)
+            # detect
+            detected_word = self.detector(received_word, 'val', snr, gamma, count)
+
+            # decode
+            decoded_word = [decode(detected_word, self.n_symbols) for detected_word in detected_word.cpu().numpy()]
+            decoded_word = torch.Tensor(decoded_word).to(device)
+            # calculate accuracy
+            ser, fer, err_indices = calculate_error_rates(decoded_word, transmitted_word)
+            # encode word again
+            decoded_word_array = decoded_word.int().cpu().numpy()
+            encoded_word = torch.Tensor(encode(decoded_word_array, self.n_symbols).reshape(1, -1)).to(device)
+            errors_num = torch.sum(torch.abs(encoded_word - detected_word)).item()
+            print('*' * 20)
+            print(f'current: {count, ser, errors_num}')
+            total_ser += ser
+            ser_by_word[count] = ser
+
+            # save the encoded word in the buffer
+            if ser <= self.ser_thresh:
+                buffer_rx = torch.cat([buffer_rx, received_word])
+                buffer_tx = torch.cat([buffer_tx,
+                                       detected_word.reshape(1, -1) if ser > 0 else
+                                       encoded_word.reshape(1, -1)],
+                                      dim=0)
+                buffer_ser = torch.cat([buffer_ser, torch.FloatTensor([ser]).to(device)])
+                if not self.buffer_empty:
+                    buffer_rx = buffer_rx[1:]
+                    buffer_tx = buffer_tx[1:]
+                    buffer_ser = buffer_ser[1:]
+
+            if self.self_supervised and ser <= self.ser_thresh:
+                # use last word inserted in the buffer for training
+                print(buffer_tx[-1].reshape(1, -1).shape,
+                      buffer_rx[-1].reshape(1, -1).shape)
+                tiled_tx = buffer_tx[-1].reshape(1, -1).repeat(10, 1)
+                tiled_rx = buffer_rx[-1].reshape(1, -1).repeat(10, 1)
+                augmentations = 'aug'  # ['reg','ref','aug']
+                if augmentations == 'reg':
+                    self.online_training(buffer_tx[-1].reshape(1, -1), buffer_rx[-1].reshape(1, -1))
+                elif augmentations == 'ref':
+                    self.online_training(tiled_tx, tiled_rx)
+                elif augmentations == 'aug':
+                    snr_value = 10 ** (snr / 10)
+                    w = (snr_value ** (-0.5)) * torch.randn_like(tiled_rx)
+                    w = torch.randn_like(tiled_rx)
+                    augmented_rx = tiled_rx + w
+                    self.online_training(tiled_tx, augmented_rx)
+
+            if (count + 1) % 10 == 0:
+                print(f'Self-supervised: {count + 1}/{transmitted_words.shape[0]}, SER {total_ser / (count + 1)}')
+
+        total_ser /= transmitted_words.shape[0]
+        print(f'Final ser: {total_ser}')
+        return ser_by_word
+
+    def evaluate(self) -> np.ndarray:
+        """
+        Evaluation either happens in a point aggregation way, or in a word-by-word fashion
+        """
+        # eval with training
+        if self.eval_mode == 'by_word':
+            if not self.use_ecc:
+                raise ValueError('Only supports ecc')
+            snr = self.snr_range['val'][0]
+            self.load_weights(snr, self.gamma)
+            return self.eval_by_word(snr, self.gamma)
+        else:
+            return self.evaluate_at_point()
 
     def train(self):
         """

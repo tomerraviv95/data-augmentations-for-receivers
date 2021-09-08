@@ -47,7 +47,7 @@ class ChannelModelDataset(Dataset):
         self.fading_in_decoder = fading_in_decoder
         self.n_symbols = n_symbols
         self.phase = phase
-        if use_ecc:
+        if use_ecc and self.phase == 'val':
             self.encoding = lambda b: encode(b, self.n_symbols)
         else:
             self.encoding = lambda b: b
