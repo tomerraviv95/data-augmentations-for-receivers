@@ -300,10 +300,8 @@ class Trainer(object):
 
             if self.self_supervised and ser <= self.ser_thresh:
                 # use last word inserted in the buffer for training
-                print(buffer_tx[-1].reshape(1, -1).shape,
-                      buffer_rx[-1].reshape(1, -1).shape)
-                tiled_tx = buffer_tx[-1].reshape(1, -1).repeat(10, 1)
-                tiled_rx = buffer_rx[-1].reshape(1, -1).repeat(10, 1)
+                tiled_tx = buffer_tx[-1].reshape(1, -1).repeat(100, 1)
+                tiled_rx = buffer_rx[-1].reshape(1, -1).repeat(100, 1)
                 augmentations = 'aug'  # ['reg','ref','aug']
                 if augmentations == 'reg':
                     self.online_training(buffer_tx[-1].reshape(1, -1), buffer_rx[-1].reshape(1, -1))
@@ -312,8 +310,9 @@ class Trainer(object):
                 elif augmentations == 'aug':
                     snr_value = 10 ** (snr / 10)
                     w = (snr_value ** (-0.5)) * torch.randn_like(tiled_rx)
-                    w = torch.randn_like(tiled_rx)
+                    # w = torch.randn_like(tiled_rx)
                     augmented_rx = tiled_rx + w
+                    augmented_rx[0] = buffer_rx[-1].reshape(1, -1)
                     self.online_training(tiled_tx, augmented_rx)
 
             if (count + 1) % 10 == 0:
