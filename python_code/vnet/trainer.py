@@ -62,15 +62,10 @@ class Trainer(object):
         self.self_supervised = None
         self.self_supervised_iterations = None
         self.ser_thresh = None
-        self.meta_lr = None
-        self.MAML = None
-        self.online_meta = None
-        self.weights_init = None
-        self.window_size = None
         self.buffer_empty = None
-        self.meta_train_iterations = None
-        self.meta_j_num = None
-        self.meta_subframes = None
+
+        # augmentations
+        self.augmentations = None
 
         # seed
         self.noise_seed = None
@@ -270,7 +265,6 @@ class Trainer(object):
             transmitted_word, received_word = transmitted_word.reshape(1, -1), received_word.reshape(1, -1)
             # detect
             detected_word = self.detector(received_word, 'val', snr, gamma, count)
-
             # decode
             decoded_word = [decode(detected_word, self.n_symbols) for detected_word in detected_word.cpu().numpy()]
             decoded_word = torch.Tensor(decoded_word).to(device)
@@ -300,18 +294,18 @@ class Trainer(object):
 
             if self.self_supervised and ser <= self.ser_thresh:
                 # use last word inserted in the buffer for training
-                tiled_tx = buffer_tx[-1].reshape(1, -1).repeat(100, 1)
-                tiled_rx = buffer_rx[-1].reshape(1, -1).repeat(100, 1)
-                augmentations = 'aug'  # ['reg','ref','aug']
-                if augmentations == 'reg':
+                N_REPEATS = 1000
+                if self.augmentations == 'reg':
                     self.online_training(buffer_tx[-1].reshape(1, -1), buffer_rx[-1].reshape(1, -1))
-                elif augmentations == 'ref':
+                elif self.augmentations == 'ref':
+                    tiled_tx = buffer_tx[-1].reshape(1, -1).repeat(N_REPEATS, 1)
+                    tiled_rx = buffer_rx[-1].reshape(1, -1).repeat(N_REPEATS, 1)
                     self.online_training(tiled_tx, tiled_rx)
-                elif augmentations == 'aug':
-                    snr_value = 10 ** (snr / 10)
-                    w = (snr_value ** (-0.5)) * torch.randn_like(tiled_rx)
-                    # w = torch.randn_like(tiled_rx)
-                    augmented_rx = tiled_rx + w
+                elif self.augmentations == 'aug':
+                    tiled_tx = buffer_tx[-1].reshape(1, -1).repeat(N_REPEATS, 1)
+                    tiled_rx = buffer_rx[-1].reshape(1, -1).repeat(N_REPEATS, 1)
+                    w_noise = 0.03 * torch.randn_like(tiled_rx)
+                    augmented_rx = tiled_rx - w_noise
                     augmented_rx[0] = buffer_rx[-1].reshape(1, -1)
                     self.online_training(tiled_tx, augmented_rx)
 
