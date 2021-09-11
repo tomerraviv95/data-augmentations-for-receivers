@@ -47,5 +47,5 @@ ser_thresh: 0.02 # ser threshold. values: float.
 buffer_empty: True # Whether to start evaluation from an empty buffer or a randomly initialized one.
 
 # augmentations
-augmentations: 'aug' # ['reg','ref','aug']
-aug_noise_var: 0.3
+augmentations: 'ref' # ['reg','ref','aug']
+aug_noise_var: 0.5

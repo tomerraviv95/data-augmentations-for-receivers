@@ -262,6 +262,7 @@ class Trainer(object):
                 torch.Tensor(encode(transmitted_word.int().cpu().numpy(), self.n_symbols).reshape(1, -1)).to(device) for
                 transmitted_word in buffer_tx], dim=0)
 
+        ratios = []
         for count, (transmitted_word, received_word) in enumerate(zip(transmitted_words, received_words)):
             transmitted_word, received_word = transmitted_word.reshape(1, -1), received_word.reshape(1, -1)
             # detect
@@ -280,6 +281,20 @@ class Trainer(object):
             total_ser += ser
             ser_by_word[count] = ser
 
+            ## added code to measure class diff
+            DESIRED_CLASS = 0
+            classes = self.channel_dataset['val'].map_bits_to_class(received_word)
+            only_class_mask = classes == DESIRED_CLASS
+            total_elements = only_class_mask.nelement()
+            total_augmented_elements = torch.sum(torch.abs(only_class_mask))
+            ratios.append(total_augmented_elements / total_elements)
+            true_encoded_word = torch.Tensor(
+                encode(transmitted_word.int().cpu().numpy(), self.n_symbols).reshape(1, -1)).to(
+                device)
+            desired_class_bits_diff = torch.sum(torch.abs(true_encoded_word[only_class_mask] -
+                                                          detected_word[only_class_mask]))
+            print(desired_class_bits_diff, sum(ratios) / len(ratios), total_elements)
+
             # save the encoded word in the buffer
             if ser <= self.ser_thresh:
                 buffer_rx = torch.cat([buffer_rx, received_word])
@@ -296,7 +311,6 @@ class Trainer(object):
             if self.self_supervised and ser <= self.ser_thresh:
                 # use last word inserted in the buffer for training
                 N_REPEATS = 1000
-
                 if self.augmentations == 'reg':
                     self.online_training(buffer_tx[-1].reshape(1, -1), buffer_rx[-1].reshape(1, -1))
                 elif self.augmentations == 'ref':
@@ -306,17 +320,24 @@ class Trainer(object):
                 elif self.augmentations == 'aug':
                     tiled_tx = buffer_tx[-1].reshape(1, -1).repeat(N_REPEATS, 1)
                     tiled_rx = buffer_rx[-1].reshape(1, -1).repeat(N_REPEATS, 1)
-                    tiled_classes = self.channel_dataset['val'].map_bits_to_class(tiled_rx)
+                    # tiled_classes = self.channel_dataset['val'].map_bits_to_class(tiled_rx)
 
                     w_noise = self.aug_noise_var * torch.randn_like(tiled_rx)
                     augmented_rx = tiled_rx - w_noise
                     augmented_rx[0] = buffer_rx[-1].reshape(1, -1)
-                    augmented_classes = self.channel_dataset['val'].map_bits_to_class(augmented_rx)
+                    # augmented_classes = self.channel_dataset['val'].map_bits_to_class(augmented_rx)
 
-                    total_elements = tiled_rx.nelement()
-                    total_augmented_elements = torch.sum(torch.abs(augmented_classes - tiled_classes) >= 1)
-                    ratio = total_augmented_elements / total_elements
-                    print(ratio)
+                    # only_class_augmented = augmented_classes[only_class_mask]
+                    # only_class_rx = tiled_classes[only_class_mask]
+                    # total_elements = only_class_rx.nelement()
+                    # total_augmented_elements = torch.sum(torch.abs(only_class_augmented - only_class_rx) >= 1)
+                    # ratios.append(total_augmented_elements / total_elements)
+                    # true_encoded_word = torch.Tensor(
+                    #     encode(transmitted_word.int().cpu().numpy(), self.n_symbols).reshape(1, -1)).to(
+                    #     device)
+                    # desired_class_bits_diff = torch.sum(torch.abs(true_encoded_word[only_class_mask[0].reshape(1, -1)] -
+                    #                                         detected_word[only_class_mask[0].reshape(1, -1)]))
+                    # print(desired_class_bits_diff, sum(ratios) / len(ratios), total_elements)
                     self.online_training(tiled_tx, augmented_rx)
 
             if (count + 1) % 10 == 0:

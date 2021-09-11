@@ -41,11 +41,11 @@ if __name__ == '__main__':
     if plot_by_block:
         parameters = [(6, val_block_length)]
     else:
-        parameters = [(2, val_block_length),
-                      (4, val_block_length),
+        parameters = [(5, val_block_length),
                       (6, val_block_length),
+                      (7, val_block_length),
                       (8, val_block_length),
-                      (10, val_block_length)]
+                      (9, val_block_length)]
     all_curves = []
 
     for snr, val_block_length in parameters:
