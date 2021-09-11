@@ -59,6 +59,7 @@ class ChannelModelDataset(Dataset):
             database = []
         b_full = np.empty((0, self.block_length))
         y_full = np.empty((0, self.transmission_length))
+        h_full = np.empty((0, self.memory_length))
         if self.phase == 'val':
             index = 0
         else:
@@ -72,19 +73,20 @@ class ChannelModelDataset(Dataset):
             # add zero bits
             padded_c = np.concatenate([c, np.zeros([c.shape[0], self.memory_length])], axis=1)
             # transmit
-            self._h = estimate_channel(self.memory_length, gamma,
-                                       channel_coefficients=self.channel_coefficients,
-                                       noisy_est_var=self.noisy_est_var,
-                                       fading=self.fading_in_channel if self.phase == 'val' else self.fading_in_decoder,
-                                       index=index,
-                                       fading_taps_type=self.fading_taps_type)
-            y = self.transmit(padded_c, self._h, snr)
+            h = estimate_channel(self.memory_length, gamma,
+                                 channel_coefficients=self.channel_coefficients,
+                                 noisy_est_var=self.noisy_est_var,
+                                 fading=self.fading_in_channel if self.phase == 'val' else self.fading_in_decoder,
+                                 index=index,
+                                 fading_taps_type=self.fading_taps_type)
+            y = self.transmit(padded_c, h, snr)
             # accumulate
             b_full = np.concatenate((b_full, b), axis=0)
             y_full = np.concatenate((y_full, y), axis=0)
+            h_full = np.concatenate((h_full, h), axis=0)
             index += 1
 
-        database.append((b_full, y_full))
+        database.append((b_full, y_full, h_full))
 
     def transmit(self, c: np.ndarray, h: np.ndarray, snr: float):
         if self.channel_type == 'ISI_AWGN':
@@ -96,34 +98,34 @@ class ChannelModelDataset(Dataset):
             raise Exception('No such channel defined!!!')
         return y
 
-    def create_class_mapping(self):
+    def create_class_mapping(self, h):
         if self.channel_type == 'ISI_AWGN':
             c = np.array(list(itertools.product(range(2), repeat=self.memory_length))).T
             s = BPSKModulator.modulate(c)
             flipped_s = np.fliplr(s)
-            classes_centers = ISIAWGNChannel.create_class_mapping(s=flipped_s, h=self._h)
+            classes_centers = ISIAWGNChannel.create_class_mapping(s=flipped_s, h=h.cpu().numpy())
             classes_centers.sort()
         else:
             raise Exception('No such channel defined!!!')
         return torch.Tensor(classes_centers).to(device)
 
-    def map_bits_to_class(self,word):
+    def map_bits_to_class(self, word, h):
         ## needs doc
-        centers = self.create_class_mapping()
-        decision_boundaries = centers.diff()/2 + centers[:-1]
-        tiled_word = torch.repeat_interleave(word.unsqueeze(-1),repeats=15,dim=-1)
-        classes = torch.sum((decision_boundaries <= tiled_word),dim=-1)
+        centers = self.create_class_mapping(h)
+        decision_boundaries = centers.diff() / 2 + centers[:-1]
+        tiled_word = torch.repeat_interleave(word.unsqueeze(-1), repeats=15, dim=-1)
+        classes = torch.sum((decision_boundaries <= tiled_word), dim=-1)
         return classes
 
-
-    def __getitem__(self, snr_list: List[float], gamma: float) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, snr_list: List[float], gamma: float) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         database = []
         # do not change max_workers
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             [executor.submit(self.get_snr_data, snr, gamma, database) for snr in snr_list]
-        b, y = (np.concatenate(arrays) for arrays in zip(*database))
-        b, y = torch.Tensor(b).to(device=device), torch.Tensor(y).to(device=device)
-        return b, y
+        b, y, h = (np.concatenate(arrays) for arrays in zip(*database))
+        b, y, h = torch.Tensor(b).to(device=device), torch.Tensor(y).to(device=device), torch.Tensor(h).to(
+            device=device)
+        return b, y, h
 
     def __len__(self):
         return self.transmission_length

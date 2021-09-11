@@ -204,7 +204,7 @@ class Trainer(object):
         :return: ser for batch
         """
         # draw words of given gamma for all snrs
-        transmitted_words, received_words = self.channel_dataset['val'].__getitem__(snr_list=[snr], gamma=gamma)
+        transmitted_words, received_words, _ = self.channel_dataset['val'].__getitem__(snr_list=[snr], gamma=gamma)
 
         # decode and calculate accuracy
         detected_words = self.detector(received_words, 'val', snr, gamma)
@@ -246,7 +246,7 @@ class Trainer(object):
             self.deep_learning_setup()
         total_ser = 0
         # draw words of given gamma for all snrs
-        transmitted_words, received_words = self.channel_dataset['val'].__getitem__(snr_list=[snr], gamma=gamma)
+        transmitted_words, received_words, hs = self.channel_dataset['val'].__getitem__(snr_list=[snr], gamma=gamma)
         ser_by_word = np.zeros(transmitted_words.shape[0])
         # saved detector is used to initialize the decoder in meta learning loops
         # query for all detected words
@@ -263,8 +263,10 @@ class Trainer(object):
                 transmitted_word in buffer_tx], dim=0)
 
         ratios = []
-        for count, (transmitted_word, received_word) in enumerate(zip(transmitted_words, received_words)):
+        total_class_bits_diff = 0
+        for count, (transmitted_word, received_word, h) in enumerate(zip(transmitted_words, received_words, hs)):
             transmitted_word, received_word = transmitted_word.reshape(1, -1), received_word.reshape(1, -1)
+            h = h.reshape(1, -1)
             # detect
             detected_word = self.detector(received_word, 'val', snr, gamma, count)
             # decode
@@ -283,7 +285,7 @@ class Trainer(object):
 
             ## added code to measure class diff
             DESIRED_CLASS = 0
-            classes = self.channel_dataset['val'].map_bits_to_class(received_word)
+            classes = self.channel_dataset['val'].map_bits_to_class(received_word, h)
             only_class_mask = classes == DESIRED_CLASS
             total_elements = only_class_mask.nelement()
             total_augmented_elements = torch.sum(torch.abs(only_class_mask))
@@ -291,9 +293,10 @@ class Trainer(object):
             true_encoded_word = torch.Tensor(
                 encode(transmitted_word.int().cpu().numpy(), self.n_symbols).reshape(1, -1)).to(
                 device)
-            desired_class_bits_diff = torch.sum(torch.abs(true_encoded_word[only_class_mask] -
-                                                          detected_word[only_class_mask]))
-            print(desired_class_bits_diff, sum(ratios) / len(ratios), total_elements)
+            class_bits_diff = torch.sum(torch.abs(true_encoded_word[only_class_mask] -
+                                                  detected_word[only_class_mask]))
+            total_class_bits_diff += class_bits_diff.item()
+            print(f'Total bits: {total_class_bits_diff}, Ratio: {(sum(ratios) / len(ratios)).item()}')
 
             # save the encoded word in the buffer
             if ser <= self.ser_thresh:
@@ -310,7 +313,7 @@ class Trainer(object):
 
             if self.self_supervised and ser <= self.ser_thresh:
                 # use last word inserted in the buffer for training
-                N_REPEATS = 1000
+                N_REPEATS = 100
                 if self.augmentations == 'reg':
                     self.online_training(buffer_tx[-1].reshape(1, -1), buffer_rx[-1].reshape(1, -1))
                 elif self.augmentations == 'ref':
@@ -320,24 +323,15 @@ class Trainer(object):
                 elif self.augmentations == 'aug':
                     tiled_tx = buffer_tx[-1].reshape(1, -1).repeat(N_REPEATS, 1)
                     tiled_rx = buffer_rx[-1].reshape(1, -1).repeat(N_REPEATS, 1)
-                    # tiled_classes = self.channel_dataset['val'].map_bits_to_class(tiled_rx)
+                    tiled_classes = self.channel_dataset['val'].map_bits_to_class(tiled_rx, h)
+                    only_class_mask = tiled_classes == DESIRED_CLASS
 
+                    # only add noise to class
                     w_noise = self.aug_noise_var * torch.randn_like(tiled_rx)
-                    augmented_rx = tiled_rx - w_noise
-                    augmented_rx[0] = buffer_rx[-1].reshape(1, -1)
-                    # augmented_classes = self.channel_dataset['val'].map_bits_to_class(augmented_rx)
+                    augmented_rx = tiled_rx.clone()
+                    # augmented_rx[only_class_mask] -= w_noise[only_class_mask]
+                    augmented_rx -= w_noise
 
-                    # only_class_augmented = augmented_classes[only_class_mask]
-                    # only_class_rx = tiled_classes[only_class_mask]
-                    # total_elements = only_class_rx.nelement()
-                    # total_augmented_elements = torch.sum(torch.abs(only_class_augmented - only_class_rx) >= 1)
-                    # ratios.append(total_augmented_elements / total_elements)
-                    # true_encoded_word = torch.Tensor(
-                    #     encode(transmitted_word.int().cpu().numpy(), self.n_symbols).reshape(1, -1)).to(
-                    #     device)
-                    # desired_class_bits_diff = torch.sum(torch.abs(true_encoded_word[only_class_mask[0].reshape(1, -1)] -
-                    #                                         detected_word[only_class_mask[0].reshape(1, -1)]))
-                    # print(desired_class_bits_diff, sum(ratios) / len(ratios), total_elements)
                     self.online_training(tiled_tx, augmented_rx)
 
             if (count + 1) % 10 == 0:
@@ -378,8 +372,8 @@ class Trainer(object):
 
             for minibatch in range(1, self.train_minibatch_num + 1):
                 # draw words
-                transmitted_words, received_words = self.channel_dataset['train'].__getitem__(snr_list=[snr],
-                                                                                              gamma=self.gamma)
+                transmitted_words, received_words, _ = self.channel_dataset['train'].__getitem__(snr_list=[snr],
+                                                                                                 gamma=self.gamma)
                 # run training loops
                 current_loss = 0
                 for i in range(self.train_frames * self.subframes_in_frame):
