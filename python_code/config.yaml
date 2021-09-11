@@ -48,3 +48,4 @@ buffer_empty: True # Whether to start evaluation from an empty buffer or a rando
 
 # augmentations
 augmentations: 'aug' # ['reg','ref','aug']
+aug_noise_var: 0.3

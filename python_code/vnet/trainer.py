@@ -66,6 +66,7 @@ class Trainer(object):
 
         # augmentations
         self.augmentations = None
+        self.aug_noise_var = None
 
         # seed
         self.noise_seed = None
@@ -295,6 +296,7 @@ class Trainer(object):
             if self.self_supervised and ser <= self.ser_thresh:
                 # use last word inserted in the buffer for training
                 N_REPEATS = 1000
+
                 if self.augmentations == 'reg':
                     self.online_training(buffer_tx[-1].reshape(1, -1), buffer_rx[-1].reshape(1, -1))
                 elif self.augmentations == 'ref':
@@ -304,9 +306,17 @@ class Trainer(object):
                 elif self.augmentations == 'aug':
                     tiled_tx = buffer_tx[-1].reshape(1, -1).repeat(N_REPEATS, 1)
                     tiled_rx = buffer_rx[-1].reshape(1, -1).repeat(N_REPEATS, 1)
-                    w_noise = 0.03 * torch.randn_like(tiled_rx)
+                    tiled_classes = self.channel_dataset['val'].map_bits_to_class(tiled_rx)
+
+                    w_noise = self.aug_noise_var * torch.randn_like(tiled_rx)
                     augmented_rx = tiled_rx - w_noise
                     augmented_rx[0] = buffer_rx[-1].reshape(1, -1)
+                    augmented_classes = self.channel_dataset['val'].map_bits_to_class(augmented_rx)
+
+                    total_elements = tiled_rx.nelement()
+                    total_augmented_elements = torch.sum(torch.abs(augmented_classes - tiled_classes) >= 1)
+                    ratio = total_augmented_elements / total_elements
+                    print(ratio)
                     self.online_training(tiled_tx, augmented_rx)
 
             if (count + 1) % 10 == 0:

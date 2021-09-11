@@ -4,7 +4,8 @@ from python_code.plotters.plotter_config import *
 
 
 def add_viterbinet(all_curves, snr, val_block_length):
-    dec = VNETTrainer(augmentations='reg')
+    dec = VNETTrainer(augmentations='reg', train_SNR_start=snr, train_SNR_end=snr, val_SNR_start=snr, val_SNR_end=snr,
+                      val_block_length=val_block_length)
     method_name = f'ViterbiNet'
     print(method_name)
     ser = get_ser_plot(dec, run_over=run_over, method_name=method_name + '_' + str(snr) + '_'
@@ -13,7 +14,8 @@ def add_viterbinet(all_curves, snr, val_block_length):
 
 
 def add_aug_viterbinet(all_curves, snr, val_block_length):
-    dec = VNETTrainer(augmentations='aug')
+    dec = VNETTrainer(augmentations='aug', train_SNR_start=snr, train_SNR_end=snr, val_SNR_start=snr, val_SNR_end=snr,
+                      val_block_length=val_block_length)
     method_name = f'ViterbiNet-Augmentations'
     print(method_name)
     ser = get_ser_plot(dec, run_over=run_over, method_name=method_name + '_' + str(snr) + '_'
@@ -22,7 +24,8 @@ def add_aug_viterbinet(all_curves, snr, val_block_length):
 
 
 def add_ref_viterbinet(all_curves, snr, val_block_length):
-    dec = VNETTrainer(augmentations='ref')
+    dec = VNETTrainer(augmentations='ref', train_SNR_start=snr, train_SNR_end=snr, val_SNR_start=snr, val_SNR_end=snr,
+                      val_block_length=val_block_length)
     method_name = f'ViterbiNet-Reference'
     print(method_name)
     ser = get_ser_plot(dec, run_over=run_over, method_name=method_name + '_' + str(snr) + '_'
@@ -31,18 +34,14 @@ def add_ref_viterbinet(all_curves, snr, val_block_length):
 
 
 if __name__ == '__main__':
-    run_over = False
-    plot_by_block = True  # either plot by block, or by SNR
+    run_over = True
+    plot_by_block = False  # either plot by block, or by SNR
     val_block_length = 120
 
     if plot_by_block:
-        parameters = [(7, val_block_length)]
+        parameters = [(6, val_block_length)]
     else:
-        parameters = [(-6, val_block_length),
-                      (-4, val_block_length),
-                      (-2, val_block_length),
-                      (0, val_block_length),
-                      (2, val_block_length),
+        parameters = [(2, val_block_length),
                       (4, val_block_length),
                       (6, val_block_length),
                       (8, val_block_length),

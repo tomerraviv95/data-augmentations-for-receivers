@@ -1,3 +1,5 @@
+import itertools
+
 from python_code.channel.channel_estimation import estimate_channel
 from python_code.channel.modulator import BPSKModulator
 from python_code.channel.channel import ISIAWGNChannel
@@ -70,13 +72,13 @@ class ChannelModelDataset(Dataset):
             # add zero bits
             padded_c = np.concatenate([c, np.zeros([c.shape[0], self.memory_length])], axis=1)
             # transmit
-            h = estimate_channel(self.memory_length, gamma,
-                                 channel_coefficients=self.channel_coefficients,
-                                 noisy_est_var=self.noisy_est_var,
-                                 fading=self.fading_in_channel if self.phase == 'val' else self.fading_in_decoder,
-                                 index=index,
-                                 fading_taps_type=self.fading_taps_type)
-            y = self.transmit(padded_c, h, snr)
+            self._h = estimate_channel(self.memory_length, gamma,
+                                       channel_coefficients=self.channel_coefficients,
+                                       noisy_est_var=self.noisy_est_var,
+                                       fading=self.fading_in_channel if self.phase == 'val' else self.fading_in_decoder,
+                                       index=index,
+                                       fading_taps_type=self.fading_taps_type)
+            y = self.transmit(padded_c, self._h, snr)
             # accumulate
             b_full = np.concatenate((b_full, b), axis=0)
             y_full = np.concatenate((y_full, y), axis=0)
@@ -93,6 +95,26 @@ class ChannelModelDataset(Dataset):
         else:
             raise Exception('No such channel defined!!!')
         return y
+
+    def create_class_mapping(self):
+        if self.channel_type == 'ISI_AWGN':
+            c = np.array(list(itertools.product(range(2), repeat=self.memory_length))).T
+            s = BPSKModulator.modulate(c)
+            flipped_s = np.fliplr(s)
+            classes_centers = ISIAWGNChannel.create_class_mapping(s=flipped_s, h=self._h)
+            classes_centers.sort()
+        else:
+            raise Exception('No such channel defined!!!')
+        return torch.Tensor(classes_centers).to(device)
+
+    def map_bits_to_class(self,word):
+        ## needs doc
+        centers = self.create_class_mapping()
+        decision_boundaries = centers.diff()/2 + centers[:-1]
+        tiled_word = torch.repeat_interleave(word.unsqueeze(-1),repeats=15,dim=-1)
+        classes = torch.sum((decision_boundaries <= tiled_word),dim=-1)
+        return classes
+
 
     def __getitem__(self, snr_list: List[float], gamma: float) -> Tuple[torch.Tensor, torch.Tensor]:
         database = []
