@@ -1,14 +1,14 @@
-import itertools
-
 from python_code.channel.channel_estimation import estimate_channel
 from python_code.channel.modulator import BPSKModulator
 from python_code.channel.channel import ISIAWGNChannel
 from python_code.ecc.rs_main import encode
 from torch.utils.data import Dataset
+import matplotlib.pyplot as plt
 from numpy.random import mtrand
 from typing import Tuple, List
 import concurrent.futures
 import numpy as np
+import itertools
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -129,3 +129,50 @@ class ChannelModelDataset(Dataset):
 
     def __len__(self):
         return self.transmission_length
+
+
+if __name__ == '__main__':
+    memory_length = 4
+    gamma = 0.5
+    noisy_est_var = 0
+    channel_coefficients = 'time_decay'  # 'time_decay','cost2100','from_pkl'
+    fading_taps_type = 1
+    fading = True
+    channel_length = 50
+    channel_dataset = ChannelModelDataset('ISI_AWGN',
+                                          1784,
+                                          17884,
+                                          channel_length,
+                                          memory_length,
+                                          channel_coefficients,
+                                          np.random.RandomState(10),
+                                          np.random.RandomState(10),
+                                          noisy_est_var,
+                                          fading_taps_type,
+                                          True,
+                                          4,
+                                          fading,
+                                          False,
+                                          'val')
+
+    total_h = np.empty([channel_length, memory_length])
+    total_centers = np.empty([channel_length, 2 ** memory_length])
+    for index in range(channel_length):
+        total_h[index] = estimate_channel(memory_length, gamma, channel_coefficients, noisy_est_var,
+                                          fading, index, fading_taps_type)
+        h = torch.Tensor(total_h[index].reshape(1, -1))
+        total_centers[index] = channel_dataset.create_class_mapping(h).cpu().numpy()
+
+    for i in range(memory_length):
+        plt.plot(total_h[:, i], label=f'Tap {i}')
+    plt.xlabel('Block Index')
+    plt.ylabel('Magnitude')
+    plt.legend(loc='upper left')
+    plt.show()
+
+    for i in range(2 ** memory_length):
+        plt.plot(total_centers[:, i], label=f'Decision {i}')
+    plt.xlabel('Block Index')
+    plt.ylabel('Magnitude')
+    plt.legend(loc='upper left')
+    plt.show()
