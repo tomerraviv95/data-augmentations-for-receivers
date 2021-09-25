@@ -65,9 +65,9 @@ class ChannelModelDataset(Dataset):
         else:
             index = 0  # random.randint(0, 1e6)
         # accumulate words until reaches desired number
+        # generate word
+        b = self.word_rand_gen.randint(0, 2, size=(1, self.block_length))
         while y_full.shape[0] < self.words:
-            # generate word
-            b = self.word_rand_gen.randint(0, 2, size=(1, self.block_length))
             # encoding - errors correction code
             c = self.encoding(b).reshape(1, -1)
             # add zero bits
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     channel_length = 50
     channel_dataset = ChannelModelDataset('ISI_AWGN',
                                           1784,
-                                          17884,
+                                          1784,
                                           channel_length,
                                           memory_length,
                                           channel_coefficients,

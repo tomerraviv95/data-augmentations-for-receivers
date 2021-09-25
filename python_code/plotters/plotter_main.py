@@ -34,16 +34,16 @@ def add_ref_viterbinet(all_curves, snr, val_block_length):
 
 
 if __name__ == '__main__':
-    run_over = True
+    run_over = False
     plot_by_block = False  # either plot by block, or by SNR
     val_block_length = 1784
 
     if plot_by_block:
         parameters = [(6, val_block_length)]
     else:
-        parameters = [(12, val_block_length),
-                      (13, val_block_length),
-                      (14, val_block_length)]
+        parameters = [(11, val_block_length),
+                      (12, val_block_length),
+                      (13, val_block_length)]
     all_curves = []
 
     for snr, val_block_length in parameters:

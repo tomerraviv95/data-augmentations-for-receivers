@@ -1,7 +1,9 @@
 from time import time
 from typing import Tuple, Union
 
+from python_code.channel.channel import ISIAWGNChannel
 from python_code.channel.channel_dataset import ChannelModelDataset
+from python_code.channel.modulator import BPSKModulator
 from python_code.ecc.rs_main import decode, encode
 from python_code.utils.metrics import calculate_error_rates
 from dir_definitions import CONFIG_PATH, WEIGHTS_DIR
@@ -169,6 +171,7 @@ class Trainer(object):
         self.snr_range = {'train': np.arange(self.train_SNR_start, self.train_SNR_end + 1, step=self.train_SNR_step),
                           'val': np.arange(self.val_SNR_start, self.val_SNR_end + 1, step=self.val_SNR_step)}
         self.frames_per_phase = {'train': self.train_frames, 'val': self.val_frames}
+        self.subframes_in_frame_phase = {'train': 1, 'val': self.subframes_in_frame}
         self.block_lengths = {'train': self.train_block_length, 'val': self.val_block_length}
         self.channel_coefficients = {'train': 'time_decay', 'val': self.channel_coefficients}
         self.transmission_lengths = {
@@ -178,7 +181,7 @@ class Trainer(object):
             phase: ChannelModelDataset(channel_type=self.channel_type,
                                        block_length=self.block_lengths[phase],
                                        transmission_length=self.transmission_lengths[phase],
-                                       words=self.frames_per_phase[phase] * self.subframes_in_frame,
+                                       words=self.frames_per_phase[phase] * self.subframes_in_frame_phase[phase],
                                        memory_length=self.memory_length,
                                        channel_coefficients=self.channel_coefficients[phase],
                                        random=self.rand_gen,
@@ -370,16 +373,26 @@ class Trainer(object):
             self.deep_learning_setup()
             best_ser = math.inf
 
+            # draw words
+            transmitted_words, received_words, h = self.channel_dataset['train'].__getitem__(snr_list=[snr],
+                                                                                             gamma=self.gamma)
+            N_REPEATS = 100
+            transmitted_words = transmitted_words.repeat(N_REPEATS, 1)
+            received_words = received_words.repeat(N_REPEATS, 1)
             for minibatch in range(1, self.train_minibatch_num + 1):
-                # draw words
-                transmitted_words, received_words, _ = self.channel_dataset['train'].__getitem__(snr_list=[snr],
-                                                                                                 gamma=self.gamma)
-                # run training loops
-                current_loss = 0
-                for i in range(self.train_frames * self.subframes_in_frame):
-                    # pass through detector
-                    soft_estimation = self.detector(received_words[i].reshape(1, -1), 'train')
-                    current_loss += self.run_train_loop(soft_estimation, transmitted_words[i].reshape(1, -1))
+                if self.augmentations == 'reg':
+                    # run training loops
+                    current_loss = 0
+                    for i in range(self.train_frames * self.subframes_in_frame_phase['train'] * N_REPEATS):
+                        # pass through detector
+                        soft_estimation = self.detector(received_words[i].reshape(1, -1), 'train')
+                        current_loss += self.run_train_loop(soft_estimation, transmitted_words[i].reshape(1, -1))
+                elif self.augmentations == 'aug1':
+                    current_loss = 0
+                    current_loss = self.augment1(N_REPEATS, current_loss, received_words, transmitted_words, h, snr)
+                elif self.augmentations == 'aug2':
+                    current_loss = 0
+                    current_loss = self.augment2(N_REPEATS, current_loss, received_words, transmitted_words, h)
 
                 # evaluate performance
                 ser = self.single_eval_at_point(snr, self.gamma)
@@ -391,6 +404,75 @@ class Trainer(object):
 
             print(f'best ser - {best_ser}')
             print('*' * 50)
+
+    def augment1(self, N_REPEATS, current_loss, received_words, transmitted_words, h, snr):
+        # run training loops
+        current_loss = 0
+        for i in range(self.train_frames * self.subframes_in_frame_phase['train'] * N_REPEATS):
+            def augment_pair1(received_word, transmitted_word):
+                binary_mask = torch.rand_like(transmitted_word) >= 0.5
+                new_transmitted_word = (transmitted_word + binary_mask) % 2
+                # encoding - errors correction code
+                c = new_transmitted_word.cpu().numpy()
+                # add zero bits
+                padded_c = np.concatenate([c, np.zeros([c.shape[0], self.memory_length])], axis=1)
+                # from channel dataset
+                s = BPSKModulator.modulate(padded_c)
+                # transmit through noisy channel
+                new_received_word = ISIAWGNChannel.transmit(s=s, random=np.random.RandomState(),
+                                                            h=h.cpu().numpy(),
+                                                            snr=snr,
+                                                            memory_length=self.memory_length)
+                return torch.Tensor(new_received_word).to(device), new_transmitted_word
+
+            received_word, transmitted_word = augment_pair1(received_words[i].reshape(1, -1),
+                                                            transmitted_words[i].reshape(1, -1))
+
+            # pass through detector
+            soft_estimation = self.detector(received_word, 'train')
+            current_loss += self.run_train_loop(soft_estimation, transmitted_word)
+        return current_loss
+
+    def augment2(self, N_REPEATS, current_loss, received_words, transmitted_words, h):
+        h = h.cpu().numpy()
+        # run training loops
+        current_loss = 0
+        for i in range(self.train_frames * self.subframes_in_frame_phase['train'] * N_REPEATS):
+            def augment_pair(received_word, transmitted_word):
+                #### first calculate estimated noise pattern
+
+                c = transmitted_word.cpu().numpy()
+                # add zero bits
+                padded_c = np.concatenate([c, np.zeros([c.shape[0], self.memory_length])], axis=1)
+                # from channel dataset
+                s = BPSKModulator.modulate(padded_c)
+                blockwise_s = np.concatenate([s[:, i:-self.memory_length + i] for i in range(self.memory_length)],
+                                             axis=0)
+                trans_conv = np.dot(h[:, ::-1], blockwise_s)
+                w_est = received_word.cpu().numpy() - trans_conv
+
+                ### use the noise and add it to a new word
+                binary_mask = torch.rand_like(transmitted_word) >= 0.5
+                new_transmitted_word = (transmitted_word + binary_mask) % 2
+                # encoding - errors correction code
+                c = new_transmitted_word.cpu().numpy()
+                # add zero bits
+                padded_c = np.concatenate([c, np.zeros([c.shape[0], self.memory_length])], axis=1)
+                # from channel dataset
+                s = BPSKModulator.modulate(padded_c)
+                blockwise_s = np.concatenate([s[:, i:-self.memory_length + i] for i in range(self.memory_length)],
+                                             axis=0)
+                new_trans_conv = np.dot(h[:, ::-1], blockwise_s)
+                new_received_word = new_trans_conv + w_est
+                return torch.Tensor(new_received_word).to(device), new_transmitted_word
+
+            received_word, transmitted_word = augment_pair(received_words[i].reshape(1, -1),
+                                                           transmitted_words[i].reshape(1, -1))
+
+            # pass through detector
+            soft_estimation = self.detector(received_word, 'train')
+            current_loss += self.run_train_loop(soft_estimation, transmitted_word)
+        return current_loss
 
     def run_train_loop(self, soft_estimation: torch.Tensor, transmitted_words: torch.Tensor):
         # calculate loss
