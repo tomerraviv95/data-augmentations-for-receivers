@@ -27,7 +27,7 @@ eval_mode: 'aggregated' # Type of evaluation. Per snr - 'aggregated', Per block 
 # train hyperparameters
 train_block_length: 80 # coherence block time. values: int.
 train_frames: 1 # number of train frames. values: int.
-train_minibatch_num: 25 # number of minibatches. values: int.
+train_minibatch_num: 30 # number of minibatches. values: int.
 train_minibatch_size: 32 # the size of a given minibatch. values: int.
 train_SNR_start: 12 # start SNR value. values: float.
 train_SNR_end: 12 # end SNR value. values: float.
@@ -47,5 +47,5 @@ ser_thresh: 0.02 # ser threshold. values: float.
 buffer_empty: True # Whether to start evaluation from an empty buffer or a randomly initialized one.
 
 # augmentations
-augmentations: 'reg' # ['reg','ref','aug']
+augmentations: 'aug3' # ['reg','ref','aug']
 aug_noise_var: 0.04

@@ -10,7 +10,7 @@ from dir_definitions import CONFIG_PATH, WEIGHTS_DIR
 from torch.nn import CrossEntropyLoss, BCELoss, MSELoss
 from torch.optim import RMSprop, Adam, SGD
 from shutil import copyfile
-from random import random
+import random
 import numpy as np
 import itertools
 import yaml
@@ -19,6 +19,11 @@ import os
 import math
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+random.seed(0)
+torch.manual_seed(0)
+torch.cuda.manual_seed(0)
+np.random.seed(0)
 
 
 class Trainer(object):
@@ -456,24 +461,20 @@ class Trainer(object):
                 #### first calculate estimated noise pattern
                 gt_states = calculate_states(self.memory_length, transmitted_word)
                 noise_samples = torch.empty_like(received_word)
+                centers_est = torch.empty(2 ** self.memory_length).to(device)
                 for state in torch.unique(gt_states):
                     state_ind = (gt_states == state)
                     state_received = received_word[0, state_ind]
-                    center_est = torch.mean(state_received)
-                    center_est = classes_centers[15 - state]
-                    noise_samples[0, state_ind] = state_received - center_est
-                centers_vector = received_word - noise_samples
-                std = torch.sqrt(torch.sum(noise_samples ** 2) / (torch.numel(noise_samples) - 1))
-                snr_value = 10 ** (snr / 10)
-                w = (snr_value ** (-0.5)) * torch.randn_like(received_word)
+                    centers_est[state] = torch.mean(state_received)
+                    # centers_est[state] = classes_centers[15 - state]
+                    noise_samples[0, state_ind] = state_received - centers_est[state]
 
-                binary_mask = torch.rand_like(transmitted_word) >= 0.5
-                new_transmitted_word = (transmitted_word + binary_mask) % 2
+                new_transmitted_word = torch.rand_like(transmitted_word) >= 0.5
                 new_gt_states = calculate_states(self.memory_length, new_transmitted_word)
                 new_received_word = torch.empty_like(received_word)
                 for state in torch.unique(new_gt_states):
                     state_ind = (new_gt_states == state)
-                    new_received_word[0, state_ind] = classes_centers[15 - state] + noise_samples[0, state_ind]
+                    new_received_word[0, state_ind] = centers_est[state] + noise_samples[0, state_ind]
                 return new_received_word, new_transmitted_word
 
             received_word, transmitted_word = augment_pair(received_words[i].reshape(1, -1),

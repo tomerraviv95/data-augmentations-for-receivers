@@ -142,8 +142,8 @@ if __name__ == '__main__':
     noisy_est_var = 0
     channel_coefficients = 'time_decay'  # 'time_decay','cost2100','from_pkl'
     fading_taps_type = 1
-    fading = True
-    channel_length = 50
+    fading = False
+    channel_length = 2
     channel_dataset = ChannelModelDataset('ISI_AWGN',
                                           1784,
                                           1784,
@@ -154,11 +154,12 @@ if __name__ == '__main__':
                                           np.random.RandomState(10),
                                           noisy_est_var,
                                           fading_taps_type,
-                                          True,
-                                          4,
+                                          False,
+                                          memory_length,
                                           fading,
                                           False,
-                                          'val')
+                                          'val',
+                                          'reg')
 
     total_h = np.empty([channel_length, memory_length])
     total_centers = np.empty([channel_length, 2 ** memory_length])
@@ -170,13 +171,6 @@ if __name__ == '__main__':
 
     for i in range(memory_length):
         plt.plot(total_h[:, i], label=f'Tap {i}')
-    plt.xlabel('Block Index')
-    plt.ylabel('Magnitude')
-    plt.legend(loc='upper left')
-    plt.show()
-
-    for i in range(2 ** memory_length):
-        plt.plot(total_centers[:, i], label=f'Decision {i}')
     plt.xlabel('Block Index')
     plt.ylabel('Magnitude')
     plt.legend(loc='upper left')
