@@ -1,7 +1,7 @@
 from time import time
 from typing import Tuple, Union
-
 from python_code.channel.channel import ISIAWGNChannel
+from python_code.utils.trellis_utils import calculate_states
 from python_code.channel.channel_dataset import ChannelModelDataset
 from python_code.channel.modulator import BPSKModulator
 from python_code.ecc.rs_main import decode, encode
@@ -10,7 +10,9 @@ from dir_definitions import CONFIG_PATH, WEIGHTS_DIR
 from torch.nn import CrossEntropyLoss, BCELoss, MSELoss
 from torch.optim import RMSprop, Adam, SGD
 from shutil import copyfile
+from random import random
 import numpy as np
+import itertools
 import yaml
 import torch
 import os
@@ -192,7 +194,8 @@ class Trainer(object):
                                        fading_taps_type=self.fading_taps_type,
                                        fading_in_channel=self.fading_in_channel,
                                        fading_in_decoder=self.fading_in_decoder,
-                                       phase=phase)
+                                       phase=phase,
+                                       augmentations=self.augmentations if phase == 'train' else 'reg')
             for phase in ['train', 'val']}
         self.dataloaders = {phase: torch.utils.data.DataLoader(self.channel_dataset[phase])
                             for phase in ['train', 'val']}
@@ -237,11 +240,10 @@ class Trainer(object):
         :return: ber, fer, iterations vectors
         """
         ser_total = np.zeros(len(self.snr_range['val']))
-        with torch.no_grad():
-            print(f'Starts evaluation at gamma {self.gamma}')
-            start = time()
-            ser_total += self.gamma_eval(self.gamma)
-            print(f'Done. time: {time() - start}, ser: {ser_total}')
+        print(f'Starts evaluation at gamma {self.gamma}')
+        start = time()
+        ser_total += self.gamma_eval(self.gamma)
+        print(f'Done. time: {time() - start}, ser: {ser_total}')
         return ser_total
 
     def eval_by_word(self, snr: float, gamma: float) -> Union[float, np.ndarray]:
@@ -265,11 +267,8 @@ class Trainer(object):
                 torch.Tensor(encode(transmitted_word.int().cpu().numpy(), self.n_symbols).reshape(1, -1)).to(device) for
                 transmitted_word in buffer_tx], dim=0)
 
-        ratios = []
-        total_class_bits_diff = 0
-        for count, (transmitted_word, received_word, h) in enumerate(zip(transmitted_words, received_words, hs)):
+        for count, (transmitted_word, received_word, _) in enumerate(zip(transmitted_words, received_words, hs)):
             transmitted_word, received_word = transmitted_word.reshape(1, -1), received_word.reshape(1, -1)
-            h = h.reshape(1, -1)
             # detect
             detected_word = self.detector(received_word, 'val', snr, gamma, count)
             # decode
@@ -286,21 +285,6 @@ class Trainer(object):
             total_ser += ser
             ser_by_word[count] = ser
 
-            ## added code to measure class diff
-            DESIRED_CLASS = 0
-            classes = self.channel_dataset['val'].map_bits_to_class(received_word, h)
-            only_class_mask = classes == DESIRED_CLASS
-            total_elements = only_class_mask.nelement()
-            total_augmented_elements = torch.sum(torch.abs(only_class_mask))
-            ratios.append(total_augmented_elements / total_elements)
-            true_encoded_word = torch.Tensor(
-                encode(transmitted_word.int().cpu().numpy(), self.n_symbols).reshape(1, -1)).to(
-                device)
-            class_bits_diff = torch.sum(torch.abs(true_encoded_word[only_class_mask] -
-                                                  detected_word[only_class_mask]))
-            total_class_bits_diff += class_bits_diff.item()
-            print(f'Total bits: {total_class_bits_diff}, Ratio: {(sum(ratios) / len(ratios)).item()}')
-
             # save the encoded word in the buffer
             if ser <= self.ser_thresh:
                 buffer_rx = torch.cat([buffer_rx, received_word])
@@ -316,26 +300,7 @@ class Trainer(object):
 
             if self.self_supervised and ser <= self.ser_thresh:
                 # use last word inserted in the buffer for training
-                N_REPEATS = 100
-                if self.augmentations == 'reg':
-                    self.online_training(buffer_tx[-1].reshape(1, -1), buffer_rx[-1].reshape(1, -1))
-                elif self.augmentations == 'ref':
-                    tiled_tx = buffer_tx[-1].reshape(1, -1).repeat(N_REPEATS, 1)
-                    tiled_rx = buffer_rx[-1].reshape(1, -1).repeat(N_REPEATS, 1)
-                    self.online_training(tiled_tx, tiled_rx)
-                elif self.augmentations == 'aug':
-                    tiled_tx = buffer_tx[-1].reshape(1, -1).repeat(N_REPEATS, 1)
-                    tiled_rx = buffer_rx[-1].reshape(1, -1).repeat(N_REPEATS, 1)
-                    tiled_classes = self.channel_dataset['val'].map_bits_to_class(tiled_rx, h)
-                    only_class_mask = tiled_classes == DESIRED_CLASS
-
-                    # only add noise to class
-                    w_noise = self.aug_noise_var * torch.randn_like(tiled_rx)
-                    augmented_rx = tiled_rx.clone()
-                    # augmented_rx[only_class_mask] -= w_noise[only_class_mask]
-                    augmented_rx -= w_noise
-
-                    self.online_training(tiled_tx, augmented_rx)
+                self.online_training(buffer_tx[-1].reshape(1, -1), buffer_rx[-1].reshape(1, -1))
 
             if (count + 1) % 10 == 0:
                 print(f'Self-supervised: {count + 1}/{transmitted_words.shape[0]}, SER {total_ser / (count + 1)}')
@@ -393,6 +358,9 @@ class Trainer(object):
                 elif self.augmentations == 'aug2':
                     current_loss = 0
                     current_loss = self.augment2(N_REPEATS, current_loss, received_words, transmitted_words, h)
+                elif self.augmentations == 'aug3':
+                    current_loss = 0
+                    current_loss = self.augment3(N_REPEATS, current_loss, received_words, transmitted_words, h, snr)
 
                 # evaluate performance
                 ser = self.single_eval_at_point(snr, self.gamma)
@@ -440,7 +408,6 @@ class Trainer(object):
         for i in range(self.train_frames * self.subframes_in_frame_phase['train'] * N_REPEATS):
             def augment_pair(received_word, transmitted_word):
                 #### first calculate estimated noise pattern
-
                 c = transmitted_word.cpu().numpy()
                 # add zero bits
                 padded_c = np.concatenate([c, np.zeros([c.shape[0], self.memory_length])], axis=1)
@@ -465,6 +432,49 @@ class Trainer(object):
                 new_trans_conv = np.dot(h[:, ::-1], blockwise_s)
                 new_received_word = new_trans_conv + w_est
                 return torch.Tensor(new_received_word).to(device), new_transmitted_word
+
+            received_word, transmitted_word = augment_pair(received_words[i].reshape(1, -1),
+                                                           transmitted_words[i].reshape(1, -1))
+
+            # pass through detector
+            soft_estimation = self.detector(received_word, 'train')
+            current_loss += self.run_train_loop(soft_estimation, transmitted_word)
+        return current_loss
+
+    def augment3(self, N_REPEATS, current_loss, received_words, transmitted_words, h, snr):
+        # run training loops
+        current_loss = 0
+
+        c = np.array(list(itertools.product(range(2), repeat=self.memory_length))).T
+        s = BPSKModulator.modulate(c)
+        flipped_s = np.fliplr(s)
+        classes_centers = ISIAWGNChannel.create_class_mapping(s=flipped_s, h=h.cpu().numpy())
+        classes_centers.sort()
+
+        for i in range(self.train_frames * self.subframes_in_frame_phase['train'] * N_REPEATS):
+            def augment_pair(received_word, transmitted_word):
+                #### first calculate estimated noise pattern
+                gt_states = calculate_states(self.memory_length, transmitted_word)
+                noise_samples = torch.empty_like(received_word)
+                for state in torch.unique(gt_states):
+                    state_ind = (gt_states == state)
+                    state_received = received_word[0, state_ind]
+                    center_est = torch.mean(state_received)
+                    center_est = classes_centers[15 - state]
+                    noise_samples[0, state_ind] = state_received - center_est
+                centers_vector = received_word - noise_samples
+                std = torch.sqrt(torch.sum(noise_samples ** 2) / (torch.numel(noise_samples) - 1))
+                snr_value = 10 ** (snr / 10)
+                w = (snr_value ** (-0.5)) * torch.randn_like(received_word)
+
+                binary_mask = torch.rand_like(transmitted_word) >= 0.5
+                new_transmitted_word = (transmitted_word + binary_mask) % 2
+                new_gt_states = calculate_states(self.memory_length, new_transmitted_word)
+                new_received_word = torch.empty_like(received_word)
+                for state in torch.unique(new_gt_states):
+                    state_ind = (new_gt_states == state)
+                    new_received_word[0, state_ind] = classes_centers[15 - state] + noise_samples[0, state_ind]
+                return new_received_word, new_transmitted_word
 
             received_word, transmitted_word = augment_pair(received_words[i].reshape(1, -1),
                                                            transmitted_words[i].reshape(1, -1))

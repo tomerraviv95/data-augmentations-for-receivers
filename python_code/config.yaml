@@ -1,5 +1,5 @@
 # general
-run_name: 'old_version' #'augmented_version'
+run_name: 'mmm' #'augmented_version'
 
 # coding parameters
 use_ecc: False # Either run with/without ECC. values: [True, False].
@@ -22,17 +22,17 @@ val_frames: 5 # number of validation frames. values: int.
 val_SNR_start: 12 # start SNR value. values: float.
 val_SNR_end: 12 # end SNR value. values: float.
 val_SNR_step: 1 # step. values: float.
-eval_mode: 'by_word' # Type of evaluation. Per snr - 'aggregated', Per block - 'by_word'.
+eval_mode: 'aggregated' # Type of evaluation. Per snr - 'aggregated', Per block - 'by_word'.
 
 # train hyperparameters
 train_block_length: 80 # coherence block time. values: int.
 train_frames: 1 # number of train frames. values: int.
-train_minibatch_num: 50 # number of minibatches. values: int.
+train_minibatch_num: 25 # number of minibatches. values: int.
 train_minibatch_size: 32 # the size of a given minibatch. values: int.
 train_SNR_start: 12 # start SNR value. values: float.
 train_SNR_end: 12 # end SNR value. values: float.
 train_SNR_step: 1 # step. values: float.
-lr: 0.001 # learning rate. values: float.
+lr: 0.0005 # learning rate. values: float.
 loss_type: 'CrossEntropy' # Loss type. values: 'BCE','CrossEntropy','MSE'.
 optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
 
@@ -47,5 +47,5 @@ ser_thresh: 0.02 # ser threshold. values: float.
 buffer_empty: True # Whether to start evaluation from an empty buffer or a randomly initialized one.
 
 # augmentations
-augmentations: 'aug2' # ['reg','ref','aug']
+augmentations: 'reg' # ['reg','ref','aug']
 aug_noise_var: 0.04

@@ -1,3 +1,4 @@
+from python_code.plotters.plotter_config import COLORS_DICT, LINESTYLES_DICT, MARKERS_DICT
 from python_code.utils.python_utils import load_pkl, save_pkl
 from python_code.vnet.trainer import Trainer
 from dir_definitions import FIGURES_DIR, PLOTS_DIR
@@ -10,22 +11,6 @@ import math
 
 MIN_BER_COEF = 0.2
 MARKER_EVERY = 10
-
-COLORS_DICT = {'ViterbiNet': 'green',
-               'ViterbiNet-Augmentations': 'red',
-               'ViterbiNet-Reference': 'blue'}
-
-MARKERS_DICT = {'ViterbiNet': 'o',
-                'ViterbiNet-Augmentations': 'd',
-                'ViterbiNet-Reference': 'x'}
-
-LINESTYLES_DICT = {'ViterbiNet': 'solid',
-                   'ViterbiNet-Augmentations': 'dotted',
-                   'ViterbiNet-Reference': 'solid'}
-
-METHOD_NAMES = {'ViterbiNet': 'Online ViterbiNet',
-                'ViterbiNet-Augmentations': 'ViterbiNet - Augmentations',
-                'ViterbiNet-Reference': 'ViterbiNet - Reference'}
 
 
 def get_ser_plot(dec: Trainer, run_over: bool, method_name: str):
@@ -69,7 +54,7 @@ def plot_all_curves_aggregated(all_curves: List[Tuple[np.ndarray, np.ndarray, st
         key = method_name.split(' ')[0]
         agg_ser = (np.cumsum(ser) / np.arange(1, len(ser) + 1))
         plt.plot(block_range, agg_ser,
-                 label=METHOD_NAMES[key],
+                 label=method_name,
                  color=COLORS_DICT[key], marker=MARKERS_DICT[key],
                  linestyle=LINESTYLES_DICT[key], linewidth=2.2, markevery=MARKER_EVERY)
         min_block_ind = block_range[0] if block_range[0] < min_block_ind else min_block_ind
@@ -88,7 +73,7 @@ def plot_all_curves_aggregated(all_curves: List[Tuple[np.ndarray, np.ndarray, st
     plt.show()
 
 
-def plot_schematic(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], snr_values: List[float]):
+def plot_by_snrs(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], snr_values: List[float]):
     # path for the saved figure
     current_day_time = datetime.datetime.now()
     folder_name = f'{current_day_time.month}-{current_day_time.day}-{current_day_time.hour}-{current_day_time.minute}'
@@ -103,13 +88,13 @@ def plot_schematic(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], snr_val
 
     for method_name in names:
         mean_sers = []
-        key = method_name.split(' ')[0]
-        for ser, cur_name, val_block_length, n_symbol in all_curves:
+        key = method_name
+        for ser, cur_name, _ in all_curves:
             mean_ser = np.mean(ser)
             if cur_name != method_name:
                 continue
             mean_sers.append(mean_ser)
-        plt.plot(snr_values, mean_sers, label=METHOD_NAMES[key],
+        plt.plot(snr_values, mean_sers, label=method_name,
                  color=COLORS_DICT[key], marker=MARKERS_DICT[key],
                  linestyle=LINESTYLES_DICT[key], linewidth=2.2)
 

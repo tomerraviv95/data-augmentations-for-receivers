@@ -33,7 +33,8 @@ class ChannelModelDataset(Dataset):
                  n_symbols: int,
                  fading_in_channel: bool,
                  fading_in_decoder: bool,
-                 phase: str):
+                 phase: str,
+                 augmentations: str):
 
         self.block_length = block_length
         self.transmission_length = transmission_length
@@ -49,6 +50,7 @@ class ChannelModelDataset(Dataset):
         self.fading_in_decoder = fading_in_decoder
         self.n_symbols = n_symbols
         self.phase = phase
+        self.augmentations = augmentations
         if use_ecc and self.phase == 'val':
             self.encoding = lambda b: encode(b, self.n_symbols)
         else:
@@ -66,8 +68,11 @@ class ChannelModelDataset(Dataset):
             index = 0  # random.randint(0, 1e6)
         # accumulate words until reaches desired number
         # generate word
-        b = self.word_rand_gen.randint(0, 2, size=(1, self.block_length))
+        if self.augmentations != 'reg':
+            b = self.word_rand_gen.randint(0, 2, size=(1, self.block_length))
         while y_full.shape[0] < self.words:
+            if self.augmentations == 'reg':
+                b = self.word_rand_gen.randint(0, 2, size=(1, self.block_length))
             # encoding - errors correction code
             c = self.encoding(b).reshape(1, -1)
             # add zero bits
