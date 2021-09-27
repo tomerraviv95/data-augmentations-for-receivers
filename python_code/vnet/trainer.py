@@ -99,6 +99,12 @@ class Trainer(object):
         self.initialize_dataloaders()
         self.initialize_detector()
 
+        # augmentations repeats
+        if self.augmentations == 'reg':
+            self.n_repeats = 1
+        else:
+            self.n_repeats = 100
+
     def initialize_by_kwargs(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -346,26 +352,15 @@ class Trainer(object):
             # draw words
             transmitted_words, received_words, h = self.channel_dataset['train'].__getitem__(snr_list=[snr],
                                                                                              gamma=self.gamma)
-            N_REPEATS = 100
-            transmitted_words = transmitted_words.repeat(N_REPEATS, 1)
-            received_words = received_words.repeat(N_REPEATS, 1)
+
+            transmitted_words = transmitted_words.repeat(self.n_repeats, 1)
+            received_words = received_words.repeat(self.n_repeats, 1)
             for minibatch in range(1, self.train_minibatch_num + 1):
-                if self.augmentations == 'reg':
-                    # run training loops
-                    current_loss = 0
-                    for i in range(self.train_frames * self.subframes_in_frame_phase['train'] * N_REPEATS):
-                        # pass through detector
-                        soft_estimation = self.detector(received_words[i].reshape(1, -1), 'train')
-                        current_loss += self.run_train_loop(soft_estimation, transmitted_words[i].reshape(1, -1))
-                elif self.augmentations == 'aug1':
-                    current_loss = 0
-                    current_loss = self.augment1(N_REPEATS, current_loss, received_words, transmitted_words, h, snr)
-                elif self.augmentations == 'aug2':
-                    current_loss = 0
-                    current_loss = self.augment2(N_REPEATS, current_loss, received_words, transmitted_words, h)
-                elif self.augmentations == 'aug3':
-                    current_loss = 0
-                    current_loss = self.augment3(N_REPEATS, current_loss, received_words, transmitted_words, h, snr)
+                # run training loops
+                current_loss = 0
+                for i in range(self.train_frames * self.subframes_in_frame_phase['train'] * self.n_repeats):
+                    current_loss = self.augmentations_wrapper(current_loss, h, i, received_words, snr,
+                                                              transmitted_words)
 
                 # evaluate performance
                 ser = self.single_eval_at_point(snr, self.gamma)
@@ -378,112 +373,87 @@ class Trainer(object):
             print(f'best ser - {best_ser}')
             print('*' * 50)
 
-    def augment1(self, N_REPEATS, current_loss, received_words, transmitted_words, h, snr):
-        # run training loops
-        current_loss = 0
-        for i in range(self.train_frames * self.subframes_in_frame_phase['train'] * N_REPEATS):
-            def augment_pair1(received_word, transmitted_word):
-                binary_mask = torch.rand_like(transmitted_word) >= 0.5
-                new_transmitted_word = (transmitted_word + binary_mask) % 2
-                # encoding - errors correction code
-                c = new_transmitted_word.cpu().numpy()
-                # add zero bits
-                padded_c = np.concatenate([c, np.zeros([c.shape[0], self.memory_length])], axis=1)
-                # from channel dataset
-                s = BPSKModulator.modulate(padded_c)
-                # transmit through noisy channel
-                new_received_word = ISIAWGNChannel.transmit(s=s, random=np.random.RandomState(),
-                                                            h=h.cpu().numpy(),
-                                                            snr=snr,
-                                                            memory_length=self.memory_length)
-                return torch.Tensor(new_received_word).to(device), new_transmitted_word
-
-            received_word, transmitted_word = augment_pair1(received_words[i].reshape(1, -1),
-                                                            transmitted_words[i].reshape(1, -1))
-
-            # pass through detector
-            soft_estimation = self.detector(received_word, 'train')
-            current_loss += self.run_train_loop(soft_estimation, transmitted_word)
+    def augmentations_wrapper(self, current_loss, h, i, received_words, snr, transmitted_words):
+        if self.augmentations == 'reg':
+            x = received_words[i].reshape(1, -1)
+            y = transmitted_words[i].reshape(1, -1)
+        elif self.augmentations == 'aug1':
+            x, y = self.augment_pair1(transmitted_words[i].reshape(1, -1), h,
+                                      snr)
+        elif self.augmentations == 'aug2':
+            x, y = self.augment_pair2(received_words, transmitted_words, h)
+        elif self.augmentations == 'aug3':
+            x, y = self.augment_pair3(received_words, transmitted_words)
+        else:
+            raise ValueError("No sucn augmentation method!!!")
+        # pass through detector
+        soft_estimation = self.detector(x, 'train')
+        current_loss += self.run_train_loop(soft_estimation, y)
         return current_loss
 
-    def augment2(self, N_REPEATS, current_loss, received_words, transmitted_words, h):
+    def augment_pair1(self, transmitted_word, h, snr):
+        binary_mask = torch.rand_like(transmitted_word) >= 0.5
+        new_transmitted_word = (transmitted_word + binary_mask) % 2
+        # encoding - errors correction code
+        c = new_transmitted_word.cpu().numpy()
+        # add zero bits
+        padded_c = np.concatenate([c, np.zeros([c.shape[0], self.memory_length])], axis=1)
+        # from channel dataset
+        s = BPSKModulator.modulate(padded_c)
+        # transmit through noisy channel
+        new_received_word = ISIAWGNChannel.transmit(s=s, random=np.random.RandomState(),
+                                                    h=h.cpu().numpy(),
+                                                    snr=snr,
+                                                    memory_length=self.memory_length)
+        return torch.Tensor(new_received_word).to(device), new_transmitted_word
+
+    def augment_pair2(self, received_word, transmitted_word, h):
         h = h.cpu().numpy()
-        # run training loops
-        current_loss = 0
-        for i in range(self.train_frames * self.subframes_in_frame_phase['train'] * N_REPEATS):
-            def augment_pair(received_word, transmitted_word):
-                #### first calculate estimated noise pattern
-                c = transmitted_word.cpu().numpy()
-                # add zero bits
-                padded_c = np.concatenate([c, np.zeros([c.shape[0], self.memory_length])], axis=1)
-                # from channel dataset
-                s = BPSKModulator.modulate(padded_c)
-                blockwise_s = np.concatenate([s[:, i:-self.memory_length + i] for i in range(self.memory_length)],
-                                             axis=0)
-                trans_conv = np.dot(h[:, ::-1], blockwise_s)
-                w_est = received_word.cpu().numpy() - trans_conv
+        #### first calculate estimated noise pattern
+        c = transmitted_word.cpu().numpy()
+        # add zero bits
+        padded_c = np.concatenate([c, np.zeros([c.shape[0], self.memory_length])], axis=1)
+        # from channel dataset
+        s = BPSKModulator.modulate(padded_c)
+        blockwise_s = np.concatenate([s[:, i:-self.memory_length + i] for i in range(self.memory_length)],
+                                     axis=0)
+        trans_conv = np.dot(h[:, ::-1], blockwise_s)
+        w_est = received_word.cpu().numpy() - trans_conv
 
-                ### use the noise and add it to a new word
-                binary_mask = torch.rand_like(transmitted_word) >= 0.5
-                new_transmitted_word = (transmitted_word + binary_mask) % 2
-                # encoding - errors correction code
-                c = new_transmitted_word.cpu().numpy()
-                # add zero bits
-                padded_c = np.concatenate([c, np.zeros([c.shape[0], self.memory_length])], axis=1)
-                # from channel dataset
-                s = BPSKModulator.modulate(padded_c)
-                blockwise_s = np.concatenate([s[:, i:-self.memory_length + i] for i in range(self.memory_length)],
-                                             axis=0)
-                new_trans_conv = np.dot(h[:, ::-1], blockwise_s)
-                new_received_word = new_trans_conv + w_est
-                return torch.Tensor(new_received_word).to(device), new_transmitted_word
+        ### use the noise and add it to a new word
+        binary_mask = torch.rand_like(transmitted_word) >= 0.5
+        new_transmitted_word = (transmitted_word + binary_mask) % 2
+        # encoding - errors correction code
+        c = new_transmitted_word.cpu().numpy()
+        # add zero bits
+        padded_c = np.concatenate([c, np.zeros([c.shape[0], self.memory_length])], axis=1)
+        # from channel dataset
+        s = BPSKModulator.modulate(padded_c)
+        blockwise_s = np.concatenate([s[:, i:-self.memory_length + i] for i in range(self.memory_length)],
+                                     axis=0)
+        new_trans_conv = np.dot(h[:, ::-1], blockwise_s)
+        new_received_word = new_trans_conv + w_est
+        return torch.Tensor(new_received_word).to(device), new_transmitted_word
 
-            received_word, transmitted_word = augment_pair(received_words[i].reshape(1, -1),
-                                                           transmitted_words[i].reshape(1, -1))
+    def augment_pair3(self, received_word, transmitted_word):
+        #### first calculate estimated noise pattern
+        gt_states = calculate_states(self.memory_length, transmitted_word)
+        noise_samples = torch.empty_like(received_word)
+        centers_est = torch.empty(2 ** self.memory_length).to(device)
+        for state in torch.unique(gt_states):
+            state_ind = (gt_states == state)
+            state_received = received_word[0, state_ind]
+            centers_est[state] = torch.mean(state_received)
+            # centers_est[state] = classes_centers[15 - state]
+            noise_samples[0, state_ind] = state_received - centers_est[state]
 
-            # pass through detector
-            soft_estimation = self.detector(received_word, 'train')
-            current_loss += self.run_train_loop(soft_estimation, transmitted_word)
-        return current_loss
-
-    def augment3(self, N_REPEATS, current_loss, received_words, transmitted_words, h, snr):
-        # run training loops
-        current_loss = 0
-
-        c = np.array(list(itertools.product(range(2), repeat=self.memory_length))).T
-        s = BPSKModulator.modulate(c)
-        flipped_s = np.fliplr(s)
-        classes_centers = ISIAWGNChannel.create_class_mapping(s=flipped_s, h=h.cpu().numpy())
-        classes_centers.sort()
-
-        for i in range(self.train_frames * self.subframes_in_frame_phase['train'] * N_REPEATS):
-            def augment_pair(received_word, transmitted_word):
-                #### first calculate estimated noise pattern
-                gt_states = calculate_states(self.memory_length, transmitted_word)
-                noise_samples = torch.empty_like(received_word)
-                centers_est = torch.empty(2 ** self.memory_length).to(device)
-                for state in torch.unique(gt_states):
-                    state_ind = (gt_states == state)
-                    state_received = received_word[0, state_ind]
-                    centers_est[state] = torch.mean(state_received)
-                    # centers_est[state] = classes_centers[15 - state]
-                    noise_samples[0, state_ind] = state_received - centers_est[state]
-
-                new_transmitted_word = torch.rand_like(transmitted_word) >= 0.5
-                new_gt_states = calculate_states(self.memory_length, new_transmitted_word)
-                new_received_word = torch.empty_like(received_word)
-                for state in torch.unique(new_gt_states):
-                    state_ind = (new_gt_states == state)
-                    new_received_word[0, state_ind] = centers_est[state] + noise_samples[0, state_ind]
-                return new_received_word, new_transmitted_word
-
-            received_word, transmitted_word = augment_pair(received_words[i].reshape(1, -1),
-                                                           transmitted_words[i].reshape(1, -1))
-
-            # pass through detector
-            soft_estimation = self.detector(received_word, 'train')
-            current_loss += self.run_train_loop(soft_estimation, transmitted_word)
-        return current_loss
+        new_transmitted_word = torch.rand_like(transmitted_word) >= 0.5
+        new_gt_states = calculate_states(self.memory_length, new_transmitted_word)
+        new_received_word = torch.empty_like(received_word)
+        for state in torch.unique(new_gt_states):
+            state_ind = (new_gt_states == state)
+            new_received_word[0, state_ind] = centers_est[state] + noise_samples[0, state_ind]
+        return new_received_word, new_transmitted_word
 
     def run_train_loop(self, soft_estimation: torch.Tensor, transmitted_words: torch.Tensor):
         # calculate loss

@@ -53,6 +53,24 @@ class VNETTrainer(Trainer):
         :param tx: transmitted word
         :param rx: received word
         """
+
+        if self.augmentations == 'reg':
+            # run training loops
+            current_loss = 0
+            for i in range(self.train_frames * self.subframes_in_frame_phase['train'] * N_REPEATS):
+                # pass through detector
+                soft_estimation = self.detector(received_words[i].reshape(1, -1), 'train')
+                current_loss += self.run_train_loop(soft_estimation, transmitted_words[i].reshape(1, -1))
+        elif self.augmentations == 'aug1':
+            current_loss = 0
+            current_loss = self.augment1(N_REPEATS, current_loss, received_words, transmitted_words, h, snr)
+        elif self.augmentations == 'aug2':
+            current_loss = 0
+            current_loss = self.augment2(N_REPEATS, current_loss, received_words, transmitted_words, h)
+        elif self.augmentations == 'aug3':
+            current_loss = 0
+            current_loss = self.augment3(N_REPEATS, current_loss, received_words, transmitted_words)
+
         # run training loops
         for i in range(self.self_supervised_iterations):
             # calculate soft values
