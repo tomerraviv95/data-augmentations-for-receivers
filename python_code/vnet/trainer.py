@@ -375,8 +375,7 @@ class Trainer(object):
 
     def augmentations_wrapper(self, current_loss, h, i, received_words, snr, transmitted_words):
         if self.augmentations == 'reg':
-            x = received_words[i].reshape(1, -1)
-            y = transmitted_words[i].reshape(1, -1)
+            x, y = received_words[i].reshape(1, -1), transmitted_words[i].reshape(1, -1)
         elif self.augmentations == 'aug1':
             x, y = self.augment_pair1(transmitted_words[i].reshape(1, -1), h,
                                       snr)
