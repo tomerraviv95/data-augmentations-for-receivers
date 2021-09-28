@@ -46,36 +46,16 @@ class VNETTrainer(Trainer):
         loss = self.criterion(input=input_batch, target=gt_states_batch)
         return loss
 
-    def online_training(self, tx: torch.Tensor, rx: torch.Tensor):
+    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h, snr):
         """
         Online training module - train on the detected/re-encoded word only if the ser is below some threshold.
         Start from the saved meta-trained weights.
         :param tx: transmitted word
         :param rx: received word
         """
-
-        if self.augmentations == 'reg':
-            # run training loops
-            current_loss = 0
-            for i in range(self.train_frames * self.subframes_in_frame_phase['train'] * N_REPEATS):
-                # pass through detector
-                soft_estimation = self.detector(received_words[i].reshape(1, -1), 'train')
-                current_loss += self.run_train_loop(soft_estimation, transmitted_words[i].reshape(1, -1))
-        elif self.augmentations == 'aug1':
-            current_loss = 0
-            current_loss = self.augment1(N_REPEATS, current_loss, received_words, transmitted_words, h, snr)
-        elif self.augmentations == 'aug2':
-            current_loss = 0
-            current_loss = self.augment2(N_REPEATS, current_loss, received_words, transmitted_words, h)
-        elif self.augmentations == 'aug3':
-            current_loss = 0
-            current_loss = self.augment3(N_REPEATS, current_loss, received_words, transmitted_words)
-
-        # run training loops
+        loss = 0
         for i in range(self.self_supervised_iterations):
-            # calculate soft values
-            soft_estimation = self.detector(rx, 'train')
-            self.run_train_loop(soft_estimation=soft_estimation, transmitted_words=tx)
+            loss += self.augmentations_wrapper(rx, tx, h, snr)
 
 
 if __name__ == '__main__':

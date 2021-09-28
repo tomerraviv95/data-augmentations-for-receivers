@@ -13,14 +13,14 @@ noisy_est_var: 0 # Adds noise to channel taps, with variance set by this value a
 fading_in_channel: True # If the channel is fading/non-fading. values: [True, False]
 fading_in_decoder: False # If the decoder is aware of the fading, only used in the full-CSI VA. values: [True, False]
 fading_taps_type: 1 # Fading type, see paper for more details. The synthetic train channel is 1, the test is 2.
-subframes_in_frame: 5 # Number of subframes in each frame. The first subframe is a known pilot, all other are data.
+subframes_in_frame: 10 # Number of subframes in each frame. The first subframe is a known pilot, all other are data.
 gamma: 0.5 # gamma value for time decay fading
 
 # validation hyperparameters
-val_block_length: 1784 # coherence block time. values: int.
-val_frames: 10 # number of validation frames. values: int.
-val_SNR_start: 10 # start SNR value. values: float.
-val_SNR_end: 10 # end SNR value. values: float.
+val_block_length: 80 # coherence block time. values: int.
+val_frames: 5 # number of validation frames. values: int.
+val_SNR_start: 12 # start SNR value. values: float.
+val_SNR_end: 12 # end SNR value. values: float.
 val_SNR_step: 1 # step. values: float.
 eval_mode: 'by_word' # Type of evaluation. Per snr - 'aggregated', Per block - 'by_word'.
 
@@ -47,5 +47,4 @@ ser_thresh: 0.02 # ser threshold. values: float.
 buffer_empty: True # Whether to start evaluation from an empty buffer or a randomly initialized one.
 
 # augmentations
-augmentations: 'aug3' # ['reg','ref','aug']
-aug_noise_var: 0.04
+augmentations: 'aug3' # ['reg','aug1','aug2','aug3']

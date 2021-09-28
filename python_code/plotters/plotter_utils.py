@@ -34,8 +34,7 @@ def get_ser_plot(dec: Trainer, run_over: bool, method_name: str):
     return ser_total
 
 
-def plot_all_curves_aggregated(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], val_block_length: int,
-                               snr: float):
+def plot_all_curves_aggregated(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], snr: float):
     # path for the saved figure
     current_day_time = datetime.datetime.now()
     folder_name = f'{current_day_time.month}-{current_day_time.day}-{current_day_time.hour}-{current_day_time.minute}'
@@ -47,16 +46,15 @@ def plot_all_curves_aggregated(all_curves: List[Tuple[np.ndarray, np.ndarray, st
     min_ber = math.inf
     max_block_ind = -math.inf
     # iterate all curves, plot each one
-    for i, (ser, method_name, _, _) in enumerate(all_curves):
+    for i, (ser, method_name, _) in enumerate(all_curves):
         print(method_name)
         print(len(ser))
         block_range = np.arange(1, len(ser) + 1)
-        key = method_name.split(' ')[0]
         agg_ser = (np.cumsum(ser) / np.arange(1, len(ser) + 1))
         plt.plot(block_range, agg_ser,
                  label=method_name,
-                 color=COLORS_DICT[key], marker=MARKERS_DICT[key],
-                 linestyle=LINESTYLES_DICT[key], linewidth=2.2, markevery=MARKER_EVERY)
+                 color=COLORS_DICT[method_name], marker=MARKERS_DICT[method_name],
+                 linestyle=LINESTYLES_DICT[method_name], linewidth=2.2, markevery=MARKER_EVERY)
         min_block_ind = block_range[0] if block_range[0] < min_block_ind else min_block_ind
         max_block_ind = block_range[-1] if block_range[-1] > max_block_ind else max_block_ind
         min_ber = agg_ser[-1] if agg_ser[-1] < min_ber else min_ber
@@ -67,8 +65,7 @@ def plot_all_curves_aggregated(all_curves: List[Tuple[np.ndarray, np.ndarray, st
     plt.yscale('log')
     plt.legend(loc='upper left', prop={'size': 15})
     plt.savefig(
-        os.path.join(FIGURES_DIR, folder_name,
-                     f'SNR {snr}, Block Length {val_block_length}.png'),
+        os.path.join(FIGURES_DIR, folder_name, f'coded_ber_versus_block_index - SNR {snr}.png'),
         bbox_inches='tight')
     plt.show()
 
@@ -88,15 +85,14 @@ def plot_by_snrs(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], snr_value
 
     for method_name in names:
         mean_sers = []
-        key = method_name
         for ser, cur_name, _ in all_curves:
             mean_ser = np.mean(ser)
             if cur_name != method_name:
                 continue
             mean_sers.append(mean_ser)
         plt.plot(snr_values, mean_sers, label=method_name,
-                 color=COLORS_DICT[key], marker=MARKERS_DICT[key],
-                 linestyle=LINESTYLES_DICT[key], linewidth=2.2)
+                 color=COLORS_DICT[method_name], marker=MARKERS_DICT[method_name],
+                 linestyle=LINESTYLES_DICT[method_name], linewidth=2.2)
 
     plt.xticks(snr_values, snr_values)
     plt.xlabel('SNR [dB]')
@@ -104,6 +100,6 @@ def plot_by_snrs(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], snr_value
     plt.grid(which='both', ls='--')
     plt.legend(loc='lower left', prop={'size': 15})
     plt.yscale('log')
-    plt.savefig(os.path.join(FIGURES_DIR, folder_name, f'coded_ber_versus_block_length.png'),
+    plt.savefig(os.path.join(FIGURES_DIR, folder_name, f'coded_ber_versus_snrs.png'),
                 bbox_inches='tight')
     plt.show()

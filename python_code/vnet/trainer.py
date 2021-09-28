@@ -75,7 +75,6 @@ class Trainer(object):
 
         # augmentations
         self.augmentations = None
-        self.aug_noise_var = None
 
         # seed
         self.noise_seed = None
@@ -99,11 +98,8 @@ class Trainer(object):
         self.initialize_dataloaders()
         self.initialize_detector()
 
-        # augmentations repeats
-        if self.augmentations == 'reg':
-            self.n_repeats = 1
-        else:
-            self.n_repeats = 100
+        # regular training / augmentations repeats
+        self.n_repeats = 100
 
     def initialize_by_kwargs(self, **kwargs):
         for k, v in kwargs.items():
@@ -211,7 +207,7 @@ class Trainer(object):
         self.dataloaders = {phase: torch.utils.data.DataLoader(self.channel_dataset[phase])
                             for phase in ['train', 'val']}
 
-    def online_training(self, tx: torch.Tensor, rx: torch.Tensor):
+    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h, snr):
         pass
 
     def single_eval_at_point(self, snr: float, gamma: float) -> float:
@@ -278,7 +274,7 @@ class Trainer(object):
                 torch.Tensor(encode(transmitted_word.int().cpu().numpy(), self.n_symbols).reshape(1, -1)).to(device) for
                 transmitted_word in buffer_tx], dim=0)
 
-        for count, (transmitted_word, received_word, _) in enumerate(zip(transmitted_words, received_words, hs)):
+        for count, (transmitted_word, received_word, h) in enumerate(zip(transmitted_words, received_words, hs)):
             transmitted_word, received_word = transmitted_word.reshape(1, -1), received_word.reshape(1, -1)
             # detect
             detected_word = self.detector(received_word, 'val', snr, gamma, count)
@@ -311,7 +307,7 @@ class Trainer(object):
 
             if self.self_supervised and ser <= self.ser_thresh:
                 # use last word inserted in the buffer for training
-                self.online_training(buffer_tx[-1].reshape(1, -1), buffer_rx[-1].reshape(1, -1))
+                self.online_training(buffer_tx[-1].reshape(1, -1), buffer_rx[-1].reshape(1, -1), h.reshape(1, -1), snr)
 
             if (count + 1) % 10 == 0:
                 print(f'Self-supervised: {count + 1}/{transmitted_words.shape[0]}, SER {total_ser / (count + 1)}')
@@ -357,37 +353,38 @@ class Trainer(object):
             received_words = received_words.repeat(self.n_repeats, 1)
             for minibatch in range(1, self.train_minibatch_num + 1):
                 # run training loops
-                current_loss = 0
+                loss = 0
                 for i in range(self.train_frames * self.subframes_in_frame_phase['train'] * self.n_repeats):
-                    current_loss = self.augmentations_wrapper(current_loss, h, i, received_words, snr,
-                                                              transmitted_words)
+                    current_received = received_words[i].reshape(1, -1)
+                    current_transmitted = transmitted_words[i].reshape(1, -1)
+                    loss += self.augmentations_wrapper(current_received, current_transmitted, h, snr)
 
                 # evaluate performance
                 ser = self.single_eval_at_point(snr, self.gamma)
-                print(f'Minibatch {minibatch}, ser - {ser}, loss {current_loss}')
+                print(f'Minibatch {minibatch}, ser - {ser}, loss {loss}')
                 # save best weights
                 if ser < best_ser:
-                    self.save_weights(current_loss, snr, self.gamma)
+                    self.save_weights(loss, snr, self.gamma)
                     best_ser = ser
 
             print(f'best ser - {best_ser}')
             print('*' * 50)
 
-    def augmentations_wrapper(self, current_loss, h, i, received_words, snr, transmitted_words):
+    def augmentations_wrapper(self, current_received, current_transmitted, h, snr):
         if self.augmentations == 'reg':
-            x, y = received_words[i].reshape(1, -1), transmitted_words[i].reshape(1, -1)
+            x, y = current_received, current_transmitted.reshape(1, -1)
         elif self.augmentations == 'aug1':
-            x, y = self.augment_pair1(transmitted_words[i].reshape(1, -1), h,
+            x, y = self.augment_pair1(current_transmitted.reshape(1, -1), h,
                                       snr)
         elif self.augmentations == 'aug2':
-            x, y = self.augment_pair2(received_words, transmitted_words, h)
+            x, y = self.augment_pair2(current_received, current_transmitted, h)
         elif self.augmentations == 'aug3':
-            x, y = self.augment_pair3(received_words, transmitted_words)
+            x, y = self.augment_pair3(current_received, current_transmitted)
         else:
             raise ValueError("No sucn augmentation method!!!")
         # pass through detector
         soft_estimation = self.detector(x, 'train')
-        current_loss += self.run_train_loop(soft_estimation, y)
+        current_loss = self.run_train_loop(soft_estimation, y)
         return current_loss
 
     def augment_pair1(self, transmitted_word, h, snr):

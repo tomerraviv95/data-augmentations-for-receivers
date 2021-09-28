@@ -44,14 +44,14 @@ def add_aug3_viterbinet(all_curves, snr, train_block_length):
 
 
 if __name__ == '__main__':
-    run_over = True
-    plot_by_block = False  # either plot by block, or by SNR
+    run_over = False
+    plot_by_block = True  # either plot by block, or by SNR
 
     if plot_by_block:
-        snr_values = [(6)]
+        snr_values = [12]
     else:
         snr_values = [10, 11, 12, 13, 14, 15, 16]
-    train_block_length = 1000
+    train_block_length = 120
     all_curves = []
 
     for snr in snr_values:
@@ -61,9 +61,8 @@ if __name__ == '__main__':
         add_aug2_viterbinet(all_curves, snr, train_block_length)
         add_aug3_viterbinet(all_curves, snr, train_block_length)
 
-        # if plot_by_block:
-        #     plot_all_curves_aggregated(all_curves, snr)
+        if plot_by_block:
+            plot_all_curves_aggregated(all_curves, snr)
 
-    print(plot_by_block)
     if not plot_by_block:
         plot_by_snrs(all_curves, snr_values)
