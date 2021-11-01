@@ -1,6 +1,7 @@
 from python_code.channel.channel_estimation import estimate_channel
 from python_code.channel.modulator import BPSKModulator
 from python_code.channel.channel import ISIAWGNChannel
+from python_code.utils.config_singleton import Config
 from python_code.ecc.rs_main import encode
 from torch.utils.data import Dataset
 import matplotlib.pyplot as plt
@@ -13,46 +14,23 @@ import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+conf = Config()
+
 
 class ChannelModelDataset(Dataset):
     """
     Dataset object for the channel. Used in training and evaluation to draw minibatches of channel words and transmitted
     """
 
-    def __init__(self, channel_type: str,
-                 block_length: int,
-                 transmission_length: int,
-                 words: int,
-                 memory_length: int,
-                 channel_coefficients: str,
-                 random: mtrand.RandomState,
-                 word_rand_gen: mtrand.RandomState,
-                 noisy_est_var: float,
-                 fading_taps_type: int,
-                 use_ecc: bool,
-                 n_symbols: int,
-                 fading_in_channel: bool,
-                 fading_in_decoder: bool,
-                 phase: str,
-                 augmentations: str):
+    def __init__(self, block_length: int, transmission_length: int, words: int,
+                 use_ecc: bool, phase: str):
 
+        self.phase = phase
         self.block_length = block_length
         self.transmission_length = transmission_length
-        self.word_rand_gen = word_rand_gen if word_rand_gen else np.random.RandomState()
-        self.random = random if random else np.random.RandomState()
-        self.channel_type = channel_type
         self.words = words
-        self.memory_length = memory_length
-        self.channel_coefficients = channel_coefficients
-        self.noisy_est_var = noisy_est_var
-        self.fading_taps_type = fading_taps_type
-        self.fading_in_channel = fading_in_channel
-        self.fading_in_decoder = fading_in_decoder
-        self.n_symbols = n_symbols
-        self.phase = phase
-        self.augmentations = augmentations
         if use_ecc and self.phase == 'val':
-            self.encoding = lambda b: encode(b, self.n_symbols)
+            self.encoding = lambda b: encode(b, conf.n_symbols)
         else:
             self.encoding = lambda b: b
 
@@ -61,29 +39,26 @@ class ChannelModelDataset(Dataset):
             database = []
         b_full = np.empty((0, self.block_length))
         y_full = np.empty((0, self.transmission_length))
-        h_full = np.empty((0, self.memory_length))
+        h_full = np.empty((0, conf.memory_length))
         if self.phase == 'val':
             index = 0
         else:
             index = 0  # random.randint(0, 1e6)
         # accumulate words until reaches desired number
         # generate word
-        if self.augmentations != 'reg':
-            b = self.word_rand_gen.randint(0, 2, size=(1, self.block_length))
+        if conf.augmentations != 'reg':
+            b = np.random.randint(0, 2, size=(1, self.block_length))
         while y_full.shape[0] < self.words:
-            if self.augmentations == 'reg':
-                b = self.word_rand_gen.randint(0, 2, size=(1, self.block_length))
+            if conf.augmentations == 'reg':
+                b = np.random.randint(0, 2, size=(1, self.block_length))
             # encoding - errors correction code
             c = self.encoding(b).reshape(1, -1)
             # add zero bits
-            padded_c = np.concatenate([c, np.zeros([c.shape[0], self.memory_length])], axis=1)
+            padded_c = np.concatenate([c, np.zeros([c.shape[0], conf.memory_length])], axis=1)
             # transmit
-            h = estimate_channel(self.memory_length, gamma,
-                                 channel_coefficients=self.channel_coefficients,
-                                 noisy_est_var=self.noisy_est_var,
-                                 fading=self.fading_in_channel if self.phase == 'val' else self.fading_in_decoder,
-                                 index=index,
-                                 fading_taps_type=self.fading_taps_type)
+            h = estimate_channel(conf.memory_length, gamma,
+                                 fading=conf.fading_in_channel if self.phase == 'val' else conf.fading_in_decoder,
+                                 index=index)
             y = self.transmit(padded_c, h, snr)
             # accumulate
             b_full = np.concatenate((b_full, b), axis=0)
@@ -94,18 +69,18 @@ class ChannelModelDataset(Dataset):
         database.append((b_full, y_full, h_full))
 
     def transmit(self, c: np.ndarray, h: np.ndarray, snr: float):
-        if self.channel_type == 'ISI_AWGN':
+        if conf.channel_type == 'ISI_AWGN':
             # modulation
             s = BPSKModulator.modulate(c)
             # transmit through noisy channel
-            y = ISIAWGNChannel.transmit(s=s, random=self.random, h=h, snr=snr, memory_length=self.memory_length)
+            y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=conf.memory_length)
         else:
             raise Exception('No such channel defined!!!')
         return y
 
     def create_class_mapping(self, h):
-        if self.channel_type == 'ISI_AWGN':
-            c = np.array(list(itertools.product(range(2), repeat=self.memory_length))).T
+        if conf.channel_type == 'ISI_AWGN':
+            c = np.array(list(itertools.product(range(2), repeat=conf.memory_length))).T
             s = BPSKModulator.modulate(c)
             flipped_s = np.fliplr(s)
             classes_centers = ISIAWGNChannel.create_class_mapping(s=flipped_s, h=h.cpu().numpy())
@@ -137,40 +112,30 @@ class ChannelModelDataset(Dataset):
 
 
 if __name__ == '__main__':
-    memory_length = 4
-    gamma = 0.5
-    noisy_est_var = 0
-    channel_coefficients = 'time_decay'  # 'time_decay','cost2100','from_pkl'
-    fading_taps_type = 1
-    fading = False
-    channel_length = 2
-    channel_dataset = ChannelModelDataset('ISI_AWGN',
-                                          1784,
-                                          1784,
-                                          channel_length,
-                                          memory_length,
-                                          channel_coefficients,
-                                          np.random.RandomState(10),
-                                          np.random.RandomState(10),
-                                          noisy_est_var,
-                                          fading_taps_type,
-                                          False,
-                                          memory_length,
-                                          fading,
-                                          False,
-                                          'val',
-                                          'reg')
 
-    total_h = np.empty([channel_length, memory_length])
-    total_centers = np.empty([channel_length, 2 ** memory_length])
-    for index in range(channel_length):
-        total_h[index] = estimate_channel(memory_length, gamma, channel_coefficients, noisy_est_var,
-                                          fading, index, fading_taps_type)
-        h = torch.Tensor(total_h[index].reshape(1, -1))
-        total_centers[index] = channel_dataset.create_class_mapping(h).cpu().numpy()
+    phase = 'val'  # 'train','val'
 
-    for i in range(memory_length):
-        plt.plot(total_h[:, i], label=f'Tap {i}')
+    frames_per_phase = {'train': conf.train_frames, 'val': conf.val_frames}
+    subframes_in_frame_phase = {'train': 1, 'val': conf.subframes_in_frame}
+    block_lengths = {'train': conf.train_block_length, 'val': conf.val_block_length}
+    channel_coefficients = {'train': 'time_decay', 'val': conf.channel_coefficients}
+    transmission_lengths = {
+        'train': conf.train_block_length,
+        'val': conf.val_block_length if not conf.use_ecc else conf.val_block_length + 8 * conf.n_symbols}
+    channel_dataset_dict = {
+        phase: ChannelModelDataset(
+            block_length=block_lengths[phase],
+            transmission_length=transmission_lengths[phase],
+            words=frames_per_phase[phase] * subframes_in_frame_phase[phase],
+            use_ecc=conf.use_ecc,
+            phase=phase,
+        )
+        for phase in ['train', 'val']}
+
+    channel_dataset = channel_dataset_dict[phase]
+    _, _, hs = channel_dataset.__getitem__(snr_list=[conf.train_SNR_start], gamma=conf.gamma)
+    for i in range(conf.memory_length):
+        plt.plot(hs[:, i].cpu().numpy(), label=f'Tap {i}')
     plt.xlabel('Block Index')
     plt.ylabel('Magnitude')
     plt.legend(loc='upper left')

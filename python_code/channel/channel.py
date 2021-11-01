@@ -11,7 +11,7 @@ W_SIGMA = 1
 
 class ISIAWGNChannel:
     @staticmethod
-    def transmit(s: np.ndarray, random: mtrand.RandomState, snr: float, h: np.ndarray,
+    def transmit(s: np.ndarray, snr: float, h: np.ndarray,
                  memory_length: int) -> np.ndarray:
         """
         The AWGN Channel
@@ -30,7 +30,7 @@ class ISIAWGNChannel:
 
         [row, col] = conv.shape
 
-        w = (snr_value ** (-0.5)) * random.normal(0, W_SIGMA, (row, col))
+        w = (snr_value ** (-0.5)) * np.random.normal(0, W_SIGMA, (row, col))
 
         y = conv + w
 

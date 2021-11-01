@@ -1,3 +1,4 @@
+from python_code.utils.config_singleton import Config
 from python_code.vnet.vnet_detector import VNETDetector
 from python_code.utils.trellis_utils import calculate_states
 from python_code.vnet.trainer import Trainer
@@ -5,27 +6,24 @@ import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+conf = Config()
+
 
 class VNETTrainer(Trainer):
     """
     Trainer for the ViterbiNet model.
     """
 
-    def __init__(self, config_path=None, **kwargs):
-        super().__init__(config_path, **kwargs)
+    def __init__(self):
+        super().__init__()
 
     def __name__(self):
-        if self.noisy_est_var > 0:
-            channel_state = ', CSI uncertainty'
-        else:
-            channel_state = ', perfect CSI'
-
-        if not self.self_supervised:
+        if not conf.self_supervised:
             training = ', untrained'
         else:
             training = ''
 
-        return 'ViterbiNet' + channel_state + training
+        return 'ViterbiNet' + conf.channel_state + training
 
     def initialize_detector(self):
         """
@@ -41,7 +39,7 @@ class VNETTrainer(Trainer):
         :param transmitted_words: [1, transmission_length]
         :return: loss value
         """
-        gt_states = calculate_states(self.memory_length, transmitted_words)
+        gt_states = calculate_states(conf.memory_length, transmitted_words)
         gt_states_batch, input_batch = self.select_batch(gt_states, soft_estimation.reshape(-1, self.n_states))
         loss = self.criterion(input=input_batch, target=gt_states_batch)
         return loss
@@ -54,10 +52,11 @@ class VNETTrainer(Trainer):
         :param rx: received word
         """
         loss = 0
-        for i in range(self.self_supervised_iterations):
+        for i in range(conf.self_supervised_iterations):
             loss += self.augmentations_wrapper(rx, tx, h, snr)
 
 
 if __name__ == '__main__':
     dec = VNETTrainer()
-    dec.train()
+    # dec.train()
+    dec.evaluate()
