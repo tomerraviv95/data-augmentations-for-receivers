@@ -1,4 +1,5 @@
 from python_code.plotters.plotter_config import COLORS_DICT, LINESTYLES_DICT, MARKERS_DICT
+from python_code.utils.config_singleton import Config
 from python_code.utils.python_utils import load_pkl, save_pkl
 from python_code.vnet.trainer import Trainer
 from dir_definitions import FIGURES_DIR, PLOTS_DIR
@@ -9,6 +10,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
+conf = Config()
+
 MIN_BER_COEF = 0.2
 MARKER_EVERY = 10
 
@@ -18,7 +21,7 @@ def get_ser_plot(dec: Trainer, run_over: bool, method_name: str):
     # set the path to saved plot results for a single method (so we do not need to run anew each time)
     if not os.path.exists(PLOTS_DIR):
         os.makedirs(PLOTS_DIR)
-    file_name = '_'.join([method_name, str(dec.channel_type)])
+    file_name = '_'.join([method_name, str(conf.channel_type)])
     plots_path = os.path.join(PLOTS_DIR, file_name + '.pkl')
     print(plots_path)
     # if plot already exists, and the run_over flag is false - load the saved plot
@@ -28,6 +31,7 @@ def get_ser_plot(dec: Trainer, run_over: bool, method_name: str):
     else:
         # otherwise - run again
         print("calculating fresh")
+        dec.train()
         ser_total = dec.evaluate()
         save_pkl(plots_path, ser_total)
     print(np.mean(ser_total))
@@ -70,7 +74,7 @@ def plot_all_curves_aggregated(all_curves: List[Tuple[np.ndarray, np.ndarray, st
     plt.show()
 
 
-def plot_by_snrs(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], snr_values: List[float]):
+def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_name, values: List[float]):
     # path for the saved figure
     current_day_time = datetime.datetime.now()
     folder_name = f'{current_day_time.month}-{current_day_time.day}-{current_day_time.hour}-{current_day_time.minute}'
@@ -85,17 +89,17 @@ def plot_by_snrs(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], snr_value
 
     for method_name in names:
         mean_sers = []
-        for ser, cur_name, _ in all_curves:
+        for ser, cur_name in all_curves:
             mean_ser = np.mean(ser)
             if cur_name != method_name:
                 continue
             mean_sers.append(mean_ser)
-        plt.plot(snr_values, mean_sers, label=method_name,
+        plt.plot(values, mean_sers, label=method_name,
                  color=COLORS_DICT[method_name], marker=MARKERS_DICT[method_name],
                  linestyle=LINESTYLES_DICT[method_name], linewidth=2.2)
 
-    plt.xticks(snr_values, snr_values)
-    plt.xlabel('SNR [dB]')
+    plt.xticks(values, values)
+    plt.xlabel(field_name)
     plt.ylabel('Coded BER')
     plt.grid(which='both', ls='--')
     plt.legend(loc='lower left', prop={'size': 15})

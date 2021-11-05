@@ -1,4 +1,8 @@
-from python_code.plotters.plotter_utils import get_ser_plot, plot_all_curves_aggregated, plot_by_snrs
+import os
+
+from dir_definitions import CONFIG_RUNS_DIR
+from python_code.plotters.plotter_utils import get_ser_plot, plot_all_curves_aggregated, plot_by_values
+from python_code.utils.config_singleton import Config
 from python_code.vnet.vnet_trainer import VNETTrainer
 from python_code.plotters.plotter_config import *
 
@@ -33,36 +37,51 @@ def add_aug2_viterbinet(all_curves, snr, train_block_length):
     all_curves.append((ser, method_name, snr))
 
 
-def add_aug3_viterbinet(all_curves, snr, train_block_length):
-    dec = VNETTrainer(run_name=f'aug3_{train_block_length}', augmentations='aug3', train_SNR_start=snr,
-                      train_SNR_end=snr, val_SNR_start=snr,
-                      val_SNR_end=snr, train_block_length=train_block_length)
+def add_aug3_viterbinet(all_curves, params_dict, run_over):
     method_name = f'ViterbiNet - Aug. 3'
+    conf = Config()
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'augmentation3.yaml'))
+    name = ''
+    for field, value in params_dict.items():
+        conf.set_value(field, value)
+        name += f'_{field}_{value}'
+    conf.set_value('run_name', method_name + name)
+    dec = VNETTrainer()
     print(method_name)
-    ser = get_ser_plot(dec, run_over=run_over, method_name=method_name + '_' + str(snr) + '_' + str(train_block_length))
-    all_curves.append((ser, method_name, snr))
+    ser = get_ser_plot(dec, run_over=run_over,
+                       method_name=method_name + name)
+    all_curves.append((ser, method_name))
 
 
 if __name__ == '__main__':
     run_over = False
-    plot_by_block = True  # either plot by block, or by SNR
+    plot_by_block = False  # either plot by block, or by SNR
 
     if plot_by_block:
         snr_values = [12]
     else:
-        snr_values = [10, 11, 12, 13, 14, 15, 16]
-    train_block_length = 120
+        params_dicts = [{'n_repeats': 100},
+                        {'n_repeats': 200},
+                        {'n_repeats': 300},
+                        {'n_repeats': 400},
+                        {'n_repeats': 500},
+                        {'n_repeats': 600},
+                        {'n_repeats': 700},
+                        {'n_repeats': 800},
+                        {'n_repeats': 900},
+                        {'n_repeats': 1000}]
     all_curves = []
 
-    for snr in snr_values:
-        print(snr)
-        add_reg_viterbinet(all_curves, snr, train_block_length)
-        add_aug1_viterbinet(all_curves, snr, train_block_length)
-        add_aug2_viterbinet(all_curves, snr, train_block_length)
-        add_aug3_viterbinet(all_curves, snr, train_block_length)
+    for params_dict in params_dicts:
+        print(params_dict)
+        # add_reg_viterbinet(all_curves, snr, train_block_length)
+        # add_aug1_viterbinet(all_curves, snr, train_block_length)
+        # add_aug2_viterbinet(all_curves, snr, train_block_length)
+        add_aug3_viterbinet(all_curves, params_dict, run_over)
 
-        if plot_by_block:
-            plot_all_curves_aggregated(all_curves, snr)
+        # if plot_by_block:
+        #     plot_all_curves_aggregated(all_curves, snr)
 
     if not plot_by_block:
-        plot_by_snrs(all_curves, snr_values)
+        plot_by_values(all_curves, list(params_dicts[0].keys())[0],
+                       [list(params_dict.values())[0] for params_dict in params_dicts])

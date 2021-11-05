@@ -1,12 +1,8 @@
 from time import time
 from typing import Tuple, Union
-
 from python_code.augmentations.augmenter import Augmenter
-from python_code.channel.channel import ISIAWGNChannel
 from python_code.utils.config_singleton import Config
-from python_code.utils.trellis_utils import calculate_states
 from python_code.channel.channel_dataset import ChannelModelDataset
-from python_code.channel.modulator import BPSKModulator
 from python_code.ecc.rs_main import decode, encode
 from python_code.utils.metrics import calculate_error_rates
 from dir_definitions import WEIGHTS_DIR
@@ -38,9 +34,6 @@ class Trainer(object):
         self.initialize_weights_dir()
         self.initialize_dataloaders()
         self.initialize_detector()
-
-        # regular training / augmentations repeats
-        self.n_repeats = 600
 
     def initialize_weights_dir(self):
         """
@@ -122,7 +115,6 @@ class Trainer(object):
         """
         print(f'Starts evaluation at gamma {conf.gamma}')
         start = time()
-        self.load_weights(conf.val_snr, conf.gamma)
         # draw words of given gamma for all snrs
         transmitted_words, received_words, _ = self.channel_dataset['val'].__getitem__(snr_list=[conf.val_snr],
                                                                                        gamma=conf.gamma)
@@ -205,11 +197,11 @@ class Trainer(object):
         """
         Evaluation either happens in a point aggregation way, or in a word-by-word fashion
         """
+        self.load_weights(conf.val_snr, conf.gamma)
         # eval with training
         if conf.eval_mode == 'by_word':
             if not conf.use_ecc:
                 raise ValueError('Only supports ecc')
-            self.load_weights(conf.val_snr, conf.gamma)
             return self.eval_by_word(conf.val_snr, conf.gamma)
         else:
             return self.evaluate_at_point()
@@ -226,18 +218,17 @@ class Trainer(object):
         # initialize weights and loss
         self.initialize_detector()
         self.deep_learning_setup()
-        best_ser = math.inf
 
         # draw words
         transmitted_words, received_words, h = self.channel_dataset['train'].__getitem__(snr_list=[conf.train_snr],
                                                                                          gamma=conf.gamma)
 
-        transmitted_words = transmitted_words.repeat(self.n_repeats, 1)
-        received_words = received_words.repeat(self.n_repeats, 1)
+        transmitted_words = transmitted_words.repeat(conf.n_repeats, 1)
+        received_words = received_words.repeat(conf.n_repeats, 1)
         for minibatch in range(1, conf.train_minibatch_num + 1):
             # run training loops
             loss = 0
-            for i in range(conf.train_frames * self.n_repeats):
+            for i in range(conf.train_frames * conf.n_repeats):
                 current_received = received_words[i].reshape(1, -1)
                 current_transmitted = transmitted_words[i].reshape(1, -1)
                 x, y = Augmenter.augment(current_received, current_transmitted, conf.augmentations, h, conf.train_snr)
@@ -246,15 +237,12 @@ class Trainer(object):
                 current_loss = self.run_train_loop(soft_estimation, y)
                 loss += current_loss
 
+            print(f'Minibatch {minibatch}, loss {loss}')
             # evaluate performance
-            ser = self.evaluate_at_point()
-            print(f'Minibatch {minibatch}, ser - {ser}, loss {loss}')
+            self.evaluate_at_point()
             # save best weights
-            if ser < best_ser:
-                self.save_weights(loss, conf.train_snr, conf.gamma)
-                best_ser = ser
+            self.save_weights(loss, conf.train_snr, conf.gamma)
 
-        print(f'best ser - {best_ser}')
         print('*' * 50)
 
     def run_train_loop(self, soft_estimation: torch.Tensor, transmitted_words: torch.Tensor):
@@ -287,10 +275,8 @@ class Trainer(object):
             weights_path = os.path.join(self.weights_dir, f'snr_{snr}_gamma_{gamma}.pt')
             if not os.path.isfile(weights_path):
                 # if weights do not exist, train on the synthetic channel. Then validate on the test channel.
-                self.fading_taps_type = 1
                 os.makedirs(self.weights_dir, exist_ok=True)
                 self.train()
-                self.fading_taps_type = 2
             checkpoint = torch.load(weights_path)
             try:
                 self.detector.load_state_dict(checkpoint['model_state_dict'])
