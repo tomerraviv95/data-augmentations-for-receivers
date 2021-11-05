@@ -54,9 +54,3 @@ class VNETTrainer(Trainer):
         loss = 0
         for i in range(conf.self_supervised_iterations):
             loss += self.augmentations_wrapper(rx, tx, h, snr)
-
-
-if __name__ == '__main__':
-    dec = VNETTrainer()
-    # dec.train()
-    dec.evaluate()
