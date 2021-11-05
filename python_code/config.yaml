@@ -1,5 +1,5 @@
 # general
-run_name: 'aug3_100' #'augmented_version'
+run_name: 'aug4_100' #'augmented_version'
 
 # coding parameters
 use_ecc: False # Either run with/without ECC. values: [True, False].
@@ -36,5 +36,5 @@ ser_thresh: 0.02 # ser threshold. values: float.
 buffer_empty: True # Whether to start evaluation from an empty buffer or a randomly initialized one.
 
 # augmentations
-augmentations: 'aug3' # ['reg','aug1','aug2','aug3']
+augmentations: 'aug4' # ['reg','aug1','aug2','aug3']
 n_repeats: 100

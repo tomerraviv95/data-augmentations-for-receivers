@@ -1,6 +1,7 @@
 from python_code.augmentations.augmenter1 import Augmenter1
 from python_code.augmentations.augmenter2 import Augmenter2
 from python_code.augmentations.augmenter3 import Augmenter3
+from python_code.augmentations.augmenter4 import Augmenter4
 
 
 class Augmenter:
@@ -14,6 +15,8 @@ class Augmenter:
             x, y = Augmenter2.augment(current_received, current_transmitted.reshape(1, -1), h)
         elif type == 'aug3':
             x, y = Augmenter3.augment(current_received, current_transmitted)
+        elif type == 'aug4':
+            x, y = Augmenter4.augment(current_received, current_transmitted)
         else:
             raise ValueError("No sucn augmentation method!!!")
 
