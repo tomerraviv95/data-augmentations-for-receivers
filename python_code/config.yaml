@@ -1,5 +1,5 @@
 # general
-run_name: 'aug1' #'augmented_version'
+run_name: 'aug3_100' #'augmented_version'
 
 # coding parameters
 use_ecc: False # Either run with/without ECC. values: [True, False].
@@ -25,7 +25,7 @@ train_frames: 1 # number of train frames. values: int.
 train_minibatch_num: 30 # number of minibatches. values: int.
 train_minibatch_size: 32 # the size of a given minibatch. values: int.
 train_snr: 12 # start SNR value. values: float.
-lr: 0.0005 # learning rate. values: float.
+lr: 0.001 # learning rate. values: float.
 loss_type: 'CrossEntropy' # Loss type. values: 'BCE','CrossEntropy','MSE'.
 optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
 
@@ -36,5 +36,5 @@ ser_thresh: 0.02 # ser threshold. values: float.
 buffer_empty: True # Whether to start evaluation from an empty buffer or a randomly initialized one.
 
 # augmentations
-augmentations: 'aug1' # ['reg','aug1','aug2','aug3']
-n_repeats: 500
+augmentations: 'aug3' # ['reg','aug1','aug2','aug3']
+n_repeats: 100

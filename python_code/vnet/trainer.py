@@ -218,7 +218,7 @@ class Trainer(object):
         # initialize weights and loss
         self.initialize_detector()
         self.deep_learning_setup()
-
+        best_ser = np.inf
         # draw words
         transmitted_words, received_words, h = self.channel_dataset['train'].__getitem__(snr_list=[conf.train_snr],
                                                                                          gamma=conf.gamma)
@@ -239,9 +239,11 @@ class Trainer(object):
 
             print(f'Minibatch {minibatch}, loss {loss}')
             # evaluate performance
-            self.evaluate_at_point()
+            ser = self.evaluate_at_point()
             # save best weights
-            self.save_weights(loss, conf.train_snr, conf.gamma)
+            if ser < best_ser:
+                self.save_weights(loss, conf.train_snr, conf.gamma)
+                best_ser = ser
 
         print('*' * 50)
 
