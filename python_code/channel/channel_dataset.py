@@ -116,7 +116,6 @@ if __name__ == '__main__':
     phase = 'val'  # 'train','val'
 
     frames_per_phase = {'train': conf.train_frames, 'val': conf.val_frames}
-    subframes_in_frame_phase = {'train': 1, 'val': conf.subframes_in_frame}
     block_lengths = {'train': conf.train_block_length, 'val': conf.val_block_length}
     channel_coefficients = {'train': 'time_decay', 'val': conf.channel_coefficients}
     transmission_lengths = {
@@ -126,7 +125,7 @@ if __name__ == '__main__':
         phase: ChannelModelDataset(
             block_length=block_lengths[phase],
             transmission_length=transmission_lengths[phase],
-            words=frames_per_phase[phase] * subframes_in_frame_phase[phase],
+            words=frames_per_phase[phase],
             use_ecc=conf.use_ecc,
             phase=phase,
         )

@@ -1,5 +1,5 @@
 # general
-run_name: 'test_aug3_80_inc' #'augmented_version'
+run_name: 'aug1' #'augmented_version'
 
 # coding parameters
 use_ecc: False # Either run with/without ECC. values: [True, False].
@@ -11,13 +11,12 @@ channel_type: 'ISI_AWGN' # Channel type. For this paper, we only used ISI AWGN. 
 channel_coefficients: 'time_decay' # The taps of the channel. values: ['time_decay','cost2100','from_pkl'].
 fading_in_channel: True # If the channel is fading/non-fading. values: [True, False]
 fading_in_decoder: False # If the decoder is aware of the fading, only used in the full-CSI VA. values: [True, False]
-subframes_in_frame: 20 # Number of subframes in each frame. The first subframe is a known pilot, all other are data.
 gamma: 0.5 # gamma value for time decay fading
 
 # validation hyperparameters
 val_block_length: 1784 # coherence block time. values: int.
-val_frames: 10 # number of validation frames. values: int.
-val_snr: 14 # start SNR value. values: float.
+val_frames: 50 # number of validation frames. values: int.
+val_snr: 12 # start SNR value. values: float.
 eval_mode: 'aggregated' # Type of evaluation. Per snr - 'aggregated', Per block - 'by_word'.
 
 # train hyperparameters
@@ -25,7 +24,7 @@ train_block_length: 80 # coherence block time. values: int.
 train_frames: 1 # number of train frames. values: int.
 train_minibatch_num: 30 # number of minibatches. values: int.
 train_minibatch_size: 32 # the size of a given minibatch. values: int.
-train_snr: 14 # start SNR value. values: float.
+train_snr: 12 # start SNR value. values: float.
 lr: 0.0005 # learning rate. values: float.
 loss_type: 'CrossEntropy' # Loss type. values: 'BCE','CrossEntropy','MSE'.
 optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
@@ -37,5 +36,5 @@ ser_thresh: 0.02 # ser threshold. values: float.
 buffer_empty: True # Whether to start evaluation from an empty buffer or a randomly initialized one.
 
 # augmentations
-augmentations: 'aug3' # ['reg','aug1','aug2','aug3']
-n_repeats: 100
+augmentations: 'aug1' # ['reg','aug1','aug2','aug3']
+n_repeats: 500
