@@ -1,5 +1,5 @@
 # general
-run_name: 'aug4_100' #'augmented_version'
+run_name: 'aug4_500' #'augmented_version'
 
 # coding parameters
 use_ecc: False # Either run with/without ECC. values: [True, False].

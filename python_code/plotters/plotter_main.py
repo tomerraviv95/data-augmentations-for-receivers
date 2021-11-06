@@ -60,16 +60,16 @@ if __name__ == '__main__':
     if plot_by_block:
         snr_values = [12]
     else:
-        params_dicts = [{'n_repeats': 100},
-                        {'n_repeats': 200},
-                        {'n_repeats': 300},
-                        {'n_repeats': 400},
-                        {'n_repeats': 500},
-                        {'n_repeats': 600},
-                        {'n_repeats': 700},
-                        {'n_repeats': 800},
-                        {'n_repeats': 900},
-                        {'n_repeats': 1000}]
+        params_dicts = [{'n_repeats': 10},
+                        {'n_repeats': 20},
+                        {'n_repeats': 30},
+                        {'n_repeats': 40},
+                        {'n_repeats': 50},
+                        {'n_repeats': 60},
+                        {'n_repeats': 70},
+                        {'n_repeats': 80},
+                        {'n_repeats': 90},
+                        {'n_repeats': 100}]
     all_curves = []
 
     for params_dict in params_dicts:
