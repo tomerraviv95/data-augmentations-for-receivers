@@ -60,7 +60,8 @@ if __name__ == '__main__':
     if plot_by_block:
         snr_values = [12]
     else:
-        params_dicts = [{'n_repeats': 10},
+        params_dicts = [{'n_repeats': 1},
+                        {'n_repeats': 10},
                         {'n_repeats': 20},
                         {'n_repeats': 30},
                         {'n_repeats': 40},

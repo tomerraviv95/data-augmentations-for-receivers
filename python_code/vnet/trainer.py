@@ -23,6 +23,8 @@ torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 np.random.seed(0)
 
+N_UPDATES = 100
+
 
 class Trainer(object):
     def __init__(self):
@@ -228,7 +230,8 @@ class Trainer(object):
         for minibatch in range(1, conf.train_minibatch_num + 1):
             # run training loops
             loss = 0
-            for i in range(conf.train_frames * conf.n_repeats):
+            for upd_idx in range(N_UPDATES):
+                i = upd_idx % received_words.shape[0]  # the shape of received - (conf.train_frames * conf.n_repeats)
                 current_received = received_words[i].reshape(1, -1)
                 current_transmitted = transmitted_words[i].reshape(1, -1)
                 x, y = Augmenter.augment(current_received, current_transmitted, conf.augmentations, h, conf.train_snr)
