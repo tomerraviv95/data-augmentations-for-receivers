@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from python_code.channel.channel import ISIAWGNChannel
 from python_code.channel.modulator import BPSKModulator
 from python_code.utils.config_singleton import Config
@@ -11,7 +13,7 @@ conf = Config()
 
 class Augmenter1:
     @staticmethod
-    def augment(transmitted_word, h, snr):
+    def augment(transmitted_word: torch.Tensor, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
         binary_mask = torch.rand_like(transmitted_word) >= 0.5
         new_transmitted_word = (transmitted_word + binary_mask) % 2
         # encoding - errors correction code

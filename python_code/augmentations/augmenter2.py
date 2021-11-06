@@ -1,6 +1,6 @@
-from python_code.channel.channel import ISIAWGNChannel
 from python_code.channel.modulator import BPSKModulator
 from python_code.utils.config_singleton import Config
+from typing import Tuple
 import numpy as np
 import torch
 
@@ -11,7 +11,8 @@ conf = Config()
 
 class Augmenter2:
     @staticmethod
-    def augment(received_word, transmitted_word, h):
+    def augment(received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor) -> Tuple[
+        torch.Tensor, torch.Tensor]:
         h = h.cpu().numpy()
         #### first calculate estimated noise pattern
         c = transmitted_word.cpu().numpy()

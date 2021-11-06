@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from python_code.utils.trellis_utils import calculate_states
 from python_code.utils.config_singleton import Config
 import torch
@@ -9,7 +11,7 @@ conf = Config()
 
 class Augmenter3:
     @staticmethod
-    def augment(received_word, transmitted_word):
+    def augment(received_word:torch.Tensor, transmitted_word:torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         #### first calculate estimated noise pattern
         gt_states = calculate_states(conf.memory_length, transmitted_word)
         noise_samples = torch.empty_like(received_word)

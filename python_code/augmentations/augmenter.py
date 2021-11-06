@@ -1,11 +1,14 @@
 from python_code.augmentations.augmenter1 import Augmenter1
 from python_code.augmentations.augmenter2 import Augmenter2
 from python_code.augmentations.augmenter3 import Augmenter3
+from typing import Tuple
+import torch
 
 
 class Augmenter:
     @staticmethod
-    def augment(current_received, current_transmitted, type, h, snr):
+    def augment(current_received: torch.Tensor, current_transmitted: torch.Tensor, type: str, h: torch.Tensor,
+                snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
         if type == 'reg':
             x, y = current_received, current_transmitted.reshape(1, -1)
         elif type == 'aug1':
