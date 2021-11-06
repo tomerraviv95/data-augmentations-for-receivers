@@ -12,6 +12,8 @@ import numpy as np
 import itertools
 import torch
 
+from python_code.utils.trellis_utils import calculate_states
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
@@ -44,11 +46,16 @@ class ChannelModelDataset(Dataset):
             index = 0
         else:
             index = 0  # random.randint(0, 1e6)
-        # accumulate words until reaches desired number
-        # generate word
+
+        # if in training, and in augmentations mode, generate a pilot word that has all states
         if conf.augmentations != 'reg':
             b = np.random.randint(0, 2, size=(1, self.block_length))
+        # if self.phase == 'train' and conf.augmentations != 'reg':
+        #     b = self.draw_until_pilot_has_all_states()
+        # accumulate words until reaches desired number
         while y_full.shape[0] < self.words:
+            # if conf.augmentations == 'reg' or self.phase == 'val':
+            #     b = np.random.randint(0, 2, size=(1, self.block_length))
             if conf.augmentations == 'reg':
                 b = np.random.randint(0, 2, size=(1, self.block_length))
             # encoding - errors correction code
@@ -68,6 +75,13 @@ class ChannelModelDataset(Dataset):
 
         database.append((b_full, y_full, h_full))
 
+    def draw_until_pilot_has_all_states(self):
+        while True:
+            b = np.random.randint(0, 2, size=(1, self.block_length))
+            gt_states = calculate_states(conf.memory_length, torch.Tensor(b).to(device))
+            if len(torch.unique(gt_states)) == 2 ** conf.memory_length:
+                return b
+
     def transmit(self, c: np.ndarray, h: np.ndarray, snr: float):
         if conf.channel_type == 'ISI_AWGN':
             # modulation
@@ -77,25 +91,6 @@ class ChannelModelDataset(Dataset):
         else:
             raise Exception('No such channel defined!!!')
         return y
-
-    def create_class_mapping(self, h):
-        if conf.channel_type == 'ISI_AWGN':
-            c = np.array(list(itertools.product(range(2), repeat=conf.memory_length))).T
-            s = BPSKModulator.modulate(c)
-            flipped_s = np.fliplr(s)
-            classes_centers = ISIAWGNChannel.create_class_mapping(s=flipped_s, h=h.cpu().numpy())
-            classes_centers.sort()
-        else:
-            raise Exception('No such channel defined!!!')
-        return torch.Tensor(classes_centers).to(device)
-
-    def map_bits_to_class(self, word, h):
-        ## needs doc
-        centers = self.create_class_mapping(h)
-        decision_boundaries = centers.diff() / 2 + centers[:-1]
-        tiled_word = torch.repeat_interleave(word.unsqueeze(-1), repeats=15, dim=-1)
-        classes = torch.sum((decision_boundaries <= tiled_word), dim=-1)
-        return classes
 
     def __getitem__(self, snr_list: List[float], gamma: float) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         database = []

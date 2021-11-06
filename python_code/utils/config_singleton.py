@@ -18,11 +18,11 @@ class Config:
 
     def load_config(self, config_path):
         with open(config_path) as f:
-            self.config = yaml.load(f, Loader=yaml.FullLoader)
+            config = yaml.load(f, Loader=yaml.FullLoader)
             self.config_name = os.path.splitext(os.path.basename(config_path))[0]
 
         # set attribute of Trainer with every config item
-        for k, v in self.config.items():
+        for k, v in config.items():
             setattr(self, k, v)
 
     def set_value(self, field, value):

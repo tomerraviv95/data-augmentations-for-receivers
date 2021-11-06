@@ -37,4 +37,4 @@ buffer_empty: True # Whether to start evaluation from an empty buffer or a rando
 
 # augmentations
 augmentations: 'aug3' # ['reg','aug1','aug2','aug3']
-n_repeats: 1
+n_repeats: 500

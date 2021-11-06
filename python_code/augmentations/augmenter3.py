@@ -14,7 +14,6 @@ class Augmenter3:
     def augment(received_word:torch.Tensor, transmitted_word:torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         #### first calculate estimated noise pattern
         gt_states = calculate_states(conf.memory_length, transmitted_word)
-        noise_samples = torch.empty_like(received_word)
         centers_est = torch.empty(2 ** conf.memory_length).to(device)
         std_est = torch.empty(2 ** conf.memory_length).to(device)
         for state in torch.unique(gt_states):
@@ -22,7 +21,6 @@ class Augmenter3:
             state_received = received_word[0, state_ind]
             centers_est[state] = torch.mean(state_received)
             std_est[state] = torch.std(state_received)
-            noise_samples[0, state_ind] = state_received - centers_est[state]
 
         new_transmitted_word = torch.rand_like(transmitted_word) >= 0.5
         new_gt_states = calculate_states(conf.memory_length, new_transmitted_word)
