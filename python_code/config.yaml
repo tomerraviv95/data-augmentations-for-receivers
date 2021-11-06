@@ -22,9 +22,9 @@ eval_mode: 'aggregated' # Type of evaluation. Per snr - 'aggregated', Per block 
 # train hyperparameters
 train_block_length: 80 # coherence block time. values: int.
 train_frames: 1 # number of train frames. values: int.
-train_minibatch_num: 30 # number of minibatches. values: int.
-train_minibatch_size: 32 # the size of a given minibatch. values: int.
 train_snr: 12 # start SNR value. values: float.
+train_minibatch_num: 25 # number of minibatches. values: int.
+train_minibatch_size: 32 # the size of a given minibatch. values: int.
 lr: 0.001 # learning rate. values: float.
 loss_type: 'CrossEntropy' # Loss type. values: 'BCE','CrossEntropy','MSE'.
 optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
