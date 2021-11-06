@@ -46,11 +46,18 @@ def add_aug3_viterbinet(all_curves, params_dict, run_over):
         conf.set_value(field, value)
         name += f'_{field}_{value}'
     conf.set_value('run_name', method_name + name)
-    dec = VNETTrainer()
+
     print(method_name)
-    ser = get_ser_plot(dec, run_over=run_over,
-                       method_name=method_name + name)
-    all_curves.append((ser, method_name))
+    total_ser = 0
+    trial_num = 5
+    for trial in range(trial_num):
+        dec = VNETTrainer()
+        ser = get_ser_plot(dec, run_over=run_over,
+                           method_name=method_name + name,
+                           trial=trial)
+        total_ser += ser
+    total_ser /= trial_num
+    all_curves.append((total_ser, method_name))
 
 
 if __name__ == '__main__':
@@ -66,12 +73,13 @@ if __name__ == '__main__':
                         {'n_repeats': 30},
                         {'n_repeats': 40},
                         {'n_repeats': 50},
-                        {'n_repeats': 60},
-                        {'n_repeats': 70},
-                        {'n_repeats': 80},
-                        {'n_repeats': 90},
-                        {'n_repeats': 100},
-                        {'n_repeats': 200}]
+                        {'n_repeats': 75},
+                        {'n_repeats': 100}]
+        # ,
+        # {'n_repeats': 125},
+        # {'n_repeats': 150},
+        # {'n_repeats': 175},
+        # {'n_repeats': 200}
     all_curves = []
 
     for params_dict in params_dicts:

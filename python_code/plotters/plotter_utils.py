@@ -16,12 +16,14 @@ MIN_BER_COEF = 0.2
 MARKER_EVERY = 10
 
 
-def get_ser_plot(dec: Trainer, run_over: bool, method_name: str):
+def get_ser_plot(dec: Trainer, run_over: bool, method_name: str, trial=None):
     print(method_name)
     # set the path to saved plot results for a single method (so we do not need to run anew each time)
     if not os.path.exists(PLOTS_DIR):
         os.makedirs(PLOTS_DIR)
     file_name = '_'.join([method_name, str(conf.channel_type)])
+    if trial is not None:
+        file_name = file_name + '_' + str(trial)
     plots_path = os.path.join(PLOTS_DIR, file_name + '.pkl')
     print(plots_path)
     # if plot already exists, and the run_over flag is false - load the saved plot

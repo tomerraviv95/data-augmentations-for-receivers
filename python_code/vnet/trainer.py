@@ -12,7 +12,6 @@ import random
 import numpy as np
 import torch
 import os
-import math
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -23,7 +22,7 @@ torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 np.random.seed(0)
 
-N_UPDATES = 100
+N_UPDATES = 250
 
 
 class Trainer(object):
@@ -232,11 +231,12 @@ class Trainer(object):
             current_transmitted = transmitted_words[i].reshape(1, -1)
             received_words[i], transmitted_words[i] = Augmenter.augment(current_received, current_transmitted,
                                                                         conf.augmentations, h, conf.train_snr)
+
         for minibatch in range(1, conf.train_minibatch_num + 1):
             # run training loops
             loss = 0
             for upd_idx in range(N_UPDATES):
-                i = upd_idx % conf.n_repeats  # the shape of received - (conf.train_frames * conf.n_repeats)
+                i = upd_idx % conf.n_repeats  # the shape of the augmented received word
                 current_received = received_words[i].reshape(1, -1)
                 current_transmitted = transmitted_words[i].reshape(1, -1)
                 # pass through detector

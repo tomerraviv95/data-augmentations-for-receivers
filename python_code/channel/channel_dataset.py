@@ -48,16 +48,16 @@ class ChannelModelDataset(Dataset):
             index = 0  # random.randint(0, 1e6)
 
         # if in training, and in augmentations mode, generate a pilot word that has all states
-        if conf.augmentations != 'reg':
-            b = np.random.randint(0, 2, size=(1, self.block_length))
-        # if self.phase == 'train' and conf.augmentations != 'reg':
-        #     b = self.draw_until_pilot_has_all_states()
+        # if conf.augmentations != 'reg':
+        #     b = np.random.randint(0, 2, size=(1, self.block_length))
+        if self.phase == 'train' and conf.augmentations != 'reg':
+            b = self.draw_until_pilot_has_all_states()
         # accumulate words until reaches desired number
         while y_full.shape[0] < self.words:
-            # if conf.augmentations == 'reg' or self.phase == 'val':
-            #     b = np.random.randint(0, 2, size=(1, self.block_length))
-            if conf.augmentations == 'reg':
+            if conf.augmentations == 'reg' or self.phase == 'val':
                 b = np.random.randint(0, 2, size=(1, self.block_length))
+            # if conf.augmentations == 'reg':
+            #     b = np.random.randint(0, 2, size=(1, self.block_length))
             # encoding - errors correction code
             c = self.encoding(b).reshape(1, -1)
             # add zero bits
@@ -79,7 +79,8 @@ class ChannelModelDataset(Dataset):
         while True:
             b = np.random.randint(0, 2, size=(1, self.block_length))
             gt_states = calculate_states(conf.memory_length, torch.Tensor(b).to(device))
-            if len(torch.unique(gt_states)) == 2 ** conf.memory_length:
+            if len(torch.unique(gt_states)) == 2 ** conf.memory_length and \
+                    min(torch.unique(gt_states, return_counts=True)[1]) > 2:
                 return b
 
     def transmit(self, c: np.ndarray, h: np.ndarray, snr: float):
