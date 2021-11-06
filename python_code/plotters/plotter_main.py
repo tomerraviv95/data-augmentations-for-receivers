@@ -70,7 +70,8 @@ if __name__ == '__main__':
                         {'n_repeats': 70},
                         {'n_repeats': 80},
                         {'n_repeats': 90},
-                        {'n_repeats': 100}]
+                        {'n_repeats': 100},
+                        {'n_repeats': 200}]
     all_curves = []
 
     for params_dict in params_dicts:

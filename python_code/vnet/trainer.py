@@ -224,20 +224,24 @@ class Trainer(object):
         # draw words
         transmitted_words, received_words, h = self.channel_dataset['train'].__getitem__(snr_list=[conf.train_snr],
                                                                                          gamma=conf.gamma)
-
+        # augment received words by the number of desired repeats
         transmitted_words = transmitted_words.repeat(conf.n_repeats, 1)
         received_words = received_words.repeat(conf.n_repeats, 1)
+        for i in range(1, conf.n_repeats):
+            current_received = received_words[i].reshape(1, -1)
+            current_transmitted = transmitted_words[i].reshape(1, -1)
+            received_words[i], transmitted_words[i] = Augmenter.augment(current_received, current_transmitted,
+                                                                        conf.augmentations, h, conf.train_snr)
         for minibatch in range(1, conf.train_minibatch_num + 1):
             # run training loops
             loss = 0
             for upd_idx in range(N_UPDATES):
-                i = upd_idx % received_words.shape[0]  # the shape of received - (conf.train_frames * conf.n_repeats)
+                i = upd_idx % conf.n_repeats  # the shape of received - (conf.train_frames * conf.n_repeats)
                 current_received = received_words[i].reshape(1, -1)
                 current_transmitted = transmitted_words[i].reshape(1, -1)
-                x, y = Augmenter.augment(current_received, current_transmitted, conf.augmentations, h, conf.train_snr)
                 # pass through detector
-                soft_estimation = self.detector(x, 'train')
-                current_loss = self.run_train_loop(soft_estimation, y)
+                soft_estimation = self.detector(current_received, 'train')
+                current_loss = self.run_train_loop(soft_estimation, current_transmitted)
                 loss += current_loss
 
             print(f'Minibatch {minibatch}, loss {loss}')
