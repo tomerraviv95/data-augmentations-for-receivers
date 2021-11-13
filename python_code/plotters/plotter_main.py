@@ -1,43 +1,78 @@
-import os
-
 from dir_definitions import CONFIG_RUNS_DIR
 from python_code.plotters.plotter_utils import get_ser_plot, plot_all_curves_aggregated, plot_by_values
 from python_code.utils.config_singleton import Config
 from python_code.vnet.vnet_trainer import VNETTrainer
 from python_code.plotters.plotter_config import *
+import os
 
 
-def add_reg_viterbinet(all_curves, snr, train_block_length):
-    dec = VNETTrainer(run_name=f'reg_{train_block_length}', augmentations='reg', train_SNR_start=snr, train_SNR_end=snr,
-                      val_SNR_start=snr,
-                      val_SNR_end=snr, train_block_length=train_block_length)
+def add_reg_viterbinet(all_curves, params_dict, run_over, trial_num):
     method_name = f'ViterbiNet - Regular Training'
+    conf = Config()
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'reg.yaml'))
+    name = ''
+    for field, value in params_dict.items():
+        conf.set_value(field, value)
+        name += f'_{field}_{value}'
+    conf.set_value('run_name', method_name + name)
+
     print(method_name)
-    ser = get_ser_plot(dec, run_over=run_over, method_name=method_name + '_' + str(snr) + '_' + str(train_block_length))
-    all_curves.append((ser, method_name, snr))
+    total_ser = 0
+    for trial in range(trial_num):
+        dec = VNETTrainer()
+        ser = get_ser_plot(dec, run_over=run_over,
+                           method_name=method_name + name,
+                           trial=trial)
+        total_ser += ser
+    total_ser /= trial_num
+    all_curves.append((total_ser, method_name))
 
 
-def add_aug1_viterbinet(all_curves, snr, train_block_length):
-    dec = VNETTrainer(run_name=f'aug1_{train_block_length}', augmentations='aug1', train_SNR_start=snr,
-                      train_SNR_end=snr, val_SNR_start=snr,
-                      val_SNR_end=snr, train_block_length=train_block_length)
+def add_aug1_viterbinet(all_curves, params_dict, run_over, trial_num):
     method_name = f'ViterbiNet - Aug. 1'
+    conf = Config()
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'augmentation1.yaml'))
+    name = ''
+    for field, value in params_dict.items():
+        conf.set_value(field, value)
+        name += f'_{field}_{value}'
+    conf.set_value('run_name', method_name + name)
+
     print(method_name)
-    ser = get_ser_plot(dec, run_over=run_over, method_name=method_name + '_' + str(snr) + '_' + str(train_block_length))
-    all_curves.append((ser, method_name, snr))
+    total_ser = 0
+    for trial in range(trial_num):
+        dec = VNETTrainer()
+        ser = get_ser_plot(dec, run_over=run_over,
+                           method_name=method_name + name,
+                           trial=trial)
+        total_ser += ser
+    total_ser /= trial_num
+    all_curves.append((total_ser, method_name))
 
 
-def add_aug2_viterbinet(all_curves, snr, train_block_length):
-    dec = VNETTrainer(run_name=f'aug2_{train_block_length}', augmentations='aug2', train_SNR_start=snr,
-                      train_SNR_end=snr, val_SNR_start=snr,
-                      val_SNR_end=snr, train_block_length=train_block_length)
+def add_aug2_viterbinet(all_curves, params_dict, run_over, trial_num):
     method_name = f'ViterbiNet - Aug. 2'
+    conf = Config()
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'augmentation2.yaml'))
+    name = ''
+    for field, value in params_dict.items():
+        conf.set_value(field, value)
+        name += f'_{field}_{value}'
+    conf.set_value('run_name', method_name + name)
+
     print(method_name)
-    ser = get_ser_plot(dec, run_over=run_over, method_name=method_name + '_' + str(snr) + '_' + str(train_block_length))
-    all_curves.append((ser, method_name, snr))
+    total_ser = 0
+    for trial in range(trial_num):
+        dec = VNETTrainer()
+        ser = get_ser_plot(dec, run_over=run_over,
+                           method_name=method_name + name,
+                           trial=trial)
+        total_ser += ser
+    total_ser /= trial_num
+    all_curves.append((total_ser, method_name))
 
 
-def add_aug3_viterbinet(all_curves, params_dict, run_over):
+def add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num):
     method_name = f'ViterbiNet - Aug. 3'
     conf = Config()
     conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'augmentation3.yaml'))
@@ -49,7 +84,6 @@ def add_aug3_viterbinet(all_curves, params_dict, run_over):
 
     print(method_name)
     total_ser = 0
-    trial_num = 5
     for trial in range(trial_num):
         dec = VNETTrainer()
         ser = get_ser_plot(dec, run_over=run_over,
@@ -61,33 +95,27 @@ def add_aug3_viterbinet(all_curves, params_dict, run_over):
 
 
 if __name__ == '__main__':
-    run_over = False
+    run_over = True
     plot_by_block = False  # either plot by block, or by SNR
+    trial_num = 5
 
     if plot_by_block:
         snr_values = [12]
     else:
         params_dicts = [{'n_repeats': 1},
                         {'n_repeats': 10},
-                        {'n_repeats': 20},
                         {'n_repeats': 30},
-                        {'n_repeats': 40},
                         {'n_repeats': 50},
                         {'n_repeats': 75},
                         {'n_repeats': 100}]
-        # ,
-        # {'n_repeats': 125},
-        # {'n_repeats': 150},
-        # {'n_repeats': 175},
-        # {'n_repeats': 200}
     all_curves = []
 
     for params_dict in params_dicts:
         print(params_dict)
-        # add_reg_viterbinet(all_curves, snr, train_block_length)
-        # add_aug1_viterbinet(all_curves, snr, train_block_length)
-        # add_aug2_viterbinet(all_curves, snr, train_block_length)
-        add_aug3_viterbinet(all_curves, params_dict, run_over)
+        add_reg_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_aug1_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_aug2_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num)
 
         # if plot_by_block:
         #     plot_all_curves_aggregated(all_curves, snr)

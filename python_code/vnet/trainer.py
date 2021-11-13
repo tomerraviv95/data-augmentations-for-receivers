@@ -22,7 +22,7 @@ torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 np.random.seed(0)
 
-N_UPDATES = 250
+N_UPDATES = 25
 
 
 class Trainer(object):
