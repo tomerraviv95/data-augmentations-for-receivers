@@ -1,12 +1,11 @@
-import itertools
-
-from numpy.random import mtrand
+from python_code.utils.config_singleton import Config
+from numpy.random import default_rng
 import numpy as np
 import torch
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+conf = Config()
 
-W_SIGMA = 1
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class ISIAWGNChannel:
@@ -17,7 +16,6 @@ class ISIAWGNChannel:
         The AWGN Channel
         :param s: to transmit symbol words
         :param snr: signal-to-noise value
-        :param random: random words generator
         :param h: channel function
         :param memory_length: length of channel memory
         :return: received word
@@ -30,7 +28,9 @@ class ISIAWGNChannel:
 
         [row, col] = conv.shape
 
-        w = (snr_value ** (-0.5)) * np.random.normal(0, W_SIGMA, (row, col))
+        noise_generator = default_rng(seed=conf.seed)
+
+        w = (snr_value ** (-0.5)) * noise_generator.standard_normal((row, col))
 
         y = conv + w
 

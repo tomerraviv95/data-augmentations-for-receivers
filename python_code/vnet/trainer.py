@@ -17,12 +17,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 
-random.seed(0)
-torch.manual_seed(0)
-torch.cuda.manual_seed(0)
-np.random.seed(0)
+random.seed(conf.seed)
+torch.manual_seed(conf.seed)
+torch.cuda.manual_seed(conf.seed)
+np.random.seed(conf.seed)
 
-N_UPDATES = 25
+N_UPDATES = 100
+TOTAL_REPEATS = 100
 
 
 class Trainer(object):
@@ -224,19 +225,23 @@ class Trainer(object):
         transmitted_words, received_words, h = self.channel_dataset['train'].__getitem__(snr_list=[conf.train_snr],
                                                                                          gamma=conf.gamma)
         # augment received words by the number of desired repeats
-        transmitted_words = transmitted_words.repeat(conf.n_repeats, 1)
-        received_words = received_words.repeat(conf.n_repeats, 1)
-        for i in range(1, conf.n_repeats):
-            current_received = received_words[i].reshape(1, -1)
-            current_transmitted = transmitted_words[i].reshape(1, -1)
-            received_words[i], transmitted_words[i] = Augmenter.augment(current_received, current_transmitted,
-                                                                        conf.augmentations, h, conf.train_snr)
+        transmitted_words = transmitted_words.repeat(TOTAL_REPEATS, 1)
+        received_words = received_words.repeat(TOTAL_REPEATS, 1)
 
+        for i in range(TOTAL_REPEATS):
+            upd_idx = i % conf.n_repeats
+            current_received = received_words[upd_idx].reshape(1, -1)
+            current_transmitted = transmitted_words[upd_idx].reshape(1, -1)
+            if i < conf.n_repeats:
+                received_words[i], transmitted_words[i] = Augmenter.augment(current_received, current_transmitted,
+                                                                            conf.augmentations, h, conf.train_snr)
+            else:
+                received_words[i], transmitted_words[i] = current_received, current_transmitted
+        print(received_words)
         for minibatch in range(1, conf.train_minibatch_num + 1):
             # run training loops
             loss = 0
-            for upd_idx in range(N_UPDATES):
-                i = upd_idx % conf.n_repeats  # the shape of the augmented received word
+            for i in range(TOTAL_REPEATS):
                 current_received = received_words[i].reshape(1, -1)
                 current_transmitted = transmitted_words[i].reshape(1, -1)
                 # pass through detector

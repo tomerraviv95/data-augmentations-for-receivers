@@ -1,5 +1,6 @@
 # general
 run_name: 'reg' #'augmented_version'
+seed: 0 # run seed
 
 # coding parameters
 use_ecc: False # Either run with/without ECC. values: [True, False].

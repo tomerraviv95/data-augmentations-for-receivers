@@ -4,8 +4,8 @@ from python_code.channel.channel import ISIAWGNChannel
 from python_code.utils.config_singleton import Config
 from python_code.ecc.rs_main import encode
 from torch.utils.data import Dataset
+from numpy.random import default_rng
 import matplotlib.pyplot as plt
-from numpy.random import mtrand
 from typing import Tuple, List
 import concurrent.futures
 import numpy as np
@@ -31,6 +31,7 @@ class ChannelModelDataset(Dataset):
         self.block_length = block_length
         self.transmission_length = transmission_length
         self.words = words
+        self.bits_generator = default_rng(seed=conf.seed)
         if use_ecc and self.phase == 'val':
             self.encoding = lambda b: encode(b, conf.n_symbols)
         else:
@@ -47,7 +48,6 @@ class ChannelModelDataset(Dataset):
         else:
             index = 0  # random.randint(0, 1e6)
 
-        # if in training, and in augmentations mode, generate a pilot word that has all states
         # if conf.augmentations != 'reg':
         #     b = np.random.randint(0, 2, size=(1, self.block_length))
         if self.phase == 'train' and conf.augmentations != 'reg':
@@ -55,7 +55,7 @@ class ChannelModelDataset(Dataset):
         # accumulate words until reaches desired number
         while y_full.shape[0] < self.words:
             if conf.augmentations == 'reg' or self.phase == 'val':
-                b = np.random.randint(0, 2, size=(1, self.block_length))
+                b = self.bits_generator.integers(0, 2, size=(1, self.block_length))
             # if conf.augmentations == 'reg':
             #     b = np.random.randint(0, 2, size=(1, self.block_length))
             # encoding - errors correction code
@@ -77,7 +77,7 @@ class ChannelModelDataset(Dataset):
 
     def draw_until_pilot_has_all_states(self):
         while True:
-            b = np.random.randint(0, 2, size=(1, self.block_length))
+            b = self.bits_generator.integers(0, 2, size=(1, self.block_length))
             gt_states = calculate_states(conf.memory_length, torch.Tensor(b).to(device))
             if len(torch.unique(gt_states)) == 2 ** conf.memory_length and \
                     min(torch.unique(gt_states, return_counts=True)[1]) > 2:

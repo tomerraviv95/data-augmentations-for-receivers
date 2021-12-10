@@ -3,6 +3,7 @@ from python_code.plotters.plotter_utils import get_ser_plot, plot_all_curves_agg
 from python_code.utils.config_singleton import Config
 from python_code.vnet.vnet_trainer import VNETTrainer
 from python_code.plotters.plotter_config import *
+import numpy as np
 import os
 
 
@@ -17,15 +18,16 @@ def add_reg_viterbinet(all_curves, params_dict, run_over, trial_num):
     conf.set_value('run_name', method_name + name)
 
     print(method_name)
-    total_ser = 0
+    total_ser = []
+    dec = VNETTrainer()
     for trial in range(trial_num):
-        dec = VNETTrainer()
+        conf.set_value('seed', 112412 + 10 * trial)
         ser = get_ser_plot(dec, run_over=run_over,
                            method_name=method_name + name,
                            trial=trial)
-        total_ser += ser
-    total_ser /= trial_num
-    all_curves.append((total_ser, method_name))
+        total_ser.append(ser)
+    avg_ser = np.average(total_ser)
+    all_curves.append((avg_ser, method_name))
 
 
 def add_aug1_viterbinet(all_curves, params_dict, run_over, trial_num):
@@ -39,15 +41,16 @@ def add_aug1_viterbinet(all_curves, params_dict, run_over, trial_num):
     conf.set_value('run_name', method_name + name)
 
     print(method_name)
-    total_ser = 0
+    total_ser = []
     for trial in range(trial_num):
+        conf.set_value('seed', 1 + trial)
         dec = VNETTrainer()
         ser = get_ser_plot(dec, run_over=run_over,
                            method_name=method_name + name,
                            trial=trial)
-        total_ser += ser
-    total_ser /= trial_num
-    all_curves.append((total_ser, method_name))
+        total_ser.append(ser)
+    avg_ser = np.average(total_ser)
+    all_curves.append((avg_ser, method_name))
 
 
 def add_aug2_viterbinet(all_curves, params_dict, run_over, trial_num):
@@ -61,15 +64,16 @@ def add_aug2_viterbinet(all_curves, params_dict, run_over, trial_num):
     conf.set_value('run_name', method_name + name)
 
     print(method_name)
-    total_ser = 0
+    total_ser = []
     for trial in range(trial_num):
+        conf.set_value('seed', 1 + trial)
         dec = VNETTrainer()
         ser = get_ser_plot(dec, run_over=run_over,
                            method_name=method_name + name,
                            trial=trial)
-        total_ser += ser
-    total_ser /= trial_num
-    all_curves.append((total_ser, method_name))
+        total_ser.append(ser)
+    avg_ser = np.average(total_ser)
+    all_curves.append((avg_ser, method_name))
 
 
 def add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num):
@@ -83,39 +87,46 @@ def add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num):
     conf.set_value('run_name', method_name + name)
 
     print(method_name)
-    total_ser = 0
+    total_ser = []
     for trial in range(trial_num):
+        conf.set_value('seed', 1 + trial)
         dec = VNETTrainer()
         ser = get_ser_plot(dec, run_over=run_over,
                            method_name=method_name + name,
                            trial=trial)
-        total_ser += ser
-    total_ser /= trial_num
-    all_curves.append((total_ser, method_name))
+        total_ser.append(ser)
+    avg_ser = np.average(total_ser)
+    all_curves.append((avg_ser, method_name))
 
 
 if __name__ == '__main__':
     run_over = True
     plot_by_block = False  # either plot by block, or by SNR
-    trial_num = 5
+    trial_num = 3
 
     if plot_by_block:
         snr_values = [12]
     else:
         params_dicts = [{'n_repeats': 1},
                         {'n_repeats': 10},
+                        {'n_repeats': 20},
                         {'n_repeats': 30},
-                        {'n_repeats': 50},
-                        {'n_repeats': 75},
-                        {'n_repeats': 100}]
+                        {'n_repeats': 40},
+                        {'n_repeats': 50}]
+        # params_dicts = [{'n_repeats': 1},
+        #                 {'n_repeats': 10}]
+        # params_dicts = [{'n_repeats': 5},
+        #                 {'n_repeats': 10},
+        #                 {'n_repeats': 15}]
+
     all_curves = []
 
     for params_dict in params_dicts:
         print(params_dict)
         add_reg_viterbinet(all_curves, params_dict, run_over, trial_num)
-        add_aug1_viterbinet(all_curves, params_dict, run_over, trial_num)
-        add_aug2_viterbinet(all_curves, params_dict, run_over, trial_num)
-        add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num)
+        # add_aug1_viterbinet(all_curves, params_dict, run_over, trial_num)
+        # add_aug2_viterbinet(all_curves, params_dict, run_over, trial_num)
+        # add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num)
 
         # if plot_by_block:
         #     plot_all_curves_aggregated(all_curves, snr)
