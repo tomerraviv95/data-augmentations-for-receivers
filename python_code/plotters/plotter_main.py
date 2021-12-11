@@ -7,17 +7,16 @@ import numpy as np
 import os
 
 
-def add_reg_viterbinet(all_curves, params_dict, run_over, trial_num):
-    method_name = f'ViterbiNet - Regular Training'
-    conf = Config()
-    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'reg.yaml'))
+def set_method_name(conf, method_name, params_dict):
     name = ''
     for field, value in params_dict.items():
         conf.set_value(field, value)
         name += f'_{field}_{value}'
     conf.set_value('run_name', method_name + name)
+    return name
 
-    print(method_name)
+
+def add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num):
     total_ser = []
     for trial in range(trial_num):
         conf.set_value('seed', 1 + trial)
@@ -28,89 +27,56 @@ def add_reg_viterbinet(all_curves, params_dict, run_over, trial_num):
         total_ser.append(ser)
     avg_ser = np.average(total_ser)
     all_curves.append((avg_ser, method_name))
+
+
+def add_reg_viterbinet(all_curves, params_dict, run_over, trial_num):
+    method_name = f'ViterbiNet - Regular Training'
+    conf = Config()
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'reg.yaml'))
+    name = set_method_name(conf, method_name, params_dict)
+    print(method_name)
+    add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
 
 
 def add_aug1_viterbinet(all_curves, params_dict, run_over, trial_num):
     method_name = f'ViterbiNet - Aug. 1'
     conf = Config()
     conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'augmentation1.yaml'))
-    name = ''
-    for field, value in params_dict.items():
-        conf.set_value(field, value)
-        name += f'_{field}_{value}'
-    conf.set_value('run_name', method_name + name)
-
+    name = set_method_name(conf, method_name, params_dict)
     print(method_name)
-    total_ser = []
-    for trial in range(trial_num):
-        conf.set_value('seed', 1 + trial)
-        dec = VNETTrainer()
-        ser = get_ser_plot(dec, run_over=run_over,
-                           method_name=method_name + name,
-                           trial=trial)
-        total_ser.append(ser)
-    avg_ser = np.average(total_ser)
-    all_curves.append((avg_ser, method_name))
+    add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
 
 
 def add_aug2_viterbinet(all_curves, params_dict, run_over, trial_num):
     method_name = f'ViterbiNet - Aug. 2'
     conf = Config()
     conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'augmentation2.yaml'))
-    name = ''
-    for field, value in params_dict.items():
-        conf.set_value(field, value)
-        name += f'_{field}_{value}'
-    conf.set_value('run_name', method_name + name)
-
+    name = set_method_name(conf, method_name, params_dict)
     print(method_name)
-    total_ser = []
-    for trial in range(trial_num):
-        conf.set_value('seed', 1 + trial)
-        dec = VNETTrainer()
-        ser = get_ser_plot(dec, run_over=run_over,
-                           method_name=method_name + name,
-                           trial=trial)
-        total_ser.append(ser)
-    avg_ser = np.average(total_ser)
-    all_curves.append((avg_ser, method_name))
+    add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
 
 
 def add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num):
     method_name = f'ViterbiNet - Aug. 3'
     conf = Config()
     conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'augmentation3.yaml'))
-    name = ''
-    for field, value in params_dict.items():
-        conf.set_value(field, value)
-        name += f'_{field}_{value}'
-    conf.set_value('run_name', method_name + name)
-
+    name = set_method_name(conf, method_name, params_dict)
     print(method_name)
-    total_ser = []
-    for trial in range(trial_num):
-        conf.set_value('seed', 1 + trial)
-        dec = VNETTrainer()
-        ser = get_ser_plot(dec, run_over=run_over,
-                           method_name=method_name + name,
-                           trial=trial)
-        total_ser.append(ser)
-    avg_ser = np.average(total_ser)
-    all_curves.append((avg_ser, method_name))
+    add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
 
 
 if __name__ == '__main__':
     run_over = False
     plot_by_block = False  # either plot by block, or by SNR
-    trial_num = 7
+    trial_num = 1
 
     if plot_by_block:
         snr_values = [12]
     else:
-        params_dicts = [{'n_repeats': 1, 'train_block_length': 80},
-                        {'n_repeats': 5, 'train_block_length': 80},
-                        {'n_repeats': 10, 'train_block_length': 80},
-                        {'n_repeats': 25, 'train_block_length': 80}]
+        params_dicts = [{'n_repeats': 1, 'train_block_length': 320},
+                        {'n_repeats': 5, 'train_block_length': 320},
+                        {'n_repeats': 10, 'train_block_length': 320},
+                        {'n_repeats': 25, 'train_block_length': 320}]
 
     all_curves = []
 
