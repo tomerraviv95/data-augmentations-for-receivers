@@ -17,10 +17,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 
-random.seed(conf.seed)
 torch.manual_seed(conf.seed)
 torch.cuda.manual_seed(conf.seed)
-np.random.seed(conf.seed)
 
 N_UPDATES = 100
 TOTAL_REPEATS = 100
@@ -237,7 +235,7 @@ class Trainer(object):
                                                                             conf.augmentations, h, conf.train_snr)
             else:
                 received_words[i], transmitted_words[i] = current_received, current_transmitted
-        print(received_words)
+
         for minibatch in range(1, conf.train_minibatch_num + 1):
             # run training loops
             loss = 0

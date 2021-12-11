@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 from typing import Tuple, List
 import concurrent.futures
 import numpy as np
-import itertools
 import torch
 
 from python_code.utils.trellis_utils import calculate_states

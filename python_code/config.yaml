@@ -21,7 +21,7 @@ val_snr: 12 # start SNR value. values: float.
 eval_mode: 'aggregated' # Type of evaluation. Per snr - 'aggregated', Per block - 'by_word'.
 
 # train hyperparameters
-train_block_length: 800 # coherence block time. values: int.
+train_block_length: 80 # coherence block time. values: int.
 train_frames: 1 # number of train frames. values: int.
 train_snr: 12 # start SNR value. values: float.
 train_minibatch_num: 30 # number of minibatches. values: int.

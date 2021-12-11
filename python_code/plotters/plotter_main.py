@@ -19,9 +19,9 @@ def add_reg_viterbinet(all_curves, params_dict, run_over, trial_num):
 
     print(method_name)
     total_ser = []
-    dec = VNETTrainer()
     for trial in range(trial_num):
-        conf.set_value('seed', 112412 + 10 * trial)
+        conf.set_value('seed', 1 + trial)
+        dec = VNETTrainer()
         ser = get_ser_plot(dec, run_over=run_over,
                            method_name=method_name + name,
                            trial=trial)
@@ -100,33 +100,26 @@ def add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num):
 
 
 if __name__ == '__main__':
-    run_over = True
+    run_over = False
     plot_by_block = False  # either plot by block, or by SNR
-    trial_num = 3
+    trial_num = 7
 
     if plot_by_block:
         snr_values = [12]
     else:
-        params_dicts = [{'n_repeats': 1},
-                        {'n_repeats': 10},
-                        {'n_repeats': 20},
-                        {'n_repeats': 30},
-                        {'n_repeats': 40},
-                        {'n_repeats': 50}]
-        # params_dicts = [{'n_repeats': 1},
-        #                 {'n_repeats': 10}]
-        # params_dicts = [{'n_repeats': 5},
-        #                 {'n_repeats': 10},
-        #                 {'n_repeats': 15}]
+        params_dicts = [{'n_repeats': 1, 'train_block_length': 80},
+                        {'n_repeats': 5, 'train_block_length': 80},
+                        {'n_repeats': 10, 'train_block_length': 80},
+                        {'n_repeats': 25, 'train_block_length': 80}]
 
     all_curves = []
 
     for params_dict in params_dicts:
         print(params_dict)
         add_reg_viterbinet(all_curves, params_dict, run_over, trial_num)
-        # add_aug1_viterbinet(all_curves, params_dict, run_over, trial_num)
-        # add_aug2_viterbinet(all_curves, params_dict, run_over, trial_num)
-        # add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_aug1_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_aug2_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num)
 
         # if plot_by_block:
         #     plot_all_curves_aggregated(all_curves, snr)
