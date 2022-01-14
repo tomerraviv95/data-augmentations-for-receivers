@@ -8,7 +8,6 @@ from python_code.utils.metrics import calculate_error_rates
 from dir_definitions import WEIGHTS_DIR
 from torch.nn import CrossEntropyLoss, BCELoss, MSELoss
 from torch.optim import RMSprop, Adam, SGD
-import random
 import numpy as np
 import torch
 import os

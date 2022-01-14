@@ -1,6 +1,6 @@
 # general
-run_name: 'new_100' #'augmented_version'
-seed: 10 # run seed
+run_name: 'reg' #'augmented_version'
+seed: 0 # run seed
 
 # coding parameters
 use_ecc: False # Either run with/without ECC. values: [True, False].
@@ -24,7 +24,7 @@ eval_mode: 'aggregated' # Type of evaluation. Per snr - 'aggregated', Per block 
 train_block_length: 80 # coherence block time. values: int.
 train_frames: 1 # number of train frames. values: int.
 train_snr: 12 # start SNR value. values: float.
-train_minibatch_num: 30 # number of minibatches. values: int.
+train_minibatch_num: 20 # number of minibatches. values: int.
 train_minibatch_size: 32 # the size of a given minibatch. values: int.
 lr: 0.001 # learning rate. values: float.
 loss_type: 'CrossEntropy' # Loss type. values: 'BCE','CrossEntropy','MSE'.
@@ -37,5 +37,5 @@ ser_thresh: 0.02 # ser threshold. values: float.
 buffer_empty: True # Whether to start evaluation from an empty buffer or a randomly initialized one.
 
 # augmentations
-augmentations: 'aug3' # ['reg','aug1','aug2','aug3']
-n_repeats: 10
+augmentations: 'reg' # ['reg','aug1','aug2','aug3']
+n_repeats: 50

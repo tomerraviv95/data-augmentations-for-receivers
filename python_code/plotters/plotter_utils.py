@@ -108,4 +108,5 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_n
     plt.yscale('log')
     plt.savefig(os.path.join(FIGURES_DIR, folder_name, f'coded_ber_versus_snrs.png'),
                 bbox_inches='tight')
+    # plt.ylim([1e-3, 1e-2])
     plt.show()

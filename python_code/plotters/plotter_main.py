@@ -67,17 +67,24 @@ def add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num):
 
 if __name__ == '__main__':
     run_over = False
-    plot_by_block = False  # either plot by block, or by SNR
-    trial_num = 1
+    plot_type = 'SNR'  # either plot by block, or by SNR
 
-    if plot_by_block:
-        snr_values = [12]
-    else:
-        params_dicts = [{'n_repeats': 1, 'train_block_length': 320},
-                        {'n_repeats': 5, 'train_block_length': 320},
-                        {'n_repeats': 10, 'train_block_length': 320},
-                        {'n_repeats': 25, 'train_block_length': 320}]
-
+    if plot_type == 'SNR':
+        trial_num = 1
+        params_dicts = [{'train_snr': 10, 'val_snr': 10},
+                        {'train_snr': 11, 'val_snr': 11},
+                        {'train_snr': 12, 'val_snr': 12},
+                        {'train_snr': 13, 'val_snr': 13}]
+        label_name = 'SNR'
+    elif plot_type == 'Repeats':
+        trial_num = 7
+        params_dicts = [{'n_repeats': 1, 'train_block_length': 280},
+                        {'n_repeats': 5, 'train_block_length': 280},
+                        {'n_repeats': 10, 'train_block_length': 280},
+                        {'n_repeats': 15, 'train_block_length': 280},
+                        {'n_repeats': 20, 'train_block_length': 280},
+                        {'n_repeats': 25, 'train_block_length': 280}]
+        label_name = 'Number of Unique Repeats'
     all_curves = []
 
     for params_dict in params_dicts:
@@ -87,9 +94,5 @@ if __name__ == '__main__':
         add_aug2_viterbinet(all_curves, params_dict, run_over, trial_num)
         add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num)
 
-        # if plot_by_block:
-        #     plot_all_curves_aggregated(all_curves, snr)
-
-    if not plot_by_block:
-        plot_by_values(all_curves, list(params_dicts[0].keys())[0],
-                       [list(params_dict.values())[0] for params_dict in params_dicts])
+    plot_by_values(all_curves, label_name,  # list(params_dicts[0].keys())[0]
+                   [list(params_dict.values())[0] for params_dict in params_dicts])
