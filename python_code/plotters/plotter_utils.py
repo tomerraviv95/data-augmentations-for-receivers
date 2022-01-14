@@ -102,7 +102,7 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_n
 
     plt.xticks(values, values)
     plt.xlabel(field_name)
-    plt.ylabel('Coded BER')
+    plt.ylabel('BER')
     plt.grid(which='both', ls='--')
     plt.legend(loc='lower left', prop={'size': 15})
     plt.yscale('log')

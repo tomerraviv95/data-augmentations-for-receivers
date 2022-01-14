@@ -9,6 +9,7 @@ from dir_definitions import WEIGHTS_DIR
 from torch.nn import CrossEntropyLoss, BCELoss, MSELoss
 from torch.optim import RMSprop, Adam, SGD
 import numpy as np
+import random
 import torch
 import os
 
@@ -16,11 +17,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 
+random.seed(conf.seed)
 torch.manual_seed(conf.seed)
 torch.cuda.manual_seed(conf.seed)
-
-N_UPDATES = 100
-TOTAL_REPEATS = 100
+np.random.seed(conf.seed)
 
 
 class Trainer(object):
@@ -119,7 +119,7 @@ class Trainer(object):
                                                                                        gamma=conf.gamma)
 
         # decode and calculate accuracy
-        detected_words = self.detector(received_words, 'val', conf.val_snr, conf.gamma)
+        detected_words = self.detector(received_words, 'val')
 
         if conf.use_ecc:
             decoded_words = [decode(detected_word, conf.n_symbols) for detected_word in detected_words.cpu().numpy()]
@@ -153,7 +153,7 @@ class Trainer(object):
         for count, (transmitted_word, received_word, h) in enumerate(zip(transmitted_words, received_words, hs)):
             transmitted_word, received_word = transmitted_word.reshape(1, -1), received_word.reshape(1, -1)
             # detect
-            detected_word = self.detector(received_word, 'val', snr, gamma, count)
+            detected_word = self.detector(received_word, 'val')
             # decode
             decoded_word = [decode(detected_word, conf.n_symbols) for detected_word in detected_word.cpu().numpy()]
             decoded_word = torch.Tensor(decoded_word).to(device)
@@ -221,24 +221,16 @@ class Trainer(object):
         # draw words
         transmitted_words, received_words, h = self.channel_dataset['train'].__getitem__(snr_list=[conf.train_snr],
                                                                                          gamma=conf.gamma)
+
         # augment received words by the number of desired repeats
-        transmitted_words = transmitted_words.repeat(TOTAL_REPEATS, 1)
-        received_words = received_words.repeat(TOTAL_REPEATS, 1)
+        received_words, transmitted_words = self.augment_words_wrapper(h, received_words, transmitted_words,
+                                                                       conf.total_words, conf.n_repeats)
 
-        for i in range(TOTAL_REPEATS):
-            upd_idx = i % conf.n_repeats
-            current_received = received_words[upd_idx].reshape(1, -1)
-            current_transmitted = transmitted_words[upd_idx].reshape(1, -1)
-            if i < conf.n_repeats:
-                received_words[i], transmitted_words[i] = Augmenter.augment(current_received, current_transmitted,
-                                                                            conf.augmentations, h, conf.train_snr)
-            else:
-                received_words[i], transmitted_words[i] = current_received, current_transmitted
-
-        for minibatch in range(1, conf.train_minibatch_num + 1):
+        # go on every word out of the TOTAL_WORDS_NUM, for train_minibatch_num iterations
+        for minibatch in range(conf.train_minibatch_num):
             # run training loops
             loss = 0
-            for i in range(TOTAL_REPEATS):
+            for i in range(conf.total_words):
                 current_received = received_words[i].reshape(1, -1)
                 current_transmitted = transmitted_words[i].reshape(1, -1)
                 # pass through detector
@@ -246,7 +238,7 @@ class Trainer(object):
                 current_loss = self.run_train_loop(soft_estimation, current_transmitted)
                 loss += current_loss
 
-            print(f'Minibatch {minibatch}, loss {loss}')
+            print(f'Minibatch {minibatch + 1}, loss {loss}')
             # evaluate performance
             ser = self.evaluate_at_point()
             # save best weights
@@ -255,6 +247,20 @@ class Trainer(object):
                 best_ser = ser
 
         print('*' * 50)
+
+    def augment_words_wrapper(self, h, received_words, transmitted_words, total_size, n_repeats):
+        transmitted_words = transmitted_words.repeat(total_size, 1)
+        received_words = received_words.repeat(total_size, 1)
+        for i in range(total_size):
+            upd_idx = i % n_repeats
+            current_received = received_words[upd_idx].reshape(1, -1)
+            current_transmitted = transmitted_words[upd_idx].reshape(1, -1)
+            if i < n_repeats:
+                received_words[i], transmitted_words[i] = Augmenter.augment(current_received, current_transmitted,
+                                                                            conf.augmentations, h, conf.train_snr)
+            else:
+                received_words[i], transmitted_words[i] = current_received, current_transmitted
+        return received_words, transmitted_words
 
     def run_train_loop(self, soft_estimation: torch.Tensor, transmitted_words: torch.Tensor):
         # calculate loss

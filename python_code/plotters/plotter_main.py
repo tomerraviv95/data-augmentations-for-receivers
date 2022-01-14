@@ -70,11 +70,11 @@ if __name__ == '__main__':
     plot_type = 'SNR'  # either plot by block, or by SNR
 
     if plot_type == 'SNR':
-        trial_num = 1
-        params_dicts = [{'train_snr': 10, 'val_snr': 10},
-                        {'train_snr': 11, 'val_snr': 11},
-                        {'train_snr': 12, 'val_snr': 12},
-                        {'train_snr': 13, 'val_snr': 13}]
+        trial_num = 2
+        params_dicts = [{'train_snr': 10, 'val_snr': 10, 'train_block_length': 80},
+                        {'train_snr': 11, 'val_snr': 11, 'train_block_length': 80},
+                        {'train_snr': 12, 'val_snr': 12, 'train_block_length': 80},
+                        {'train_snr': 13, 'val_snr': 13, 'train_block_length': 80}]
         label_name = 'SNR'
     elif plot_type == 'Repeats':
         trial_num = 7
