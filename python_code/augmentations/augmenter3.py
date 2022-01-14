@@ -11,7 +11,7 @@ conf = Config()
 
 class Augmenter3:
     @staticmethod
-    def augment(received_word:torch.Tensor, transmitted_word:torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def augment(received_word: torch.Tensor, transmitted_word: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         #### first calculate estimated noise pattern
         gt_states = calculate_states(conf.memory_length, transmitted_word)
         centers_est = torch.empty(2 ** conf.memory_length).to(device)
@@ -22,6 +22,7 @@ class Augmenter3:
             centers_est[state] = torch.mean(state_received)
             std_est[state] = torch.std(state_received)
 
+        std_est[torch.isnan(std_est)] = torch.mean(std_est[~torch.isnan(std_est)])
         new_transmitted_word = torch.rand_like(transmitted_word) >= 0.5
         new_gt_states = calculate_states(conf.memory_length, new_transmitted_word)
         new_received_word = torch.empty_like(received_word)

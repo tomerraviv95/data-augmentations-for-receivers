@@ -55,7 +55,7 @@ class VNETTrainer(Trainer):
         aug_rx, aug_tx = self.augment_words_wrapper(h, rx, tx, conf.online_total_words, conf.online_repeats_n)
         # run training loops
         loss = 0
-        for i in range(conf.online_repeats_n):
+        for i in range(conf.online_total_words):
             cur_rx = aug_rx[i].reshape(1, -1)
             cur_tx = aug_tx[i].reshape(1, -1)
             # pass through detector

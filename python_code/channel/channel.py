@@ -35,8 +35,3 @@ class ISIAWGNChannel:
         y = conv + w
 
         return y
-
-    @staticmethod
-    def create_class_mapping(s: np.ndarray, h: np.ndarray) -> np.ndarray:
-        classes_centers = np.dot(h[:, ::-1], s)
-        return classes_centers[0]
