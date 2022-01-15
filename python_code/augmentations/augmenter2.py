@@ -10,8 +10,8 @@ conf = Config()
 
 
 class Augmenter2:
-    @staticmethod
-    def augment(received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor) -> Tuple[
+
+    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor) -> Tuple[
         torch.Tensor, torch.Tensor]:
         h = h.cpu().numpy()
         #### first calculate estimated noise pattern

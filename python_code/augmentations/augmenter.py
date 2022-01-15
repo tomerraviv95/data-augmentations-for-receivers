@@ -4,19 +4,28 @@ from python_code.augmentations.augmenter3 import Augmenter3
 from typing import Tuple
 import torch
 
+names_to_methods_aug_dict = {'aug1': Augmenter1(),
+                             'aug2': Augmenter2(),
+                             'aug3': Augmenter3()}
+
 
 class Augmenter:
-    @staticmethod
-    def augment(current_received: torch.Tensor, current_transmitted: torch.Tensor, type: str, h: torch.Tensor,
+    def __init__(self):
+        self._centers = None
+
+    def augment(self, current_received: torch.Tensor, current_transmitted: torch.Tensor, type: str, h: torch.Tensor,
                 snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
         if type == 'reg':
             x, y = current_received, current_transmitted.reshape(1, -1)
         elif type == 'aug1':
-            x, y = Augmenter1.augment(current_transmitted.reshape(1, -1), h, snr)
+            augmenter = names_to_methods_aug_dict[type]
+            x, y = augmenter.augment(current_transmitted.reshape(1, -1), h, snr)
         elif type == 'aug2':
-            x, y = Augmenter2.augment(current_received, current_transmitted.reshape(1, -1), h)
+            augmenter = names_to_methods_aug_dict[type]
+            x, y = augmenter.augment(current_received, current_transmitted.reshape(1, -1), h)
         elif type == 'aug3':
-            x, y = Augmenter3.augment(current_received, current_transmitted)
+            augmenter = names_to_methods_aug_dict[type]
+            x, y = augmenter.augment(current_received, current_transmitted)
         else:
             raise ValueError("No sucn augmentation method!!!")
 

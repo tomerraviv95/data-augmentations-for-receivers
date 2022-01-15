@@ -9,8 +9,8 @@ conf = Config()
 
 
 class Augmenter3:
-    @staticmethod
-    def augment(received_word: torch.Tensor, transmitted_word: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+
+    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         #### first calculate estimated noise pattern
         gt_states = calculate_states(conf.memory_length, transmitted_word)
         centers_est = torch.empty(2 ** conf.memory_length).to(device)

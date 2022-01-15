@@ -11,8 +11,6 @@ import concurrent.futures
 import numpy as np
 import torch
 
-from python_code.utils.trellis_utils import calculate_states
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
@@ -77,6 +75,11 @@ class ChannelModelDataset(Dataset):
             raise Exception('No such channel defined!!!')
         return y
 
+    @staticmethod
+    def create_class_mapping(s: np.ndarray, h: np.ndarray) -> np.ndarray:
+        classes_centers = np.dot(h[:, ::-1], s)
+        return classes_centers[0]
+
     def __getitem__(self, snr_list: List[float], gamma: float) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         database = []
         # do not change max_workers
@@ -92,9 +95,7 @@ class ChannelModelDataset(Dataset):
 
 
 if __name__ == '__main__':
-
     phase = 'val'  # 'train','val'
-
     frames_per_phase = {'train': conf.train_frames, 'val': conf.val_frames}
     block_lengths = {'train': conf.train_block_length, 'val': conf.val_block_length}
     channel_coefficients = {'train': 'time_decay', 'val': conf.channel_coefficients}
