@@ -67,14 +67,6 @@ class ChannelModelDataset(Dataset):
 
         database.append((b_full, y_full, h_full))
 
-    def draw_until_pilot_has_all_states(self):
-        while True:
-            b = self.bits_generator.integers(0, 2, size=(1, self.block_length))
-            gt_states = calculate_states(conf.memory_length, torch.Tensor(b).to(device))
-            if len(torch.unique(gt_states)) == 2 ** conf.memory_length and \
-                    min(torch.unique(gt_states, return_counts=True)[1]) > 2:
-                return b
-
     def transmit(self, c: np.ndarray, h: np.ndarray, snr: float):
         if conf.channel_type == 'ISI_AWGN':
             # modulation
