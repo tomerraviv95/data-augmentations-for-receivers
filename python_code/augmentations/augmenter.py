@@ -1,32 +1,32 @@
 from python_code.augmentations.augmenter1 import Augmenter1
 from python_code.augmentations.augmenter2 import Augmenter2
 from python_code.augmentations.augmenter3 import Augmenter3
-from typing import Tuple
+from python_code.augmentations.reg_augmenter import RegAugmenter
+from typing import Tuple, Dict
 import torch
-
-names_to_methods_aug_dict = {'aug1': Augmenter1(),
-                             'aug2': Augmenter2(),
-                             'aug3': Augmenter3()}
 
 
 class Augmenter:
+
     def __init__(self):
         self._centers = None
+        self._stds = None
+        self._augmentations_dict = {'aug1': Augmenter1,
+                                    'aug2': Augmenter2,
+                                    'aug3': Augmenter3,
+                                    'reg': RegAugmenter}
 
-    def augment(self, current_received: torch.Tensor, current_transmitted: torch.Tensor, type: str, h: torch.Tensor,
+    def augment(self, augmentations: str, received_word: torch.Tensor, current_transmitted: torch.Tensor,
+                h: torch.Tensor,
                 snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
-        if type == 'reg':
-            x, y = current_received, current_transmitted.reshape(1, -1)
-        elif type == 'aug1':
-            augmenter = names_to_methods_aug_dict[type]
-            x, y = augmenter.augment(current_transmitted.reshape(1, -1), h, snr)
-        elif type == 'aug2':
-            augmenter = names_to_methods_aug_dict[type]
-            x, y = augmenter.augment(current_received, current_transmitted.reshape(1, -1), h)
-        elif type == 'aug3':
-            augmenter = names_to_methods_aug_dict[type]
-            x, y = augmenter.augment(current_received, current_transmitted)
-        else:
-            raise ValueError("No sucn augmentation method!!!")
-
+        augmenter = self._augmentations_dict[augmentations]()
+        x, y = augmenter.augment(received_word, current_transmitted.reshape(1, -1), h, snr)
         return x, y
+
+    @property
+    def centers(self) -> torch.Tensor:
+        return self._centers
+
+    @property
+    def stds(self) -> torch.Tensor:
+        return self._stds

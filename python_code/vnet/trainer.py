@@ -257,8 +257,10 @@ class Trainer(object):
             current_received = received_words[upd_idx].reshape(1, -1)
             current_transmitted = transmitted_words[upd_idx].reshape(1, -1)
             if i < n_repeats:
-                received_words[i], transmitted_words[i] = self.augmenter.augment(current_received, current_transmitted,
-                                                                                 conf.augmentations, h, conf.train_snr)
+                received_words[i], transmitted_words[i] = self.augmenter.augment(conf.augmentations,
+                                                                                 current_received,
+                                                                                 current_transmitted,
+                                                                                 h, conf.train_snr)
             else:
                 received_words[i], transmitted_words[i] = current_received, current_transmitted
         return received_words, transmitted_words
