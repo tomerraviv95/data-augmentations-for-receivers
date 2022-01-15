@@ -1,6 +1,6 @@
 from time import time
 from typing import Tuple, Union
-from python_code.augmentations.augmenter import Augmenter
+from python_code.augmentations.augmenter_wrapper import AugmenterWrapper
 from python_code.utils.config_singleton import Config
 from python_code.channel.channel_dataset import ChannelModelDataset
 from python_code.ecc.rs_main import decode, encode
@@ -12,6 +12,8 @@ import numpy as np
 import random
 import torch
 import os
+
+from python_code.utils.trellis_utils import compute_centers_from_h
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -33,7 +35,7 @@ class Trainer(object):
         self.initialize_weights_dir()
         self.initialize_dataloaders()
         self.initialize_detector()
-        self.augmenter = Augmenter()
+        self.augmenter = AugmenterWrapper(conf.augmentations)
 
     def initialize_weights_dir(self):
         """
@@ -152,6 +154,7 @@ class Trainer(object):
                 transmitted_word in buffer_tx], dim=0)
 
         for count, (transmitted_word, received_word, h) in enumerate(zip(transmitted_words, received_words, hs)):
+            print(compute_centers_from_h(h.cpu().numpy()))
             transmitted_word, received_word = transmitted_word.reshape(1, -1), received_word.reshape(1, -1)
             # detect
             detected_word = self.detector(received_word, 'val')
@@ -257,8 +260,7 @@ class Trainer(object):
             current_received = received_words[upd_idx].reshape(1, -1)
             current_transmitted = transmitted_words[upd_idx].reshape(1, -1)
             if i < n_repeats:
-                received_words[i], transmitted_words[i] = self.augmenter.augment(conf.augmentations,
-                                                                                 current_received,
+                received_words[i], transmitted_words[i] = self.augmenter.augment(current_received,
                                                                                  current_transmitted,
                                                                                  h, conf.train_snr)
             else:

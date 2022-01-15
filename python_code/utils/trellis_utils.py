@@ -1,7 +1,12 @@
-import torch
+from python_code.channel.modulator import BPSKModulator
+from python_code.utils.config_singleton import Config
+from itertools import product
 import numpy as np
+import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+conf = Config()
 
 
 def create_transition_table(n_states: int) -> np.ndarray:
@@ -32,7 +37,7 @@ def acs_block(in_prob: torch.Tensor, llrs: torch.Tensor, transition_table: torch
 
 def calculate_states(memory_length: int, transmitted_words: torch.Tensor) -> torch.Tensor:
     """
-    calculates the state for the transmitted words
+    calculates all states vector for the transmitted words
     :param memory_length: length of channel memory
     :param transmitted_words: channel transmitted words
     :return: vector of length of transmitted_words with values in the range of 0,1,...,n_states-1
@@ -44,3 +49,10 @@ def calculate_states(memory_length: int, transmitted_words: torch.Tensor) -> tor
     gt_states = torch.sum(blockwise_words.transpose(1, 2).reshape(-1, memory_length) * states_enumerator,
                           dim=1).long()
     return gt_states
+
+
+def compute_centers_from_h(h: np.ndarray) -> np.ndarray:
+    binary_combinations = np.array(list(product('01', repeat=4))).astype(int)
+    s = BPSKModulator.modulate(binary_combinations)
+    classes_centers = np.dot(h[::-1], s.T)
+    return classes_centers

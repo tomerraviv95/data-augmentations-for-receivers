@@ -9,6 +9,10 @@ conf = Config()
 
 
 class Augmenter3:
+    def __init__(self):
+        super().__init__()
+        self._centers = None
+        self._stds = None
 
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float) -> \
             Tuple[torch.Tensor, torch.Tensor]:
@@ -31,3 +35,11 @@ class Augmenter3:
                                               torch.randn_like(transmitted_word)[
                                                   0, state_ind]
         return new_received_word, new_transmitted_word
+
+    @property
+    def centers(self) -> torch.Tensor:
+        return self._centers
+
+    @property
+    def stds(self) -> torch.Tensor:
+        return self._stds
