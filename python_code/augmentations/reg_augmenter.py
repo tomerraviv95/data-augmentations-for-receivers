@@ -11,6 +11,6 @@ conf = Config()
 
 
 class RegAugmenter:
-    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float) -> \
-            Tuple[torch.Tensor, torch.Tensor]:
+    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
+                update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
         return received_word, transmitted_word
