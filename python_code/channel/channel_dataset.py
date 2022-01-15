@@ -47,18 +47,9 @@ class ChannelModelDataset(Dataset):
         else:
             index = 0  # random.randint(0, 1e6)
 
-        # if conf.augmentations != 'reg':
-        #     b = np.random.randint(0, 2, size=(1, self.block_length))
-        # if self.phase == 'train' and conf.augmentations != 'reg':
-        #
         # accumulate words until reaches desired number
         while y_full.shape[0] < self.words:
-            if conf.augmentations == 'reg' or self.phase == 'val':
-                b = self.bits_generator.integers(0, 2, size=(1, self.block_length))
-            else:
-                b = self.draw_until_pilot_has_all_states()
-            # if conf.augmentations == 'reg':
-            #     b = np.random.randint(0, 2, size=(1, self.block_length))
+            b = self.bits_generator.integers(0, 2, size=(1, self.block_length))
             # encoding - errors correction code
             c = self.encoding(b).reshape(1, -1)
             # add zero bits
