@@ -16,6 +16,6 @@ class AugmenterWrapper:
         self._augmenter = self._augmentations_dict[augmentations]()
 
     def augment(self, received_word: torch.Tensor, current_transmitted: torch.Tensor,
-                h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
-        x, y = self._augmenter.augment(received_word, current_transmitted.reshape(1, -1), h, snr)
+                h: torch.Tensor, snr: float, update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
+        x, y = self._augmenter.augment(received_word, current_transmitted.reshape(1, -1), h, snr, update_hyper_params)
         return x, y

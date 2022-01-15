@@ -11,8 +11,8 @@ conf = Config()
 
 
 class Augmenter1:
-    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float) -> \
-    Tuple[torch.Tensor, torch.Tensor]:
+    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
+                update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
         binary_mask = torch.rand_like(transmitted_word) >= 0.5
         new_transmitted_word = (transmitted_word + binary_mask) % 2
         # encoding - errors correction code

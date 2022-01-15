@@ -154,7 +154,6 @@ class Trainer(object):
                 transmitted_word in buffer_tx], dim=0)
 
         for count, (transmitted_word, received_word, h) in enumerate(zip(transmitted_words, received_words, hs)):
-            print(compute_centers_from_h(h.cpu().numpy()))
             transmitted_word, received_word = transmitted_word.reshape(1, -1), received_word.reshape(1, -1)
             # detect
             detected_word = self.detector(received_word, 'val')
@@ -171,6 +170,14 @@ class Trainer(object):
             print(f'current: {count, ser, errors_num}')
             total_ser += ser
             ser_by_word[count] = ser
+
+            true_centers = compute_centers_from_h(h.cpu().numpy())
+            if self.augmenter._augmenter.centers is not None:
+                aug_computed_centers = self.augmenter._augmenter.centers.cpu().numpy()
+                print(true_centers)
+                print(aug_computed_centers)
+                print(np.sum(np.abs(true_centers - aug_computed_centers)))
+                print(self.augmenter._augmenter.stds.cpu().numpy())
 
             # save the encoded word in the buffer
             if ser <= conf.ser_thresh:
@@ -262,7 +269,8 @@ class Trainer(object):
             if i < n_repeats:
                 received_words[i], transmitted_words[i] = self.augmenter.augment(current_received,
                                                                                  current_transmitted,
-                                                                                 h, conf.train_snr)
+                                                                                 h, conf.train_snr,
+                                                                                 update_hyper_params=(i == 0))
             else:
                 received_words[i], transmitted_words[i] = current_received, current_transmitted
         return received_words, transmitted_words

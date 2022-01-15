@@ -55,4 +55,5 @@ def compute_centers_from_h(h: np.ndarray) -> np.ndarray:
     binary_combinations = np.array(list(product('01', repeat=4))).astype(int)
     s = BPSKModulator.modulate(binary_combinations)
     classes_centers = np.dot(h[::-1], s.T)
+    classes_centers = np.sort(classes_centers)[::-1]
     return classes_centers

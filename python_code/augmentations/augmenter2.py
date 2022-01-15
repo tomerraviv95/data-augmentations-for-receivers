@@ -11,8 +11,8 @@ conf = Config()
 
 class Augmenter2:
 
-    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float) -> \
-    Tuple[torch.Tensor, torch.Tensor]:
+    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
+                update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
         h = h.cpu().numpy()
         #### first calculate estimated noise pattern
         c = transmitted_word.cpu().numpy()
