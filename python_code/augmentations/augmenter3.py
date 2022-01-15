@@ -1,7 +1,6 @@
-from typing import Tuple
-
 from python_code.utils.trellis_utils import calculate_states
 from python_code.utils.config_singleton import Config
+from typing import Tuple
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

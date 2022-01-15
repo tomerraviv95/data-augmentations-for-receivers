@@ -1,6 +1,6 @@
 # general
-run_name: 'new_1001' #'augmented_version'
-seed: 10 # run seed
+run_name: 'test_14_aug3' #'augmented_version'
+seed: 0 # run seed
 
 # coding parameters
 use_ecc: True # Either run with/without ECC. values: [True, False].
@@ -17,13 +17,13 @@ gamma: 0.5 # gamma value for time decay fading
 # validation hyperparameters
 val_block_length: 80 # coherence block time. values: int.
 val_frames: 50 # number of validation frames. values: int.
-val_snr: 10 # start SNR value. values: float.
+val_snr: 13 # start SNR value. values: float.
 eval_mode: 'by_word' # Type of evaluation. Per snr - 'aggregated', Per block - 'by_word'.
 
 # train hyperparameters
 train_block_length: 80 # coherence block time. values: int.
 train_frames: 1 # number of train frames. values: int.
-train_snr: 10 # start SNR value. values: float.
+train_snr: 13 # start SNR value. values: float.
 train_minibatch_num: 30 # number of minibatches. values: int.
 train_minibatch_size: 32 # the size of a given minibatch. values: int.
 lr: 0.001 # learning rate. values: float.
@@ -38,6 +38,6 @@ ser_thresh: 0.02 # ser threshold. values: float.
 buffer_empty: True # Whether to start evaluation from an empty buffer or a randomly initialized one.
 
 # augmentations
-augmentations: 'reg' # ['reg','aug1','aug2','aug3']
+augmentations: 'aug3' # ['reg','aug1','aug2','aug3']
 total_words: 100 # Number of words per iteration trained on in the offline training. values: int.
 n_repeats: 25 # number of desired augmented words out of total_words. values: 0<=repeats_n<=total_words
