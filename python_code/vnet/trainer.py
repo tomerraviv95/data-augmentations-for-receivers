@@ -171,14 +171,6 @@ class Trainer(object):
             total_ser += ser
             ser_by_word[count] = ser
 
-            true_centers = compute_centers_from_h(h.cpu().numpy())
-            if self.augmenter._augmenter.centers is not None:
-                aug_computed_centers = self.augmenter._augmenter.centers.cpu().numpy()
-                print(true_centers)
-                print(aug_computed_centers)
-                print(np.sum(np.abs(true_centers - aug_computed_centers)))
-                print(self.augmenter._augmenter.stds.cpu().numpy())
-
             # save the encoded word in the buffer
             if ser <= conf.ser_thresh:
                 buffer_rx = torch.cat([buffer_rx, received_word])
