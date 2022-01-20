@@ -49,6 +49,7 @@ class Augmenter3:
             state_received = received_word[0, state_ind]
             centers[state] = torch.mean(state_received)
             stds[state] = torch.std(state_received)
+        centers[torch.isnan(centers)] = torch.mean(centers[~torch.isnan(centers)])
         stds[torch.isnan(stds)] = torch.mean(stds[~torch.isnan(stds)])
         return centers, stds
 

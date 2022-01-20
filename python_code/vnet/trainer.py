@@ -24,6 +24,8 @@ torch.manual_seed(conf.seed)
 torch.cuda.manual_seed(conf.seed)
 np.random.seed(conf.seed)
 
+MIN_MINIBATCH = 20
+
 
 class Trainer(object):
     def __init__(self):
@@ -154,6 +156,7 @@ class Trainer(object):
                 transmitted_word in buffer_tx], dim=0)
 
         for count, (transmitted_word, received_word, h) in enumerate(zip(transmitted_words, received_words, hs)):
+            print(h)
             transmitted_word, received_word = transmitted_word.reshape(1, -1), received_word.reshape(1, -1)
             # detect
             detected_word = self.detector(received_word, 'val')
@@ -170,6 +173,13 @@ class Trainer(object):
             print(f'current: {count, ser, errors_num}')
             total_ser += ser
             ser_by_word[count] = ser
+
+            real_centers = compute_centers_from_h(h.cpu().numpy())
+            if self.augmenter._augmenter._centers is not None:
+                est_centers = self.augmenter._augmenter._centers.cpu().numpy()
+                diff = real_centers - est_centers
+                sum_val = np.sum(np.abs(diff))
+                print(diff, sum_val)
 
             # save the encoded word in the buffer
             if ser <= conf.ser_thresh:
@@ -245,7 +255,9 @@ class Trainer(object):
             # evaluate performance
             ser = self.evaluate_at_point()
             # save best weights
-            if ser < best_ser:
+            if minibatch < MIN_MINIBATCH:
+                self.save_weights(loss, conf.train_snr, conf.gamma)
+            elif minibatch > MIN_MINIBATCH and ser < best_ser:
                 self.save_weights(loss, conf.train_snr, conf.gamma)
                 best_ser = ser
 

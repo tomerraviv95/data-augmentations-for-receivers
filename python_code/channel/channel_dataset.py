@@ -11,6 +11,8 @@ import concurrent.futures
 import numpy as np
 import torch
 
+from python_code.utils.trellis_utils import compute_centers_from_h
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
@@ -54,6 +56,7 @@ class ChannelModelDataset(Dataset):
             padded_c = np.concatenate([c, np.zeros([c.shape[0], conf.memory_length])], axis=1)
             # transmit
             h = estimate_channel(conf.memory_length, gamma,
+                                 phase=self.phase,
                                  fading=conf.fading_in_channel if self.phase == 'val' else conf.fading_in_decoder,
                                  index=index)
             y = self.transmit(padded_c, h, snr)
@@ -89,6 +92,28 @@ class ChannelModelDataset(Dataset):
         return self.transmission_length
 
 
+def plot_channel(channel_dataset):
+    _, _, hs = channel_dataset.__getitem__(snr_list=[conf.train_snr], gamma=conf.gamma)
+    for i in range(conf.memory_length):
+        plt.plot(hs[:, i].cpu().numpy(), label=f'Tap {i}')
+    plt.xlabel('Block Index')
+    plt.ylabel('Magnitude')
+    plt.legend(loc='upper left')
+    plt.show()
+
+def plot_centers(channel_dataset):
+    _, _, hs = channel_dataset.__getitem__(snr_list=[conf.train_snr], gamma=conf.gamma)
+    centers = []
+    for t in range(hs.shape[0]):
+        centers.append(compute_centers_from_h(hs[t].cpu().numpy()))
+    centers = np.array(centers)
+    for i in range(2 ** conf.memory_length):
+        plt.plot(centers[:, i], label=f'Center {i}')
+    plt.xlabel('Block Index')
+    plt.ylabel('Center Magnitude')
+    plt.legend(loc='upper left')
+    plt.show()
+
 if __name__ == '__main__':
     phase = 'val'  # 'train','val'
     frames_per_phase = {'train': conf.train_frames, 'val': conf.val_frames}
@@ -106,12 +131,6 @@ if __name__ == '__main__':
             phase=phase,
         )
         for phase in ['train', 'val']}
-
     channel_dataset = channel_dataset_dict[phase]
-    _, _, hs = channel_dataset.__getitem__(snr_list=[conf.train_SNR_start], gamma=conf.gamma)
-    for i in range(conf.memory_length):
-        plt.plot(hs[:, i].cpu().numpy(), label=f'Tap {i}')
-    plt.xlabel('Block Index')
-    plt.ylabel('Magnitude')
-    plt.legend(loc='upper left')
-    plt.show()
+
+    plot_centers(channel_dataset)
