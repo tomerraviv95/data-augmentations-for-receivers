@@ -37,7 +37,8 @@ class Trainer(object):
         self.initialize_weights_dir()
         self.initialize_dataloaders()
         self.initialize_detector()
-        self.augmenter = AugmenterWrapper(conf.augmentations)
+        self.augmenters = {'train': AugmenterWrapper(conf.train_aug_type),
+                           'val': AugmenterWrapper(conf.test_aug_type)}
 
     def initialize_weights_dir(self):
         """
@@ -156,7 +157,7 @@ class Trainer(object):
                 transmitted_word in buffer_tx], dim=0)
 
         for count, (transmitted_word, received_word, h) in enumerate(zip(transmitted_words, received_words, hs)):
-            print(h)
+
             transmitted_word, received_word = transmitted_word.reshape(1, -1), received_word.reshape(1, -1)
             # detect
             detected_word = self.detector(received_word, 'val')
@@ -171,15 +172,9 @@ class Trainer(object):
             errors_num = torch.sum(torch.abs(encoded_word - detected_word)).item()
             print('*' * 20)
             print(f'current: {count, ser, errors_num}')
+            print(h)
             total_ser += ser
             ser_by_word[count] = ser
-
-            real_centers = compute_centers_from_h(h.cpu().numpy())
-            if self.augmenter._augmenter._centers is not None:
-                est_centers = self.augmenter._augmenter._centers.cpu().numpy()
-                diff = real_centers - est_centers
-                sum_val = np.sum(np.abs(diff))
-                print(diff, sum_val)
 
             # save the encoded word in the buffer
             if ser <= conf.ser_thresh:
@@ -194,9 +189,21 @@ class Trainer(object):
                     buffer_tx = buffer_tx[1:]
                     buffer_ser = buffer_ser[1:]
 
+            DEBUG_MODE = False
+            real_centers = compute_centers_from_h(h.cpu().numpy())
+            tensor_real_centers = torch.Tensor(real_centers.copy()).to(device)
+            if conf.test_aug_type == 'aug3' and DEBUG_MODE and self.augmenters['val']._augmenter._centers is not None:
+                self.augmenters['val']._augmenter._centers = tensor_real_centers
+
             if conf.self_supervised and ser <= conf.ser_thresh:
                 # use last word inserted in the buffer for training
                 self.online_training(buffer_tx[-1].reshape(1, -1), buffer_rx[-1].reshape(1, -1), h.reshape(1, -1), snr)
+                if conf.test_aug_type == 'aug3':
+                    est_centers = self.augmenters['val']._augmenter._centers
+                    if conf.test_aug_type == 'aug3':
+                        diff = torch.sum(torch.abs(tensor_real_centers - est_centers))
+                        print(tensor_real_centers, est_centers)
+                        print(diff)
 
             if (count + 1) % 10 == 0:
                 print(f'Self-supervised: {count + 1}/{transmitted_words.shape[0]}, SER {total_ser / (count + 1)}')
@@ -237,7 +244,7 @@ class Trainer(object):
 
         # augment received words by the number of desired repeats
         received_words, transmitted_words = self.augment_words_wrapper(h, received_words, transmitted_words,
-                                                                       conf.total_words, conf.n_repeats)
+                                                                       conf.total_words, conf.n_repeats, 'train')
 
         # go on every word out of the TOTAL_WORDS_NUM, for train_minibatch_num iterations
         for minibatch in range(conf.train_minibatch_num):
@@ -263,7 +270,7 @@ class Trainer(object):
 
         print('*' * 50)
 
-    def augment_words_wrapper(self, h, received_words, transmitted_words, total_size, n_repeats):
+    def augment_words_wrapper(self, h, received_words, transmitted_words, total_size, n_repeats, phase):
         transmitted_words = transmitted_words.repeat(total_size, 1)
         received_words = received_words.repeat(total_size, 1)
         for i in range(total_size):
@@ -271,10 +278,10 @@ class Trainer(object):
             current_received = received_words[upd_idx].reshape(1, -1)
             current_transmitted = transmitted_words[upd_idx].reshape(1, -1)
             if i < n_repeats:
-                received_words[i], transmitted_words[i] = self.augmenter.augment(current_received,
-                                                                                 current_transmitted,
-                                                                                 h, conf.train_snr,
-                                                                                 update_hyper_params=(i == 0))
+                received_words[i], transmitted_words[i] = self.augmenters[phase].augment(current_received,
+                                                                                         current_transmitted,
+                                                                                         h, conf.train_snr,
+                                                                                         update_hyper_params=(i == 0))
             else:
                 received_words[i], transmitted_words[i] = current_received, current_transmitted
         return received_words, transmitted_words

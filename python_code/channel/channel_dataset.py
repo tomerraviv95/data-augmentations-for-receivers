@@ -42,10 +42,7 @@ class ChannelModelDataset(Dataset):
         b_full = np.empty((0, self.block_length))
         y_full = np.empty((0, self.transmission_length))
         h_full = np.empty((0, conf.memory_length))
-        if self.phase == 'val':
-            index = 0
-        else:
-            index = 0  # random.randint(0, 1e6)
+        index = 0
 
         # accumulate words until reaches desired number
         while y_full.shape[0] < self.words:
@@ -101,6 +98,7 @@ def plot_channel(channel_dataset):
     plt.legend(loc='upper left')
     plt.show()
 
+
 def plot_centers(channel_dataset):
     _, _, hs = channel_dataset.__getitem__(snr_list=[conf.train_snr], gamma=conf.gamma)
     centers = []
@@ -114,11 +112,11 @@ def plot_centers(channel_dataset):
     plt.legend(loc='upper left')
     plt.show()
 
+
 if __name__ == '__main__':
     phase = 'val'  # 'train','val'
     frames_per_phase = {'train': conf.train_frames, 'val': conf.val_frames}
     block_lengths = {'train': conf.train_block_length, 'val': conf.val_block_length}
-    channel_coefficients = {'train': 'time_decay', 'val': conf.channel_coefficients}
     transmission_lengths = {
         'train': conf.train_block_length,
         'val': conf.val_block_length if not conf.use_ecc else conf.val_block_length + 8 * conf.n_symbols}

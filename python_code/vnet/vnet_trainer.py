@@ -52,7 +52,7 @@ class VNETTrainer(Trainer):
         :param rx: received word
         """
         # augment received words by the number of desired repeats
-        aug_rx, aug_tx = self.augment_words_wrapper(h, rx, tx, conf.online_total_words, conf.online_repeats_n)
+        aug_rx, aug_tx = self.augment_words_wrapper(h, rx, tx, conf.online_total_words, conf.online_repeats_n, 'val')
         # run training loops
         loss = 0
         for i in range(conf.online_total_words):
