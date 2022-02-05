@@ -66,19 +66,19 @@ def add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num):
 
 
 if __name__ == '__main__':
-    run_over = True
+    run_over = False
     plot_type = 'SNR'  # either plot by block, or by SNR
 
     if plot_type == 'SNR':
         trial_num = 5
         params_dicts = [
-            # {'train_snr': 9, 'val_snr': 9, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 100,
-            #  'channel_coefficients': 'cost2100'},
-            # {'train_snr': 10, 'Cval_snr': 10, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 100,
-            #  'channel_coefficients': 'cost2100'},
-            # {'train_snr': 11, 'val_snr': 11, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 100,
-            #  'channel_coefficients': 'cost2100'},
-            {'train_snr': 12, 'val_snr': 12, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 100,
+            {'train_snr': 9, 'val_snr': 9, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
+             'channel_coefficients': 'cost2100'},
+            {'train_snr': 10, 'val_snr': 10, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
+             'channel_coefficients': 'cost2100'},
+            {'train_snr': 11, 'val_snr': 11, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
+             'channel_coefficients': 'cost2100'},
+            {'train_snr': 12, 'val_snr': 12, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
              'channel_coefficients': 'cost2100'}
         ]
         label_name = 'SNR'
@@ -95,9 +95,9 @@ if __name__ == '__main__':
 
     for params_dict in params_dicts:
         print(params_dict)
-        # add_reg_viterbinet(all_curves, params_dict, run_over, trial_num)
-        # add_aug1_viterbinet(all_curves, params_dict, run_over, trial_num)
-        # add_aug2_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_reg_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_aug1_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_aug2_viterbinet(all_curves, params_dict, run_over, trial_num)
         add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num)
 
     plot_by_values(all_curves, label_name,  # list(params_dicts[0].keys())[0]
