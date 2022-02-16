@@ -2,10 +2,6 @@
 run_name: 'test' #'augmented_version'
 seed: 0 # run seed
 
-# coding parameters
-use_ecc: False # Either run with/without ECC. values: [True, False].
-n_symbols: 2 # Number of symbols in ECC, each one is hard-coded 8 bits. values: int.
-
 # channel
 memory_length: 4 # Memory length of the channel. values: int. Tested with values <=4.
 channel_type: 'ISI_AWGN' # Channel type. For this paper, we only used ISI AWGN. values: ['ISI_AWGN'].

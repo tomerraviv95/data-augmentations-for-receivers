@@ -1,9 +1,7 @@
-from time import time
 from typing import Tuple, Union
 from python_code.augmentations.augmenter_wrapper import AugmenterWrapper
 from python_code.utils.config_singleton import Config
 from python_code.channel.channel_dataset import ChannelModelDataset
-from python_code.ecc.rs_main import decode
 from python_code.utils.metrics import calculate_error_rates
 from dir_definitions import WEIGHTS_DIR
 from torch.nn import CrossEntropyLoss, BCELoss, MSELoss
@@ -22,7 +20,6 @@ torch.manual_seed(conf.seed)
 torch.cuda.manual_seed(conf.seed)
 np.random.seed(conf.seed)
 
-MIN_MINIBATCH = 20
 PRINT_FREQ = 10
 
 
@@ -100,28 +97,6 @@ class Trainer(object):
 
     def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h, snr):
         pass
-
-    def evaluate_at_point(self) -> float:
-        """
-        Monte-Carlo simulation over validation SNRs range
-        :return: ber, fer, iterations vectors
-        """
-        print(f'Starts evaluation at gamma {conf.gamma}')
-        start = time()
-        # draw words of given gamma for all snrs
-        transmitted_words, received_words, _ = self.channel_dataset['val'].__getitem__(snr_list=[conf.val_snr],
-                                                                                       gamma=conf.gamma)
-
-        # decode and calculate accuracy
-        detected_words = self.detector(received_words, 'val')
-
-        if conf.use_ecc:
-            decoded_words = [decode(detected_word, conf.n_symbols) for detected_word in detected_words.cpu().numpy()]
-            detected_words = torch.Tensor(decoded_words).to(device)
-
-        ser, fer, err_indices = calculate_error_rates(detected_words, transmitted_words)
-        print(f'Done. time: {time() - start}, ser: {ser}')
-        return ser
 
     def evaluate(self) -> Union[float, np.ndarray]:
         if conf.is_online_training:

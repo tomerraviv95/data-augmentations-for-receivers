@@ -2,16 +2,12 @@ from python_code.channel.channel_estimation import estimate_channel
 from python_code.channel.modulator import BPSKModulator
 from python_code.channel.channel import ISIAWGNChannel
 from python_code.utils.config_singleton import Config
-from python_code.ecc.rs_main import encode
 from torch.utils.data import Dataset
 from numpy.random import default_rng
-import matplotlib.pyplot as plt
 from typing import Tuple, List
 import concurrent.futures
 import numpy as np
 import torch
-
-from python_code.utils.trellis_utils import compute_centers_from_h
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -78,48 +74,3 @@ class ChannelModelDataset(Dataset):
 
     def __len__(self):
         return self.transmission_length
-
-
-def plot_channel(channel_dataset):
-    _, _, hs = channel_dataset.__getitem__(snr_list=[conf.val_snr], gamma=conf.gamma)
-    for i in range(conf.memory_length):
-        plt.plot(hs[:, i].cpu().numpy(), label=f'Tap {i}')
-    plt.xlabel('Block Index')
-    plt.ylabel('Magnitude')
-    plt.legend(loc='upper left')
-    plt.show()
-
-
-def plot_centers(channel_dataset):
-    _, _, hs = channel_dataset.__getitem__(snr_list=[conf.val_snr], gamma=conf.gamma)
-    centers = []
-    for t in range(hs.shape[0]):
-        centers.append(compute_centers_from_h(hs[t].cpu().numpy()))
-    centers = np.array(centers)
-    for i in range(2 ** conf.memory_length):
-        plt.plot(centers[:, i], label=f'Center {i}')
-    plt.xlabel('Block Index')
-    plt.ylabel('Center Magnitude')
-    plt.legend(loc='upper left')
-    plt.show()
-
-
-if __name__ == '__main__':
-    phase = 'val'  # 'train','val'
-    frames_per_phase = {'train': conf.train_frames, 'val': conf.val_frames}
-    block_lengths = {'train': conf.train_block_length, 'val': conf.val_block_length}
-    transmission_lengths = {
-        'train': conf.train_block_length,
-        'val': conf.val_block_length if not conf.use_ecc else conf.val_block_length + 8 * conf.n_symbols}
-    channel_dataset_dict = {
-        phase: ChannelModelDataset(
-            block_length=block_lengths[phase],
-            transmission_length=transmission_lengths[phase],
-            words=frames_per_phase[phase],
-            use_ecc=conf.use_ecc,
-            phase=phase,
-        )
-        for phase in ['train', 'val']}
-    channel_dataset = channel_dataset_dict[phase]
-
-    plot_centers(channel_dataset)
