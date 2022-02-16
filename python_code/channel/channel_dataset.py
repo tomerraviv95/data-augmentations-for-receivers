@@ -23,18 +23,12 @@ class ChannelModelDataset(Dataset):
     Dataset object for the channel. Used in training and evaluation to draw minibatches of channel words and transmitted
     """
 
-    def __init__(self, block_length: int, transmission_length: int, words: int,
-                 use_ecc: bool, phase: str):
+    def __init__(self, block_length: int, transmission_length: int, words: int):
 
-        self.phase = phase
         self.block_length = block_length
         self.transmission_length = transmission_length
         self.words = words
         self.bits_generator = default_rng(seed=conf.seed)
-        if use_ecc and self.phase == 'val':
-            self.encoding = lambda b: encode(b, conf.n_symbols)
-        else:
-            self.encoding = lambda b: b
 
     def get_snr_data(self, snr: float, gamma: float, database: list):
         if database is None:
@@ -46,17 +40,14 @@ class ChannelModelDataset(Dataset):
 
         # accumulate words until reaches desired number
         while y_full.shape[0] < self.words:
-            b = self.bits_generator.integers(0, 2, size=(1, self.block_length))
-            # encoding - errors correction code
-            c = self.encoding(b).reshape(1, -1)
+            b = self.bits_generator.integers(0, 2, size=(1, self.block_length)).reshape(1, -1)
             # add zero bits
-            padded_c = np.concatenate([c, np.zeros([c.shape[0], conf.memory_length])], axis=1)
+            padded_b = np.concatenate([b, np.zeros([b.shape[0], conf.memory_length])], axis=1)
             # transmit
             h = estimate_channel(conf.memory_length, gamma,
-                                 phase=self.phase,
-                                 fading=conf.fading_in_channel if self.phase == 'val' else conf.fading_in_decoder,
+                                 fading=conf.fading_in_channel,
                                  index=index)
-            y = self.transmit(padded_c, h, snr)
+            y = self.transmit(padded_b, h, snr)
             # accumulate
             b_full = np.concatenate((b_full, b), axis=0)
             y_full = np.concatenate((y_full, y), axis=0)
@@ -90,7 +81,7 @@ class ChannelModelDataset(Dataset):
 
 
 def plot_channel(channel_dataset):
-    _, _, hs = channel_dataset.__getitem__(snr_list=[conf.train_snr], gamma=conf.gamma)
+    _, _, hs = channel_dataset.__getitem__(snr_list=[conf.val_snr], gamma=conf.gamma)
     for i in range(conf.memory_length):
         plt.plot(hs[:, i].cpu().numpy(), label=f'Tap {i}')
     plt.xlabel('Block Index')
@@ -100,7 +91,7 @@ def plot_channel(channel_dataset):
 
 
 def plot_centers(channel_dataset):
-    _, _, hs = channel_dataset.__getitem__(snr_list=[conf.train_snr], gamma=conf.gamma)
+    _, _, hs = channel_dataset.__getitem__(snr_list=[conf.val_snr], gamma=conf.gamma)
     centers = []
     for t in range(hs.shape[0]):
         centers.append(compute_centers_from_h(hs[t].cpu().numpy()))

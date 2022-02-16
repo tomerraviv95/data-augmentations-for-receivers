@@ -72,13 +72,13 @@ if __name__ == '__main__':
     if plot_type == 'SNR':
         trial_num = 5
         params_dicts = [
-            {'train_snr': 9, 'val_snr': 9, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
+            {'val_snr': 9, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
              'channel_coefficients': 'cost2100'},
-            {'train_snr': 10, 'val_snr': 10, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
+            {'val_snr': 10, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
              'channel_coefficients': 'cost2100'},
-            {'train_snr': 11, 'val_snr': 11, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
+            {'val_snr': 11, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
              'channel_coefficients': 'cost2100'},
-            {'train_snr': 12, 'val_snr': 12, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
+            {'val_snr': 12, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
              'channel_coefficients': 'cost2100'}
         ]
         label_name = 'SNR'

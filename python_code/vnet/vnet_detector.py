@@ -13,12 +13,9 @@ class VNETDetector(nn.Module):
     This implements the VA decoder by an NN on each stage
     """
 
-    def __init__(self,
-                 n_states: int,
-                 transmission_lengths: Dict[str, int]):
+    def __init__(self, n_states: int):
 
         super(VNETDetector, self).__init__()
-        self.transmission_lengths = transmission_lengths
         self.n_states = n_states
         self.transition_table_array = create_transition_table(n_states)
         self.transition_table = torch.Tensor(self.transition_table_array).to(device)

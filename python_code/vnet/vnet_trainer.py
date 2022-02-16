@@ -29,8 +29,7 @@ class VNETTrainer(Trainer):
         """
         Loads the ViterbiNet detector
         """
-        self.detector = VNETDetector(n_states=self.n_states,
-                                     transmission_lengths=self.transmission_lengths)
+        self.detector = VNETDetector(n_states=self.n_states)
 
     def calc_loss(self, soft_estimation: torch.Tensor, transmitted_words: torch.IntTensor) -> torch.Tensor:
         """

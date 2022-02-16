@@ -10,18 +10,16 @@ COST_LENGTH = 300
 conf = Config()
 
 
-def estimate_channel(memory_length: int, gamma: float, phase: str, fading: bool = False, index: int = 0):
+def estimate_channel(memory_length: int, gamma: float, fading: bool = False, index: int = 0):
     """
     Returns the coefficients vector estimated from channel
     :param memory_length: memory length of channel
     :param gamma: coefficient
-    :param channel_coefficients: coefficients type
-    :param noisy_est_var: variance for noisy estimation of coefficients 2nd,3rd,...
     :param fading: fading flag - if true, apply fading.
     :param index: time index for the fading functionality
     :return: the channel coefficients [1,memory_length] numpy array
     """
-    if conf.channel_coefficients == 'time_decay' or phase == 'train':
+    if conf.channel_coefficients == 'time_decay':
         h = np.reshape(np.exp(-gamma * np.arange(memory_length)), [1, memory_length])
     elif conf.channel_coefficients == 'cost2100':
         total_h = np.empty([COST_LENGTH, memory_length])

@@ -11,7 +11,6 @@ memory_length: 4 # Memory length of the channel. values: int. Tested with values
 channel_type: 'ISI_AWGN' # Channel type. For this paper, we only used ISI AWGN. values: ['ISI_AWGN'].
 channel_coefficients: 'time_decay' # The taps of the channel. values: ['time_decay','cost2100'].
 fading_in_channel: True # If the channel is fading/non-fading. values: [True, False]
-fading_in_decoder: False # If the decoder is aware of the fading, only used in the full-CSI VA. values: [True, False]
 gamma: 0.5 # gamma value for time decay fading
 
 # validation hyperparameters
@@ -24,19 +23,16 @@ eval_mode: 'by_word' # Type of evaluation. Per snr - 'aggregated', Per block - '
 # train hyperparameters
 train_block_length: 80 # coherence block time. values: int.
 train_frames: 1 # number of train frames. values: int.
-train_snr: 12 # start SNR value. values: float.
 train_minibatch_num: 30 # number of minibatches. values: int.
 train_minibatch_size: 32 # the size of a given minibatch. values: int.
 lr: 0.001 # learning rate. values: float.
 loss_type: 'CrossEntropy' # Loss type. values: 'BCE','CrossEntropy','MSE'.
 optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
 
-# self-supervised online training
+# online training
 is_online_training: True # Whether to run the online training (as in ViterbiNet). values: [True, False].
 online_total_words: 200 # Number of words per iteration trained on in the online training. values: int.
 online_repeats_n: 25 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
-ser_thresh: 0.02 # ser threshold. values: float.
-buffer_empty: True # Whether to start evaluation from an empty buffer or a randomly initialized one.
 
 # augmentations
 aug_type: 'reg' # ['reg','aug1','aug2','aug3']

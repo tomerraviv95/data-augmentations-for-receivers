@@ -93,20 +93,10 @@ class Trainer(object):
         """
         Sets up the data loader - a generator from which we draw batches, in iterations
         """
-        self.frames_per_phase = {'train': conf.train_frames, 'val': conf.val_frames}
-        self.block_lengths = {'train': conf.train_block_length, 'val': conf.val_block_length}
-        self.transmission_lengths = {
-            'train': conf.train_block_length,
-            'val': conf.val_block_length if not conf.use_ecc else conf.val_block_length + 8 * conf.n_symbols}
-        self.channel_dataset = {
-            phase: ChannelModelDataset(block_length=self.block_lengths[phase],
-                                       transmission_length=self.transmission_lengths[phase],
-                                       words=self.frames_per_phase[phase],
-                                       use_ecc=conf.use_ecc,
-                                       phase=phase)
-            for phase in ['train', 'val']}
-        self.dataloaders = {phase: torch.utils.data.DataLoader(self.channel_dataset[phase])
-                            for phase in ['train', 'val']}
+        self.channel_dataset = ChannelModelDataset(block_length=conf.val_block_length,
+                                                   transmission_length=conf.val_block_length,
+                                                   words=conf.val_frames)
+        self.dataloaders = torch.utils.data.DataLoader(self.channel_dataset)
 
     def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h, snr):
         pass
@@ -138,8 +128,8 @@ class Trainer(object):
             self.deep_learning_setup()
         total_ser = 0
         # draw words of given gamma for all snrs
-        transmitted_words, received_words, hs = self.channel_dataset['val'].__getitem__(snr_list=[conf.val_snr],
-                                                                                        gamma=conf.gamma)
+        transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr],
+                                                                                 gamma=conf.gamma)
         ser_by_word = np.zeros(transmitted_words.shape[0])
         for count, (transmitted_word, received_word, h) in enumerate(zip(transmitted_words, received_words, hs)):
             # get current channel word and true transmitted word (unknown to the receiver)
@@ -176,7 +166,7 @@ class Trainer(object):
             if i < n_repeats:
                 received_words[i], transmitted_words[i] = self.augmenter.augment(current_received,
                                                                                  current_transmitted,
-                                                                                 h, conf.train_snr,
+                                                                                 h, conf.val_snr,
                                                                                  update_hyper_params=(i == 0))
             else:
                 received_words[i], transmitted_words[i] = current_received, current_transmitted
