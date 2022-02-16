@@ -68,22 +68,24 @@ def add_self_supervised_scheme_viterbinet(all_curves, params_dict, run_over, tri
 if __name__ == '__main__':
     run_over = False
     plot_type = 'SNR_time_decay'  # either plot by block, or by SNR
-    trial_num = 5
+    trial_num = 10
 
     if plot_type == 'SNR_time_decay':
         params_dicts = [
             {'val_snr': 9, 'val_frames': 50, 'channel_coefficients': 'time_decay'},
             {'val_snr': 10, 'val_frames': 50, 'channel_coefficients': 'time_decay'},
             {'val_snr': 11, 'val_frames': 50, 'channel_coefficients': 'time_decay'},
-            {'val_snr': 12, 'val_frames': 50, 'channel_coefficients': 'time_decay'}
+            {'val_snr': 12, 'val_frames': 50, 'channel_coefficients': 'time_decay'},
+            {'val_snr': 13, 'val_frames': 50, 'channel_coefficients': 'time_decay'}
         ]
         label_name = 'SNR'
     elif plot_type == 'SNR_COST2100':
         params_dicts = [
-            {'val_snr': 9, 'val_frames': 50, 'channel_coefficients': 'cost2100'},
-            {'val_snr': 10, 'val_frames': 50, 'channel_coefficients': 'cost2100'},
-            {'val_snr': 11, 'val_frames': 50, 'channel_coefficients': 'cost2100'},
-            {'val_snr': 12, 'val_frames': 50, 'channel_coefficients': 'cost2100'}
+            {'val_snr': 9, 'val_frames': 300, 'channel_coefficients': 'cost2100'},
+            {'val_snr': 10, 'val_frames': 300, 'channel_coefficients': 'cost2100'},
+            {'val_snr': 11, 'val_frames': 300, 'channel_coefficients': 'cost2100'},
+            {'val_snr': 12, 'val_frames': 300, 'channel_coefficients': 'cost2100'},
+            {'val_snr': 13, 'val_frames': 300, 'channel_coefficients': 'cost2100'}
         ]
         label_name = 'SNR'
     elif plot_type == 'Repeats':
