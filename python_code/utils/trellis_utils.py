@@ -1,6 +1,4 @@
-from python_code.channel.modulator import BPSKModulator
 from python_code.utils.config_singleton import Config
-from itertools import product
 import numpy as np
 import torch
 
@@ -49,11 +47,3 @@ def calculate_states(memory_length: int, transmitted_words: torch.Tensor) -> tor
     gt_states = torch.sum(blockwise_words.transpose(1, 2).reshape(-1, memory_length) * states_enumerator,
                           dim=1).long()
     return gt_states
-
-
-def compute_centers_from_h(h: np.ndarray) -> np.ndarray:
-    binary_combinations = np.array(list(product('01', repeat=4))).astype(int)
-    s = BPSKModulator.modulate(binary_combinations)
-    classes_centers = np.dot(h[::-1], s.T)
-    classes_centers = np.sort(classes_centers)[::-1]
-    return classes_centers

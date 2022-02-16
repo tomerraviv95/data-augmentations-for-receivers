@@ -40,42 +40,6 @@ def get_ser_plot(dec: Trainer, run_over: bool, method_name: str, trial=None):
     return ser_total
 
 
-def plot_all_curves_aggregated(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], snr: float):
-    # path for the saved figure
-    current_day_time = datetime.datetime.now()
-    folder_name = f'{current_day_time.month}-{current_day_time.day}-{current_day_time.hour}-{current_day_time.minute}'
-    if not os.path.isdir(os.path.join(FIGURES_DIR, folder_name)):
-        os.makedirs(os.path.join(FIGURES_DIR, folder_name))
-
-    plt.figure()
-    min_block_ind = math.inf
-    min_ber = math.inf
-    max_block_ind = -math.inf
-    # iterate all curves, plot each one
-    for i, (ser, method_name, _) in enumerate(all_curves):
-        print(method_name)
-        print(len(ser))
-        block_range = np.arange(1, len(ser) + 1)
-        agg_ser = (np.cumsum(ser) / np.arange(1, len(ser) + 1))
-        plt.plot(block_range, agg_ser,
-                 label=method_name,
-                 color=COLORS_DICT[method_name], marker=MARKERS_DICT[method_name],
-                 linestyle=LINESTYLES_DICT[method_name], linewidth=2.2, markevery=MARKER_EVERY)
-        min_block_ind = block_range[0] if block_range[0] < min_block_ind else min_block_ind
-        max_block_ind = block_range[-1] if block_range[-1] > max_block_ind else max_block_ind
-        min_ber = agg_ser[-1] if agg_ser[-1] < min_ber else min_ber
-    plt.ylabel('Coded BER')
-    plt.xlabel('Block Index')
-    plt.xlim([min_block_ind - 0.1, max_block_ind + 0.1])
-    plt.ylim(bottom=MIN_BER_COEF * min_ber)
-    plt.yscale('log')
-    plt.legend(loc='upper left', prop={'size': 15})
-    plt.savefig(
-        os.path.join(FIGURES_DIR, folder_name, f'coded_ber_versus_block_index - SNR {snr}.png'),
-        bbox_inches='tight')
-    plt.show()
-
-
 def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_name, values: List[float]):
     # path for the saved figure
     current_day_time = datetime.datetime.now()
@@ -108,5 +72,4 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_n
     plt.yscale('log')
     plt.savefig(os.path.join(FIGURES_DIR, folder_name, f'coded_ber_versus_snrs.png'),
                 bbox_inches='tight')
-    # plt.ylim([1e-3, 1e-2])
     plt.show()

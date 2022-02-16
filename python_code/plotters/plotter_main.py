@@ -1,5 +1,5 @@
 from dir_definitions import CONFIG_RUNS_DIR
-from python_code.plotters.plotter_utils import get_ser_plot, plot_all_curves_aggregated, plot_by_values
+from python_code.plotters.plotter_utils import get_ser_plot, plot_by_values
 from python_code.utils.config_singleton import Config
 from python_code.vnet.vnet_trainer import VNETTrainer
 from python_code.plotters.plotter_config import *
@@ -72,14 +72,10 @@ if __name__ == '__main__':
     if plot_type == 'SNR':
         trial_num = 5
         params_dicts = [
-            {'val_snr': 9,  'val_block_length': 80, 'val_frames': 300,
-             'channel_coefficients': 'cost2100'},
-            {'val_snr': 10, 'val_block_length': 80, 'val_frames': 300,
-             'channel_coefficients': 'cost2100'},
-            {'val_snr': 11, 'val_block_length': 80, 'val_frames': 300,
-             'channel_coefficients': 'cost2100'},
-            {'val_snr': 12,  'val_block_length': 80, 'val_frames': 300,
-             'channel_coefficients': 'cost2100'}
+            {'val_snr': 9, 'val_block_length': 80, 'val_frames': 50, 'channel_coefficients': 'cost2100'},
+            {'val_snr': 10, 'val_block_length': 80, 'val_frames': 50, 'channel_coefficients': 'cost2100'},
+            {'val_snr': 11, 'val_block_length': 80, 'val_frames': 50, 'channel_coefficients': 'cost2100'},
+            {'val_snr': 12, 'val_block_length': 80, 'val_frames': 50, 'channel_coefficients': 'cost2100'}
         ]
         label_name = 'SNR'
     elif plot_type == 'Repeats':
