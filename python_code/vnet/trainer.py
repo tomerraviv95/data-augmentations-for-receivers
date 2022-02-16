@@ -3,7 +3,7 @@ from typing import Tuple, Union
 from python_code.augmentations.augmenter_wrapper import AugmenterWrapper
 from python_code.utils.config_singleton import Config
 from python_code.channel.channel_dataset import ChannelModelDataset
-from python_code.ecc.rs_main import decode, encode
+from python_code.ecc.rs_main import decode
 from python_code.utils.metrics import calculate_error_rates
 from dir_definitions import WEIGHTS_DIR
 from torch.nn import CrossEntropyLoss, BCELoss, MSELoss
@@ -12,8 +12,6 @@ import numpy as np
 import random
 import torch
 import os
-
-from python_code.utils.trellis_utils import compute_centers_from_h
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -25,6 +23,7 @@ torch.cuda.manual_seed(conf.seed)
 np.random.seed(conf.seed)
 
 MIN_MINIBATCH = 20
+PRINT_FREQ = 10
 
 
 class Trainer(object):
@@ -37,8 +36,7 @@ class Trainer(object):
         self.initialize_weights_dir()
         self.initialize_dataloaders()
         self.initialize_detector()
-        self.augmenters = {'train': AugmenterWrapper(conf.train_aug_type),
-                           'val': AugmenterWrapper(conf.test_aug_type)}
+        self.augmenter = AugmenterWrapper(conf.aug_type)
 
     def initialize_weights_dir(self):
         """
@@ -135,140 +133,38 @@ class Trainer(object):
         print(f'Done. time: {time() - start}, ser: {ser}')
         return ser
 
-    def eval_by_word(self, snr: float, gamma: float) -> Union[float, np.ndarray]:
-        if conf.self_supervised:
+    def evaluate(self) -> Union[float, np.ndarray]:
+        if conf.is_online_training:
             self.deep_learning_setup()
         total_ser = 0
         # draw words of given gamma for all snrs
-        transmitted_words, received_words, hs = self.channel_dataset['val'].__getitem__(snr_list=[snr], gamma=gamma)
+        transmitted_words, received_words, hs = self.channel_dataset['val'].__getitem__(snr_list=[conf.val_snr],
+                                                                                        gamma=conf.gamma)
         ser_by_word = np.zeros(transmitted_words.shape[0])
-        # saved detector is used to initialize the decoder in meta learning loops
-        # query for all detected words
-        if conf.buffer_empty:
-            buffer_rx = torch.empty([0, received_words.shape[1]]).to(device)
-            buffer_tx = torch.empty([0, received_words.shape[1]]).to(device)
-            buffer_ser = torch.empty([0]).to(device)
-        else:
-            # draw words from different channels
-            buffer_tx, buffer_rx = self.channel_dataset['train'].__getitem__(snr_list=[snr], gamma=gamma)
-            buffer_ser = torch.zeros(buffer_rx.shape[0]).to(device)
-            buffer_tx = torch.cat([
-                torch.Tensor(encode(transmitted_word.int().cpu().numpy(), conf.n_symbols).reshape(1, -1)).to(device) for
-                transmitted_word in buffer_tx], dim=0)
-
         for count, (transmitted_word, received_word, h) in enumerate(zip(transmitted_words, received_words, hs)):
-
+            # get current channel word and true transmitted word (unknown to the receiver)
             transmitted_word, received_word = transmitted_word.reshape(1, -1), received_word.reshape(1, -1)
-            # detect
-            detected_word = self.detector(received_word, 'val')
-            # decode
-            decoded_word = [decode(detected_word, conf.n_symbols) for detected_word in detected_word.cpu().numpy()]
-            decoded_word = torch.Tensor(decoded_word).to(device)
+            # split words into data and pilot part
+            x_pilot, x_data = transmitted_word[:, :conf.pilot_size], transmitted_word[:, conf.pilot_size:]
+            y_pilot, y_data = received_word[:, :conf.pilot_size], received_word[:, conf.pilot_size:]
+            # if online training flag is on - train using pilots part
+            if conf.is_online_training:
+                self.online_training(x_pilot, y_pilot, h.reshape(1, -1), conf.val_snr)
+            # detect data part
+            detected_word = self.detector(y_data, 'val')
             # calculate accuracy
-            ser, fer, err_indices = calculate_error_rates(decoded_word, transmitted_word)
-            # encode word again
-            decoded_word_array = decoded_word.int().cpu().numpy()
-            encoded_word = torch.Tensor(encode(decoded_word_array, conf.n_symbols).reshape(1, -1)).to(device)
-            errors_num = torch.sum(torch.abs(encoded_word - detected_word)).item()
+            ser, fer, err_indices = calculate_error_rates(detected_word, x_data)
             print('*' * 20)
-            print(f'current: {count, ser, errors_num}')
-            print(h)
+            print(f'current: {count, ser}')
             total_ser += ser
             ser_by_word[count] = ser
-
-            # save the encoded word in the buffer
-            if ser <= conf.ser_thresh:
-                buffer_rx = torch.cat([buffer_rx, received_word])
-                buffer_tx = torch.cat([buffer_tx,
-                                       detected_word.reshape(1, -1) if ser > 0 else
-                                       encoded_word.reshape(1, -1)],
-                                      dim=0)
-                buffer_ser = torch.cat([buffer_ser, torch.FloatTensor([ser]).to(device)])
-                if not conf.buffer_empty:
-                    buffer_rx = buffer_rx[1:]
-                    buffer_tx = buffer_tx[1:]
-                    buffer_ser = buffer_ser[1:]
-
-            DEBUG_MODE = False
-            real_centers = compute_centers_from_h(h.cpu().numpy())
-            tensor_real_centers = torch.Tensor(real_centers.copy()).to(device)
-            if conf.test_aug_type == 'aug3' and DEBUG_MODE and self.augmenters['val']._augmenter._centers is not None:
-                self.augmenters['val']._augmenter._centers = tensor_real_centers
-
-            if conf.self_supervised and ser <= conf.ser_thresh:
-                # use last word inserted in the buffer for training
-                self.online_training(buffer_tx[-1].reshape(1, -1), buffer_rx[-1].reshape(1, -1), h.reshape(1, -1), snr)
-                if conf.test_aug_type == 'aug3':
-                    est_centers = self.augmenters['val']._augmenter._centers
-                    if conf.test_aug_type == 'aug3':
-                        diff = torch.sum(torch.abs(tensor_real_centers - est_centers))
-                        print(tensor_real_centers, est_centers)
-                        print(diff)
-
-            if (count + 1) % 10 == 0:
+            # print progress
+            if (count + 1) % PRINT_FREQ == 0:
                 print(f'Self-supervised: {count + 1}/{transmitted_words.shape[0]}, SER {total_ser / (count + 1)}')
 
         total_ser /= transmitted_words.shape[0]
         print(f'Final ser: {total_ser}')
         return ser_by_word
-
-    def evaluate(self) -> float:
-        """
-        Evaluation either happens in a point aggregation way, or in a word-by-word fashion
-        """
-        self.load_weights(conf.val_snr, conf.gamma)
-        # eval with training
-        if conf.eval_mode == 'by_word':
-            if not conf.use_ecc:
-                raise ValueError('Only supports ecc')
-            return self.eval_by_word(conf.val_snr, conf.gamma)
-        else:
-            return self.evaluate_at_point()
-
-    def train(self):
-        """
-        Main training loop. Runs in minibatches.
-        Evaluates performance over validation SNRs.
-        Saves weights every so and so iterations.
-        """
-        # batches loop
-        print(f'SNR - {conf.train_snr}, Gamma - {conf.gamma}')
-
-        # initialize weights and loss
-        self.initialize_detector()
-        self.deep_learning_setup()
-        best_ser = np.inf
-        # draw words
-        transmitted_words, received_words, h = self.channel_dataset['train'].__getitem__(snr_list=[conf.train_snr],
-                                                                                         gamma=conf.gamma)
-
-        # augment received words by the number of desired repeats
-        received_words, transmitted_words = self.augment_words_wrapper(h, received_words, transmitted_words,
-                                                                       conf.total_words, conf.n_repeats, 'train')
-
-        # go on every word out of the TOTAL_WORDS_NUM, for train_minibatch_num iterations
-        for minibatch in range(conf.train_minibatch_num):
-            # run training loops
-            loss = 0
-            for i in range(conf.total_words):
-                current_received = received_words[i].reshape(1, -1)
-                current_transmitted = transmitted_words[i].reshape(1, -1)
-                # pass through detector
-                soft_estimation = self.detector(current_received, 'train')
-                current_loss = self.run_train_loop(soft_estimation, current_transmitted)
-                loss += current_loss
-
-            print(f'Minibatch {minibatch + 1}, loss {loss}')
-            # evaluate performance
-            ser = self.evaluate_at_point()
-            # save best weights
-            if minibatch < MIN_MINIBATCH:
-                self.save_weights(loss, conf.train_snr, conf.gamma)
-            elif minibatch > MIN_MINIBATCH and ser < best_ser:
-                self.save_weights(loss, conf.train_snr, conf.gamma)
-                best_ser = ser
-
-        print('*' * 50)
 
     def augment_words_wrapper(self, h, received_words, transmitted_words, total_size, n_repeats, phase):
         transmitted_words = transmitted_words.repeat(total_size, 1)
@@ -278,10 +174,10 @@ class Trainer(object):
             current_received = received_words[upd_idx].reshape(1, -1)
             current_transmitted = transmitted_words[upd_idx].reshape(1, -1)
             if i < n_repeats:
-                received_words[i], transmitted_words[i] = self.augmenters[phase].augment(current_received,
-                                                                                         current_transmitted,
-                                                                                         h, conf.train_snr,
-                                                                                         update_hyper_params=(i == 0))
+                received_words[i], transmitted_words[i] = self.augmenter.augment(current_received,
+                                                                                 current_transmitted,
+                                                                                 h, conf.train_snr,
+                                                                                 update_hyper_params=(i == 0))
             else:
                 received_words[i], transmitted_words[i] = current_received, current_transmitted
         return received_words, transmitted_words

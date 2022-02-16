@@ -3,7 +3,7 @@ run_name: 'test' #'augmented_version'
 seed: 0 # run seed
 
 # coding parameters
-use_ecc: True # Either run with/without ECC. values: [True, False].
+use_ecc: False # Either run with/without ECC. values: [True, False].
 n_symbols: 2 # Number of symbols in ECC, each one is hard-coded 8 bits. values: int.
 
 # channel
@@ -15,7 +15,8 @@ fading_in_decoder: False # If the decoder is aware of the fading, only used in t
 gamma: 0.5 # gamma value for time decay fading
 
 # validation hyperparameters
-val_block_length: 80 # coherence block time. values: int.
+val_block_length: 5080 # coherence block time. values: int.
+pilot_size: 80 # pilot symbols
 val_frames: 300 # number of validation frames. values: int.
 val_snr: 12 # start SNR value. values: float.
 eval_mode: 'by_word' # Type of evaluation. Per snr - 'aggregated', Per block - 'by_word'.
@@ -31,14 +32,13 @@ loss_type: 'CrossEntropy' # Loss type. values: 'BCE','CrossEntropy','MSE'.
 optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
 
 # self-supervised online training
-self_supervised: True # Whether to run the online training (as in ViterbiNet). values: [True, False].
+is_online_training: True # Whether to run the online training (as in ViterbiNet). values: [True, False].
 online_total_words: 200 # Number of words per iteration trained on in the online training. values: int.
 online_repeats_n: 25 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
 ser_thresh: 0.02 # ser threshold. values: float.
 buffer_empty: True # Whether to start evaluation from an empty buffer or a randomly initialized one.
 
 # augmentations
-train_aug_type: 'reg' # ['reg','aug1','aug2','aug3']
-test_aug_type: 'aug3' # ['reg','aug1','aug2','aug3']
+aug_type: 'reg' # ['reg','aug1','aug2','aug3']
 total_words: 100 # Number of words per iteration trained on in the offline training. values: int.
 n_repeats: 25 # number of desired augmented words out of total_words. values: 0<=repeats_n<=total_words
