@@ -3,13 +3,11 @@ from python_code.augmentations.augmenter_wrapper import AugmenterWrapper
 from python_code.utils.config_singleton import Config
 from python_code.channel.channel_dataset import ChannelModelDataset
 from python_code.utils.metrics import calculate_error_rates
-from dir_definitions import WEIGHTS_DIR
 from torch.nn import CrossEntropyLoss, BCELoss, MSELoss
 from torch.optim import RMSprop, Adam, SGD
 import numpy as np
 import random
 import torch
-import os
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -30,19 +28,9 @@ class Trainer(object):
         self.n_states = 2 ** conf.memory_length
 
         # initialize matrices, datasets and detector
-        self.initialize_weights_dir()
         self.initialize_dataloaders()
         self.initialize_detector()
         self.augmenter = AugmenterWrapper(conf.aug_type)
-
-    def initialize_weights_dir(self):
-        """
-        Parse the config, load all attributes into the trainer
-        :param config_path: path to config
-        """
-        self.weights_dir = os.path.join(WEIGHTS_DIR, conf.run_name)
-        if not os.path.exists(self.weights_dir) and len(self.weights_dir):
-            os.makedirs(self.weights_dir)
 
     def get_name(self):
         return self.__name__()
@@ -116,7 +104,7 @@ class Trainer(object):
             if conf.is_online_training:
                 self.online_training(x_pilot, y_pilot, h.reshape(1, -1), conf.val_snr)
             # detect data part
-            detected_word = self.detector(y_data, 'val')
+            detected_word = self.detector(y_data, phase='val')
             # calculate accuracy
             ser, fer, err_indices = calculate_error_rates(detected_word, x_data)
             print('*' * 20)
@@ -135,6 +123,7 @@ class Trainer(object):
         transmitted_words = transmitted_words.repeat(total_size, 1)
         received_words = received_words.repeat(total_size, 1)
         for i in range(total_size):
+            update_hyper_params_flag = (i == 0)
             upd_idx = i % n_repeats
             current_received = received_words[upd_idx].reshape(1, -1)
             current_transmitted = transmitted_words[upd_idx].reshape(1, -1)
@@ -142,7 +131,7 @@ class Trainer(object):
                 received_words[i], transmitted_words[i] = self.augmenter.augment(current_received,
                                                                                  current_transmitted,
                                                                                  h, conf.val_snr,
-                                                                                 update_hyper_params=(i == 0))
+                                                                                 update_hyper_params=update_hyper_params_flag)
             else:
                 received_words[i], transmitted_words[i] = current_received, current_transmitted
         return received_words, transmitted_words
@@ -161,31 +150,6 @@ class Trainer(object):
         loss.backward()
         self.optimizer.step()
         return current_loss
-
-    def save_weights(self, current_loss: float, snr: float, gamma: float):
-        torch.save({'model_state_dict': self.detector.state_dict(),
-                    'optimizer_state_dict': self.optimizer.state_dict(),
-                    'loss': current_loss},
-                   os.path.join(self.weights_dir, f'snr_{snr}_gamma_{gamma}.pt'))
-
-    def load_weights(self, snr: float, gamma: float):
-        """
-        Loads detector's weights defined by the [snr,gamma] from checkpoint, if exists
-        """
-        if os.path.join(self.weights_dir, f'snr_{snr}_gamma_{gamma}.pt'):
-            print(f'loading model from snr {snr} and gamma {gamma}')
-            weights_path = os.path.join(self.weights_dir, f'snr_{snr}_gamma_{gamma}.pt')
-            if not os.path.isfile(weights_path):
-                # if weights do not exist, train on the synthetic channel. Then validate on the test channel.
-                os.makedirs(self.weights_dir, exist_ok=True)
-                self.train()
-            checkpoint = torch.load(weights_path)
-            try:
-                self.detector.load_state_dict(checkpoint['model_state_dict'])
-            except Exception:
-                raise ValueError("Wrong run directory!!!")
-        else:
-            print(f'No checkpoint for snr {snr} and gamma {gamma} in run "{conf.run_name}", starting from scratch')
 
     def select_batch(self, gt_examples: torch.LongTensor, soft_estimation: torch.Tensor) -> Tuple[
         torch.Tensor, torch.Tensor]:

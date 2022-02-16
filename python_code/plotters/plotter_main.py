@@ -72,24 +72,24 @@ if __name__ == '__main__':
     if plot_type == 'SNR':
         trial_num = 5
         params_dicts = [
-            {'val_snr': 9, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
+            {'val_snr': 9,  'val_block_length': 80, 'val_frames': 300,
              'channel_coefficients': 'cost2100'},
-            {'val_snr': 10, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
+            {'val_snr': 10, 'val_block_length': 80, 'val_frames': 300,
              'channel_coefficients': 'cost2100'},
-            {'val_snr': 11, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
+            {'val_snr': 11, 'val_block_length': 80, 'val_frames': 300,
              'channel_coefficients': 'cost2100'},
-            {'val_snr': 12, 'train_block_length': 80, 'val_block_length': 80, 'val_frames': 300,
+            {'val_snr': 12,  'val_block_length': 80, 'val_frames': 300,
              'channel_coefficients': 'cost2100'}
         ]
         label_name = 'SNR'
     elif plot_type == 'Repeats':
         trial_num = 7
-        params_dicts = [{'n_repeats': 1, 'train_block_length': 280},
-                        {'n_repeats': 5, 'train_block_length': 280},
-                        {'n_repeats': 10, 'train_block_length': 280},
-                        {'n_repeats': 15, 'train_block_length': 280},
-                        {'n_repeats': 20, 'train_block_length': 280},
-                        {'n_repeats': 25, 'train_block_length': 280}]
+        params_dicts = [{'n_repeats': 1},
+                        {'n_repeats': 5},
+                        {'n_repeats': 10},
+                        {'n_repeats': 15},
+                        {'n_repeats': 20},
+                        {'n_repeats': 25}]
         label_name = 'Number of Unique Repeats'
     all_curves = []
 

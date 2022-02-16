@@ -8,7 +8,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conf = Config()
 
 
-class Augmenter3:
+class SelfSupervisedAugmenter:
     def __init__(self):
         super().__init__()
         self._centers = None

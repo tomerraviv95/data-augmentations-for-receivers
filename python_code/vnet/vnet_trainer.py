@@ -51,13 +51,14 @@ class VNETTrainer(Trainer):
         :param rx: received word
         """
         # augment received words by the number of desired repeats
-        aug_rx, aug_tx = self.augment_words_wrapper(h, rx, tx, conf.online_total_words, conf.online_repeats_n, 'val')
+        aug_rx, aug_tx = self.augment_words_wrapper(h, rx, tx, conf.online_total_words, conf.online_repeats_n,
+                                                    phase='val')
         # run training loops
         loss = 0
         for i in range(conf.online_total_words):
             cur_rx = aug_rx[i].reshape(1, -1)
             cur_tx = aug_tx[i].reshape(1, -1)
             # pass through detector
-            soft_estimation = self.detector(cur_rx, 'train')
+            soft_estimation = self.detector(cur_rx, phase='train')
             current_loss = self.run_train_loop(soft_estimation=soft_estimation, transmitted_words=cur_tx)
             loss += current_loss
