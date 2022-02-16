@@ -46,13 +46,12 @@ if __name__ == '__main__':
     noisy_est_var = 0
     channel_coefficients = 'cost2100'  # 'time_decay','cost2100'
     fading_taps_type = 1
-    fading = False
+    fading = True
     channel_length = COST_LENGTH
-    phase = 'val'
 
     total_h = np.empty([channel_length, memory_length])
     for index in range(channel_length):
-        total_h[index] = estimate_channel(memory_length, gamma, phase, fading=fading, index=index)
+        total_h[index] = estimate_channel(memory_length, gamma, fading=fading, index=index)
     for i in range(memory_length):
         plt.plot(total_h[:, i], label=f'Tap {i}')
     plt.xlabel('Block Index')

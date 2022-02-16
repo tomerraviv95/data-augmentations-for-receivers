@@ -38,28 +38,28 @@ def add_reg_viterbinet(all_curves, params_dict, run_over, trial_num):
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
 
 
-def add_aug1_viterbinet(all_curves, params_dict, run_over, trial_num):
-    method_name = f'ViterbiNet - Aug. 1'
+def add_full_knowledge_augmenter_viterbinet(all_curves, params_dict, run_over, trial_num):
+    method_name = f'ViterbiNet - FK Genie'
     conf = Config()
-    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'augmentation1.yaml'))
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'fk_genie.yaml'))
     name = set_method_name(conf, method_name, params_dict)
     print(method_name)
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
 
 
-def add_aug2_viterbinet(all_curves, params_dict, run_over, trial_num):
-    method_name = f'ViterbiNet - Aug. 2'
+def add_partial_knowledge_augmenter_viterbinet(all_curves, params_dict, run_over, trial_num):
+    method_name = f'ViterbiNet - PK Genie'
     conf = Config()
-    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'augmentation2.yaml'))
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'pk_genie.yaml'))
     name = set_method_name(conf, method_name, params_dict)
     print(method_name)
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
 
 
-def add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num):
-    method_name = f'ViterbiNet - Aug. 3'
+def add_self_supervised_scheme_viterbinet(all_curves, params_dict, run_over, trial_num):
+    method_name = f'ViterbiNet - Self-Supervised Scheme'
     conf = Config()
-    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'augmentation3.yaml'))
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'self_supervised_scheme.yaml'))
     name = set_method_name(conf, method_name, params_dict)
     print(method_name)
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
@@ -67,19 +67,26 @@ def add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num):
 
 if __name__ == '__main__':
     run_over = False
-    plot_type = 'SNR'  # either plot by block, or by SNR
+    plot_type = 'SNR_time_decay'  # either plot by block, or by SNR
+    trial_num = 5
 
-    if plot_type == 'SNR':
-        trial_num = 5
+    if plot_type == 'SNR_time_decay':
         params_dicts = [
-            {'val_snr': 9, 'val_block_length': 80, 'val_frames': 50, 'channel_coefficients': 'cost2100'},
-            {'val_snr': 10, 'val_block_length': 80, 'val_frames': 50, 'channel_coefficients': 'cost2100'},
-            {'val_snr': 11, 'val_block_length': 80, 'val_frames': 50, 'channel_coefficients': 'cost2100'},
-            {'val_snr': 12, 'val_block_length': 80, 'val_frames': 50, 'channel_coefficients': 'cost2100'}
+            {'val_snr': 9, 'val_frames': 50, 'channel_coefficients': 'time_decay'},
+            {'val_snr': 10, 'val_frames': 50, 'channel_coefficients': 'time_decay'},
+            {'val_snr': 11, 'val_frames': 50, 'channel_coefficients': 'time_decay'},
+            {'val_snr': 12, 'val_frames': 50, 'channel_coefficients': 'time_decay'}
+        ]
+        label_name = 'SNR'
+    elif plot_type == 'SNR_COST2100':
+        params_dicts = [
+            {'val_snr': 9, 'val_frames': 50, 'channel_coefficients': 'cost2100'},
+            {'val_snr': 10, 'val_frames': 50, 'channel_coefficients': 'cost2100'},
+            {'val_snr': 11, 'val_frames': 50, 'channel_coefficients': 'cost2100'},
+            {'val_snr': 12, 'val_frames': 50, 'channel_coefficients': 'cost2100'}
         ]
         label_name = 'SNR'
     elif plot_type == 'Repeats':
-        trial_num = 7
         params_dicts = [{'n_repeats': 1},
                         {'n_repeats': 5},
                         {'n_repeats': 10},
@@ -87,14 +94,16 @@ if __name__ == '__main__':
                         {'n_repeats': 20},
                         {'n_repeats': 25}]
         label_name = 'Number of Unique Repeats'
+    else:
+        raise ValueError("No such plot type!!!")
     all_curves = []
 
     for params_dict in params_dicts:
         print(params_dict)
         add_reg_viterbinet(all_curves, params_dict, run_over, trial_num)
-        add_aug1_viterbinet(all_curves, params_dict, run_over, trial_num)
-        add_aug2_viterbinet(all_curves, params_dict, run_over, trial_num)
-        add_aug3_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_full_knowledge_augmenter_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_partial_knowledge_augmenter_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_self_supervised_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
 
     plot_by_values(all_curves, label_name,  # list(params_dicts[0].keys())[0]
                    [list(params_dict.values())[0] for params_dict in params_dicts])

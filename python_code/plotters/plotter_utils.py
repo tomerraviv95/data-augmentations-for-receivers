@@ -33,7 +33,6 @@ def get_ser_plot(dec: Trainer, run_over: bool, method_name: str, trial=None):
     else:
         # otherwise - run again
         print("calculating fresh")
-        dec.train()
         ser_total = dec.evaluate()
         save_pkl(plots_path, ser_total)
     print(np.mean(ser_total))
