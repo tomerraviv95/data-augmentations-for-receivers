@@ -2,11 +2,11 @@
 
 *"“Would you tell me, please, which way I ought to go from here?” “That depends a good deal on where you want to get to,” said the Cat. “I don't much care where—” said Alice. “Then it doesn't matter which way you go,” said the Cat."* 
 
---ALICE IN WONDERLAND.
+--Alice in Wonderland.
 
 # Data Augmentation for Deep Receivers
 
-Python repository for the paper "Meta-ViterbiNet: Online Meta-Learned Viterbi Equalization for Non-Stationary Channels".
+Python repository for the paper "Data Augmentation for Deep Receivers".
 
 Please cite our [paper](https://arxiv.org/abs/2103.13483), if the code is used for publishing research.
 
@@ -15,13 +15,11 @@ Please cite our [paper](https://arxiv.org/abs/2103.13483), if the code is used f
 - [Introduction](#introduction)
 - [Folders Structure](#folders-structure)
   * [python_code](#python_code)
+    + [augmentations](#augmentations)
     + [channel](#channel)
-    + [detectors](#detectors)
-    + [ecc](#ecc)
     + [plotters](#plotters)
-    + [trainers](#trainers)
     + [utils](#utils)
-    + [config](#config)
+    + [vnet](#vnet)
   * [resources](#resources)
   * [dir_definitions](#dir_definitions)
 - [Execution](#execution)
@@ -31,7 +29,7 @@ Please cite our [paper](https://arxiv.org/abs/2103.13483), if the code is used f
 
 # Introduction
 
-This repository implements classical and machine-learning based detectors for a channel with memory of L. We implemented the naive [Viterbi algorithm](https://ieeexplore.ieee.org/document/1054010), as well as the [ViterbiNet](https://ieeexplore.ieee.org/document/8815457) in python. Our method, for incorporating temporal evolution over a sequence of symbols, is referred to as Meta-ViterbiNet. We also implemented a model-free baseline of a windowed-LSTM detector. We explain on the different directories and subdirectories below.
+This repository implements the proposed augmentation scheme for [ViterbiNet](https://ieeexplore.ieee.org/document/8815457), a machine-learning model-based detector, for the a channel with memory of L. Our proposed novel method incorporates (1) spatial and temporal clustering (2) takes into account classes diversity and (3) keeps low complexity, tailored for online communication scenarios. We explain on the different directories and subdirectories below.
 
 # Folders Structure
 
