@@ -43,12 +43,14 @@ class VNETTrainer(Trainer):
         loss = self.criterion(input=input_batch, target=gt_states_batch)
         return loss
 
-    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h, snr):
+    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h:torch.Tensor, snr:float):
         """
-        Online training module - train on the detected/re-encoded word only if the ser is below some threshold.
+        Online training module - trains on the detected word.
         Start from the saved meta-trained weights.
         :param tx: transmitted word
         :param rx: received word
+        :param h: channel coefficients
+        :param snr: float signal to noise value
         """
         # augment received words by the number of desired repeats
         aug_rx, aug_tx = self.augment_words_wrapper(h, rx, tx, conf.online_total_words, conf.online_repeats_n,

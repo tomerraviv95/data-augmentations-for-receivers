@@ -1,10 +1,10 @@
-from typing import Tuple, Union
 from python_code.augmentations.augmenter_wrapper import AugmenterWrapper
 from python_code.utils.config_singleton import Config
 from python_code.channel.channel_dataset import ChannelModelDataset
 from python_code.utils.metrics import calculate_error_rates
 from torch.nn import CrossEntropyLoss, BCELoss, MSELoss
 from torch.optim import RMSprop, Adam, SGD
+from typing import Tuple, Union
 import numpy as np
 import random
 import torch
@@ -83,10 +83,15 @@ class Trainer(object):
                                                    words=conf.val_frames)
         self.dataloaders = torch.utils.data.DataLoader(self.channel_dataset)
 
-    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h, snr):
+    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor, snr: float):
         pass
 
     def evaluate(self) -> Union[float, np.ndarray]:
+        """
+        The online evaluation run. Main function for running the experiments of sequential transmission of pilots and
+        data blocks for the paper.
+        :return: np.ndarray
+        """
         if conf.is_online_training:
             self.deep_learning_setup()
         total_ser = 0
@@ -119,7 +124,18 @@ class Trainer(object):
         print(f'Final ser: {total_ser}')
         return ser_by_word
 
-    def augment_words_wrapper(self, h, received_words, transmitted_words, total_size, n_repeats, phase):
+    def augment_words_wrapper(self, h: torch.Tensor, received_words: torch.Tensor, transmitted_words: torch.Tensor,
+                              total_size: int, n_repeats: int, phase: str):
+        """
+        The main augmentation function, used to augment each pilot in the evaluation phase.
+        :param h: channel coefficients
+        :param received_words: float channel values
+        :param transmitted_words: binary transmitted word
+        :param total_size: total number of examples to augment
+        :param n_repeats: the number of repeats per augmentation
+        :param phase: validation phase
+        :return: the received and transmitted words
+        """
         transmitted_words = transmitted_words.repeat(total_size, 1)
         received_words = received_words.repeat(total_size, 1)
         for i in range(total_size):
@@ -131,12 +147,13 @@ class Trainer(object):
                 received_words[i], transmitted_words[i] = self.augmenter.augment(current_received,
                                                                                  current_transmitted,
                                                                                  h, conf.val_snr,
-                                                                                 update_hyper_params=update_hyper_params_flag)
+                                                                                 update_hyper_params=
+                                                                                 update_hyper_params_flag)
             else:
                 received_words[i], transmitted_words[i] = current_received, current_transmitted
         return received_words, transmitted_words
 
-    def run_train_loop(self, soft_estimation: torch.Tensor, transmitted_words: torch.Tensor):
+    def run_train_loop(self, soft_estimation: torch.Tensor, transmitted_words: torch.Tensor) -> float:
         # calculate loss
         loss = self.calc_loss(soft_estimation=soft_estimation, transmitted_words=transmitted_words)
         # if loss is Nan inform the user
