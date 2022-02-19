@@ -10,8 +10,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class ISIAWGNChannel:
     @staticmethod
-    def transmit(s: np.ndarray, snr: float, h: np.ndarray,
-                 memory_length: int) -> np.ndarray:
+    def transmit(s: np.ndarray, snr: float, h: np.ndarray, memory_length: int) -> np.ndarray:
         """
         The AWGN Channel
         :param s: to transmit symbol words

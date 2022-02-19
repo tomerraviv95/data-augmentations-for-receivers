@@ -8,8 +8,15 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 
+HALF = 0.5
+
 
 class PartialKnowledgeAugmenter:
+    """
+    Partial-knowledge augmentations scheme. Assumes the receiver knows the h coefficients but not the snr.
+    This means it is able to generate new binary words and pass them through the convolution using the h,
+    but with the noise estimated from the received and transmitted pairs.
+    """
 
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
                 update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -26,7 +33,7 @@ class PartialKnowledgeAugmenter:
         w_est = received_word.cpu().numpy() - trans_conv
 
         ### use the noise and add it to a new word
-        binary_mask = torch.rand_like(transmitted_word) >= 0.5
+        binary_mask = torch.rand_like(transmitted_word) >= HALF
         new_transmitted_word = (transmitted_word + binary_mask) % 2
         # encoding - errors correction code
         c = new_transmitted_word.cpu().numpy()

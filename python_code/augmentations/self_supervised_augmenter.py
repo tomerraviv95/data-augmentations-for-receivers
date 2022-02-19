@@ -9,11 +9,16 @@ conf = Config()
 
 
 class SelfSupervisedAugmenter:
+    """
+    The proposed augmentations scheme. Calculates centers and variances for each class as specified in the paper,
+    then smooths the estimate via a window running mean with alpha = 0.3
+    """
+
     def __init__(self):
         super().__init__()
         self._centers = None
         self._stds = None
-        self._alpha = 0.3
+        self._alpha = 0.3  # augmentation hyperparameter
 
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
                 update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -34,7 +39,7 @@ class SelfSupervisedAugmenter:
                                                   0, state_ind]
         return new_received_word, new_transmitted_word
 
-    def update_centers_stds(self, cur_centers, cur_stds):
+    def update_centers_stds(self, cur_centers: torch.Tensor, cur_stds: torch.Tensor):
 
         # self._centers = cur_centers
         if self._centers is not None:
@@ -47,7 +52,8 @@ class SelfSupervisedAugmenter:
         else:
             self._stds = cur_stds
 
-    def estimate_cur_params(self, received_word, transmitted_word):
+    def estimate_cur_params(self, received_word: torch.Tensor, transmitted_word: torch.Tensor) -> Tuple[
+        torch.Tensor, torch.Tensor]:
         gt_states = calculate_states(conf.memory_length, transmitted_word)
         centers = torch.empty(2 ** conf.memory_length).to(device)
         stds = torch.empty(2 ** conf.memory_length).to(device)

@@ -15,7 +15,16 @@ class AugmenterWrapper:
                                     'no_aug': NoAugmenter}
         self._augmenter = self._augmentations_dict[augmentations]()
 
-    def augment(self, received_word: torch.Tensor, current_transmitted: torch.Tensor,
+    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor,
                 h: torch.Tensor, snr: float, update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
-        x, y = self._augmenter.augment(received_word, current_transmitted.reshape(1, -1), h, snr, update_hyper_params)
+        """
+        Augment the received word using one of the given augmentations methods.
+        :param received_word: Tensor of float values
+        :param transmitted_word: Ground truth transmitted word
+        :param h: float function
+        :param snr: signal to noise ratio value
+        :param update_hyper_params: whether to update the hyper parameters of an augmentation scheme
+        :return: the augmented received and transmitted pairs
+        """
+        x, y = self._augmenter.augment(received_word, transmitted_word.reshape(1, -1), h, snr, update_hyper_params)
         return x, y
