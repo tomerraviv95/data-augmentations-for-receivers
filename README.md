@@ -35,32 +35,30 @@ This repository implements the proposed augmentation scheme for [ViterbiNet](htt
 
 ## python_code 
 
-The python simulations of the simplified communication chain: encoder, channel and detectors.
+The python simulations of the simplified communication chain: symbols generation, channel transmission and detection.
+
+### augmentations
+
+The proposed augmentation scheme, and the three baselines: regular training (no augmentations applied), partial-knowledge genie and full-knowledge genie. See the paper for more details on these augmentation methods. Algorithm 1 specifies our proposed self-supervised augmentation scheme.
 
 ### channel 
 
 Includes all relevant channel functions and classes. The class in "channel_dataset.py" implements the main class for aggregating pairs of (transmitted,received) samples. 
 In "channel.py", the ISI AWGN channel is implemented. "channel_estimation.py" is for the calculation of the h values. Lastly, the channel BPSK modulator lies in "channel_modulator.py".
 
-### detectors
-
-The backbone detectors: VA, VNET, LSTM, META_VNET and META_LSTM. The meta and non-meta detectors have slightly different API so they are seperated in the trainer class below. Also, we use VA as the ML detector, thus we assume full knowledge of the CSI. To have a single API across the detectors, the snr and gamma appear in all the approriate forward calls, but are omitted in the code itself. A factory design pattern could have been a better fit here, and is left as future work.
-
-### ecc
-
-Error-correction codes functions. Code from [site](https://en.wikiversity.org/wiki/Reed%E2%80%93Solomon_codes_for_coders).
-
 ### plotters
 
-Plotting of the FER versus SNR, and the FER versus the blocks. 
+Plotting of the BER versus SNR, for Figures 3 and 4 in the paper.
 
-### trainers 
+### vnet 
 
-Wrappers for the training and evaluation of the detectors.
+Includes three files:
 
-The basic trainer class holds most used methods: train, meta-train and evaluation (per SNR/block, see the paper for the two types of eval). It is also used for parsing the config.yaml file and preparing the deep learning setup (loss, optimizer, ...).
+(1) The backbone detector in "vnet_detector.py" module;
 
-Each trainer inherets from the basic trainer class, extending it as needed. You can run each trainer with the train/evaluate commands in their __main__.
+(2) A basic "trainer.py" class, includes the main evaluation function. It is also used for parsing the config.yaml file and preparing the deep learning setup (loss, optimizer, ...).
+
+(3) The ViterbiNet trainer, in "vnet_trainer.py", which inherets from the basic trainer class, extending it as needed.
 
 ### utils
 
