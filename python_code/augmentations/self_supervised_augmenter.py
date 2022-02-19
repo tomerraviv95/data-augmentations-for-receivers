@@ -22,6 +22,7 @@ class SelfSupervisedAugmenter:
 
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
                 update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
+        # if pilot, then update_hyper_params is True and we update the centers and stds internal parameters
         if update_hyper_params:
             # first calculate estimated noise pattern
             cur_centers, cur_stds = self.estimate_cur_params(received_word, transmitted_word)
@@ -32,6 +33,7 @@ class SelfSupervisedAugmenter:
         new_gt_states = calculate_states(conf.memory_length, new_transmitted_word)
         new_received_word = torch.empty_like(received_word)
 
+        # generate new words using the smoothed centers and stds
         for state in torch.unique(new_gt_states):
             state_ind = (new_gt_states == state)
             new_received_word[0, state_ind] = self._centers[state] + self._stds[state] * \
@@ -40,6 +42,12 @@ class SelfSupervisedAugmenter:
         return new_received_word, new_transmitted_word
 
     def update_centers_stds(self, cur_centers: torch.Tensor, cur_stds: torch.Tensor):
+        """
+        Update the parameters via temporal smoothing over a window with parameter alpha
+        :param cur_centers: jth step estimated centers
+        :param cur_stds:  jth step estimated stds
+        :return: smoothed centers and stds vectors
+        """
 
         # self._centers = cur_centers
         if self._centers is not None:
@@ -54,6 +62,12 @@ class SelfSupervisedAugmenter:
 
     def estimate_cur_params(self, received_word: torch.Tensor, transmitted_word: torch.Tensor) -> Tuple[
         torch.Tensor, torch.Tensor]:
+        """
+        Estimate parameters of centers and stds in the jth step based on the known states of the pilot word.
+        :param received_word: float words of channel values
+        :param transmitted_word: binary word
+        :return: updated centers and stds values
+        """
         gt_states = calculate_states(conf.memory_length, transmitted_word)
         centers = torch.empty(2 ** conf.memory_length).to(device)
         stds = torch.empty(2 ** conf.memory_length).to(device)
@@ -65,7 +79,6 @@ class SelfSupervisedAugmenter:
                 centers[state] = torch.mean(state_received)
             else:
                 centers[state] = 0
-        # centers[torch.isnan(centers)] = torch.mean(centers[~torch.isnan(centers)])
         stds[torch.isnan(stds)] = torch.mean(stds[~torch.isnan(stds)])
         return centers, stds
 
