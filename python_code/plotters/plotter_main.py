@@ -80,11 +80,12 @@ def add_partial_knowledge_augmenter_viterbinet(all_curves: List[Tuple[float, str
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
 
 
-def add_self_supervised_scheme_viterbinet(all_curves: List[Tuple[float, str]], params_dict: Dict[str, Union[int, str]],
-                                          run_over: bool, trial_num: int):
-    method_name = 'ViterbiNet - Self-Supervised Scheme'
+def add_adaptive_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, str]],
+                                                 params_dict: Dict[str, Union[int, str]],
+                                                 run_over: bool, trial_num: int):
+    method_name = 'ViterbiNet - Adaptive Augmentation Scheme'
     conf = Config()
-    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'self_supervised_scheme.yaml'))
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'adaptive_augmentation_scheme.yaml'))
     name = set_method_name(conf, method_name, params_dict)
     print(method_name)
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
@@ -122,7 +123,7 @@ if __name__ == '__main__':
     for params_dict in params_dicts:
         print(params_dict)
         add_reg_viterbinet(all_curves, params_dict, run_over, trial_num)
-        add_self_supervised_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_adaptive_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
         add_partial_knowledge_augmenter_viterbinet(all_curves, params_dict, run_over, trial_num)
         add_full_knowledge_augmenter_viterbinet(all_curves, params_dict, run_over, trial_num)
 

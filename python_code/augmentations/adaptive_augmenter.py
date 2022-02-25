@@ -8,7 +8,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conf = Config()
 
 
-class SelfSupervisedAugmenter:
+class AdaptiveAugmenter:
     """
     The proposed augmentations scheme. Calculates centers and variances for each class as specified in the paper,
     then smooths the estimate via a window running mean with alpha = 0.3

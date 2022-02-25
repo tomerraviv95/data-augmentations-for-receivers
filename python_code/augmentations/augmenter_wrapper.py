@@ -1,6 +1,6 @@
 from python_code.augmentations.full_knowledge_augmenter import FullKnowledgeAugmenter
 from python_code.augmentations.partial_knowledge_augmenter import PartialKnowledgeAugmenter
-from python_code.augmentations.self_supervised_augmenter import SelfSupervisedAugmenter
+from python_code.augmentations.adaptive_augmenter import AdaptiveAugmenter
 from python_code.augmentations.no_augmenter import NoAugmenter
 from typing import Tuple
 import torch
@@ -11,7 +11,7 @@ class AugmenterWrapper:
     def __init__(self, augmentations: str):
         self._augmentations_dict = {'full_knowledge_augmenter': FullKnowledgeAugmenter,
                                     'partial_knowledge_augmenter': PartialKnowledgeAugmenter,
-                                    'self_supervised_augmenter': SelfSupervisedAugmenter,
+                                    'adaptive_augmenter': AdaptiveAugmenter,
                                     'no_aug': NoAugmenter}
         self._augmenter = self._augmentations_dict[augmentations]()
 
