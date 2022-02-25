@@ -93,7 +93,7 @@ def add_adaptive_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, s
 
 if __name__ == '__main__':
     run_over = False  # whether to run over previous results
-    plot_type = 'SNR_time_decay'  # either plot by block, or by SNR
+    plot_type = 'SNR_COST2100'  # either plot by block, or by SNR
     trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
 
     # hyperparams for plot in Figure 3
