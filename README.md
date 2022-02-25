@@ -94,7 +94,7 @@ This code was simulated with GeForce RTX 2060 with driver version 432.00 and CUD
 
 3. Open Anaconda prompt and navigate to the cloned repository.
 
-4. Run the command "conda env create -f metanet.yml". This should install the required python environment.
+4. Run the command "conda env create -f environment.yml". This should install the required python environment.
 
 5. Open the cloned directory using PyCharm.
 
