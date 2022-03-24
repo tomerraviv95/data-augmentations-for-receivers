@@ -1,7 +1,6 @@
-from python_code.utils.constants import Phase, HALF, SUBFRAMES_IN_FRAME
-from python_code.ecc.wrappers import decoder, encoder
+from python_code.utils.constants import Phase, HALF
 from python_code.utils.metrics import calculate_error_rates
-from python_code.data.data_generator import DataGenerator
+from python_code.deepsic.data.data_generator import DataGenerator
 from python_code.utils.config_singleton import Config
 from torch import nn
 from typing import List
