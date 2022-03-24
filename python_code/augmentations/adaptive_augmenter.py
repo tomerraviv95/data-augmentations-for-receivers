@@ -18,7 +18,7 @@ class AdaptiveAugmenter:
         super().__init__()
         self._centers = None
         self._stds = None
-        self._alpha = 0.3  # augmentation hyperparameter
+        self._alpha = 1  # augmentation hyperparameter
 
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
                 update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:

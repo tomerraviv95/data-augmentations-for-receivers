@@ -1,3 +1,4 @@
+from python_code.augmentations.flipping_augmenter import FlippingAugmenter
 from python_code.augmentations.full_knowledge_augmenter import FullKnowledgeAugmenter
 from python_code.augmentations.partial_knowledge_augmenter import PartialKnowledgeAugmenter
 from python_code.augmentations.adaptive_augmenter import AdaptiveAugmenter
@@ -12,6 +13,7 @@ class AugmenterWrapper:
         self._augmentations_dict = {'full_knowledge_augmenter': FullKnowledgeAugmenter,
                                     'partial_knowledge_augmenter': PartialKnowledgeAugmenter,
                                     'adaptive_augmenter': AdaptiveAugmenter,
+                                    'flipping_augmenter': FlippingAugmenter,
                                     'no_aug': NoAugmenter}
         self._augmenter = self._augmentations_dict[augmentations]()
 
