@@ -39,7 +39,7 @@ class AdaptiveAugmenter:
             new_received_word[0, state_ind] = self._centers[state] + self._stds[state] * \
                                               torch.randn_like(transmitted_word)[
                                                   0, state_ind]
-        return new_received_word, new_transmitted_word
+        return new_received_word, new_transmitted_word.to(torch.int)
 
     def update_centers_stds(self, cur_centers: torch.Tensor, cur_stds: torch.Tensor):
         """
