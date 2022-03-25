@@ -16,14 +16,23 @@ mpl.rcParams['font.family'] = 'STIXGeneral'
 COLORS_DICT = {'ViterbiNet - Regular Training': 'green',
                'ViterbiNet - Adaptive': 'purple',
                'ViterbiNet - Flipping': 'blue',
+               'ViterbiNet - Random OverSampling': 'black',
+               'ViterbiNet - SMOTE': 'yellow',
+               'ViterbiNet - Borderline SMOTE': 'orange',
                'ViterbiNet - Adaptive + Flipping': 'red'}
 
 MARKERS_DICT = {'ViterbiNet - Regular Training': 'o',
                 'ViterbiNet - Adaptive': 'd',
+                'ViterbiNet - Random OverSampling': '>',
                 'ViterbiNet - Flipping': 'x',
+                'ViterbiNet - SMOTE': '>',
+                'ViterbiNet - Borderline SMOTE': '>',
                 'ViterbiNet - Adaptive + Flipping': '+'}
 
 LINESTYLES_DICT = {'ViterbiNet - Regular Training': 'solid',
                    'ViterbiNet - Adaptive': 'solid',
+                   'ViterbiNet - Random OverSampling': 'solid',
                    'ViterbiNet - Flipping': 'solid',
+                   'ViterbiNet - SMOTE': 'solid',
+                   'ViterbiNet - Borderline SMOTE': 'solid',
                    'ViterbiNet - Adaptive + Flipping': 'solid'}

@@ -113,6 +113,38 @@ def add_adaptive_and_flipping_augmentations_scheme_viterbinet(all_curves: List[T
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
 
 
+def add_random_sampling_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, str]],
+                                                        params_dict: Dict[str, Union[int, str]],
+                                                        run_over: bool, trial_num: int):
+    method_name = 'ViterbiNet - Random OverSampling'
+    conf = Config()
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'random_oversampling.yaml'))
+    name = set_method_name(conf, method_name, params_dict)
+    print(method_name)
+    add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
+
+
+def add_smote_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, str]],
+                                              params_dict: Dict[str, Union[int, str]],
+                                              run_over: bool, trial_num: int):
+    method_name = 'ViterbiNet - SMOTE'
+    conf = Config()
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'smote.yaml'))
+    name = set_method_name(conf, method_name, params_dict)
+    print(method_name)
+    add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
+
+def add_borderline_smote_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, str]],
+                                              params_dict: Dict[str, Union[int, str]],
+                                              run_over: bool, trial_num: int):
+    method_name = 'ViterbiNet - Borderline SMOTE'
+    conf = Config()
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'borderline_smote.yaml'))
+    name = set_method_name(conf, method_name, params_dict)
+    print(method_name)
+    add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
+
+
 if __name__ == '__main__':
     run_over = False  # whether to run over previous results
     plot_type = 'SNR_time_decay'  # either plot by block, or by SNR
@@ -148,5 +180,8 @@ if __name__ == '__main__':
         add_flipping_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
         add_adaptive_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
         add_adaptive_and_flipping_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_random_sampling_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_smote_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_borderline_smote_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
 
     plot_by_values(all_curves, label_name, [list(params_dict.values())[0] for params_dict in params_dicts])
