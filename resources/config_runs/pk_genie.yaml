@@ -23,6 +23,7 @@ train_minibatch_size: 32 # the size of a given minibatch. values: int.
 lr: 0.001 # learning rate. values: float.
 loss_type: 'CrossEntropy' # Loss type. values: 'BCE','CrossEntropy','MSE'.
 optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
+from_scratch_flag: True
 
 # augmentations
 aug_type: 'partial_knowledge_augmenter' # ['no_aug','full_knowledge_augmenter','partial_knowledge_augmenter','adaptive_augmenter']

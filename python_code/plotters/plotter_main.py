@@ -83,9 +83,31 @@ def add_partial_knowledge_augmenter_viterbinet(all_curves: List[Tuple[float, str
 def add_adaptive_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, str]],
                                                  params_dict: Dict[str, Union[int, str]],
                                                  run_over: bool, trial_num: int):
-    method_name = 'ViterbiNet - Adaptive Augmentation Scheme'
+    method_name = 'ViterbiNet - Adaptive'
     conf = Config()
-    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'adaptive_augmentation_scheme.yaml'))
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'adaptive.yaml'))
+    name = set_method_name(conf, method_name, params_dict)
+    print(method_name)
+    add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
+
+
+def add_flipping_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, str]],
+                                                 params_dict: Dict[str, Union[int, str]],
+                                                 run_over: bool, trial_num: int):
+    method_name = 'ViterbiNet - Flipping'
+    conf = Config()
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'flipping.yaml'))
+    name = set_method_name(conf, method_name, params_dict)
+    print(method_name)
+    add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
+
+
+def add_adaptive_and_flipping_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, str]],
+                                                              params_dict: Dict[str, Union[int, str]],
+                                                              run_over: bool, trial_num: int):
+    method_name = 'ViterbiNet - Adaptive + Flipping'
+    conf = Config()
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'adaptive_flipping.yaml'))
     name = set_method_name(conf, method_name, params_dict)
     print(method_name)
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
@@ -93,17 +115,17 @@ def add_adaptive_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, s
 
 if __name__ == '__main__':
     run_over = False  # whether to run over previous results
-    plot_type = 'SNR_COST2100'  # either plot by block, or by SNR
-    trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
+    plot_type = 'SNR_time_decay'  # either plot by block, or by SNR
+    trial_num = 3  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
 
     # hyperparams for plot in Figure 3
     if plot_type == 'SNR_time_decay':
         params_dicts = [
-            {'val_snr': 9, 'val_frames': 300, 'channel_coefficients': 'time_decay'},
-            {'val_snr': 10, 'val_frames': 300, 'channel_coefficients': 'time_decay'},
-            {'val_snr': 11, 'val_frames': 300, 'channel_coefficients': 'time_decay'},
-            {'val_snr': 12, 'val_frames': 300, 'channel_coefficients': 'time_decay'},
-            {'val_snr': 13, 'val_frames': 300, 'channel_coefficients': 'time_decay'}
+            {'val_snr': 9},
+            {'val_snr': 10},
+            {'val_snr': 11},
+            {'val_snr': 12},
+            {'val_snr': 13}
         ]
         label_name = 'SNR'
     # hyperparams for plot in Figure 4
@@ -123,8 +145,8 @@ if __name__ == '__main__':
     for params_dict in params_dicts:
         print(params_dict)
         add_reg_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_flipping_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
         add_adaptive_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
-        add_partial_knowledge_augmenter_viterbinet(all_curves, params_dict, run_over, trial_num)
-        add_full_knowledge_augmenter_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_adaptive_and_flipping_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
 
     plot_by_values(all_curves, label_name, [list(params_dict.values())[0] for params_dict in params_dicts])

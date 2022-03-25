@@ -43,7 +43,7 @@ class VNETTrainer(Trainer):
         loss = self.criterion(input=input_batch, target=gt_states_batch)
         return loss
 
-    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h:torch.Tensor, snr:float):
+    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor, snr: float):
         """
         Online training module - trains on the detected word.
         Start from the saved meta-trained weights.
@@ -55,6 +55,11 @@ class VNETTrainer(Trainer):
         # augment received words by the number of desired repeats
         aug_rx, aug_tx = self.augment_words_wrapper(h, rx, tx, conf.online_total_words, conf.online_repeats_n,
                                                     phase='val')
+
+        if conf.from_scratch_flag:
+            self.initialize_detector()
+            self.deep_learning_setup()
+
         # run training loops
         loss = 0
         for i in range(conf.online_total_words):
