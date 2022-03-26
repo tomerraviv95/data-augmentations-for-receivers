@@ -1,6 +1,6 @@
 from python_code.utils.config_singleton import Config
 from imblearn.over_sampling import RandomOverSampler, SMOTE, BorderlineSMOTE
-# import smote_variants as sv
+import smote_variants as sv
 from typing import Tuple
 import numpy as np
 import torch
@@ -34,7 +34,7 @@ class SMOTEAugmenter:
             states = states[states != single_sample_state]
 
         # oversample with SMOTE
-        ros = SMOTE(random_state=conf.seed, k_neighbors=1)
+        ros = sv.ANS(random_state=conf.seed)
         received_resampled, states_resampled = ros.fit_resample(received_word.cpu().numpy().T, states.cpu().numpy())
         states_resampled = torch.Tensor(states_resampled).to(device)
         received_resampled = torch.Tensor(received_resampled).to(device)

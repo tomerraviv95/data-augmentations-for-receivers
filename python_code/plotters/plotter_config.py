@@ -13,26 +13,43 @@ mpl.rcParams['legend.fontsize'] = 20
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
 
-COLORS_DICT = {'ViterbiNet - Regular Training': 'green',
-               'ViterbiNet - Adaptive': 'purple',
-               'ViterbiNet - Flipping': 'blue',
-               'ViterbiNet - Random OverSampling': 'black',
-               'ViterbiNet - SMOTE': 'yellow',
-               'ViterbiNet - Borderline SMOTE': 'orange',
-               'ViterbiNet - Adaptive + Flipping': 'red'}
+#
 
-MARKERS_DICT = {'ViterbiNet - Regular Training': 'o',
-                'ViterbiNet - Adaptive': 'd',
-                'ViterbiNet - Random OverSampling': '>',
-                'ViterbiNet - Flipping': 'x',
-                'ViterbiNet - SMOTE': '>',
-                'ViterbiNet - Borderline SMOTE': '>',
-                'ViterbiNet - Adaptive + Flipping': '+'}
+COLORS_DICT = {
+    'ViterbiNet - Regular Training': 'green',
+    'ViterbiNet - SMOTE': 'yellow',
+    'ViterbiNet - Borderline SMOTE': 'orange',
+    'ViterbiNet - Flipping': 'blue',
+    'ViterbiNet - Adaptive': 'purple',
+    'ViterbiNet - Adaptive + Flipping': 'red',
+    'ViterbiNet - Adaptive + Flipping + Borderline SMOTE': 'black',
+    'ViterbiNet - Extended Pilot Size (200)': 'pink',
+    'ViterbiNet - Extended Pilot Size (400)': 'pink',
+    'ViterbiNet - Max Pilot Size (2000)': 'pink',
+}
 
-LINESTYLES_DICT = {'ViterbiNet - Regular Training': 'solid',
-                   'ViterbiNet - Adaptive': 'solid',
-                   'ViterbiNet - Random OverSampling': 'solid',
-                   'ViterbiNet - Flipping': 'solid',
-                   'ViterbiNet - SMOTE': 'solid',
-                   'ViterbiNet - Borderline SMOTE': 'solid',
-                   'ViterbiNet - Adaptive + Flipping': 'solid'}
+MARKERS_DICT = {
+    'ViterbiNet - Regular Training': 'o',
+    'ViterbiNet - SMOTE': '>',
+    'ViterbiNet - Borderline SMOTE': '>',
+    'ViterbiNet - Flipping': 'x',
+    'ViterbiNet - Adaptive': 'd',
+    'ViterbiNet - Adaptive + Flipping': '+',
+    'ViterbiNet - Adaptive + Flipping + Borderline SMOTE': '>',
+    'ViterbiNet - Extended Pilot Size (200)': 'o',
+    'ViterbiNet - Extended Pilot Size (400)': 'o',
+    'ViterbiNet - Max Pilot Size (2000)': 'o',
+}
+
+LINESTYLES_DICT = {
+    'ViterbiNet - Regular Training': 'dashed',
+    'ViterbiNet - SMOTE': 'solid',
+    'ViterbiNet - Borderline SMOTE': 'solid',
+    'ViterbiNet - Flipping': 'solid',
+    'ViterbiNet - Adaptive': 'solid',
+    'ViterbiNet - Adaptive + Flipping': 'solid',
+    'ViterbiNet - Adaptive + Flipping + Borderline SMOTE': 'solid',
+    'ViterbiNet - Extended Pilot Size (200)': 'dashed',
+    'ViterbiNet - Extended Pilot Size (400)': 'dashed',
+    'ViterbiNet - Max Pilot Size (2000)': 'dashed'
+}

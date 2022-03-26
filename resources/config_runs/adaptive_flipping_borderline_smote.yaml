@@ -10,11 +10,11 @@ fading_in_channel: False # If the channel is fading/non-fading. values: [True, F
 gamma: 0.5 # gamma value for time decay fading
 
 # validation hyperparameters
-val_block_length: 11000 # coherence block time. values: int.
-pilot_size: 1000 # pilot symbols
+val_block_length: 10080 # coherence block time. values: int.
+pilot_size: 80 # pilot symbols
 val_frames: 10 # number of validation frames. values: int.
 val_snr: 12 # start SNR value. values: float.
-eval_mode: 'by_word' # Type of evaluation per block - 'by_word'.
+eval_mode: 'by_word' # Type of evaluation. Per snr - 'aggregated', Per block - 'by_word'.
 
 # online training hyperparameters
 is_online_training: True # Whether to run the online training (as in ViterbiNet). values: [True, False].
@@ -26,6 +26,5 @@ optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
 from_scratch_flag: True
 
 # augmentations
-aug_type: ['no_aug']
-# ['no_aug','full_knowledge_augmenter','partial_knowledge_augmenter','adaptive_augmenter','flipping_augmenter','border_smote_augmenter']
+aug_type: ['adaptive_augmenter','flipping_augmenter','border_smote_augmenter'] # ['no_aug','full_knowledge_augmenter','partial_knowledge_augmenter','adaptive_augmenter','flipping_augmenter']
 online_repeats_n: 25 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words

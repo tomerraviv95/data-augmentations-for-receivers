@@ -3,7 +3,6 @@ from python_code.augmentations.flipping_augmenter import FlippingAugmenter
 from python_code.augmentations.full_knowledge_augmenter import FullKnowledgeAugmenter
 from python_code.augmentations.partial_knowledge_augmenter import PartialKnowledgeAugmenter
 from python_code.augmentations.adaptive_augmenter import AdaptiveAugmenter
-from python_code.augmentations.random_oversampler_augmenter import RandomOversamplerAugmenter
 from python_code.augmentations.smote_augmenter import SMOTEAugmenter
 from python_code.augmentations.no_augmenter import NoAugmenter
 from typing import Tuple, List
@@ -19,7 +18,6 @@ class AugmenterWrapper:
                                  'flipping_augmenter': FlippingAugmenter(),
                                  'smote_augmenter': SMOTEAugmenter(),
                                  'border_smote_augmenter': BorderSMOTEAugmenter(),
-                                 'random_oversampler_augmenter': RandomOversamplerAugmenter(),
                                  'no_aug': NoAugmenter()}
         self._augmentations = augmentations
 
