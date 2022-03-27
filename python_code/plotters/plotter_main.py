@@ -113,30 +113,9 @@ def add_adaptive_and_flipping_augmentations_scheme_viterbinet(all_curves: List[T
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
 
 
-def add_random_sampling_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, str]],
-                                                        params_dict: Dict[str, Union[int, str]],
-                                                        run_over: bool, trial_num: int):
-    method_name = 'ViterbiNet - Random OverSampling'
-    conf = Config()
-    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'random_oversampling.yaml'))
-    name = set_method_name(conf, method_name, params_dict)
-    print(method_name)
-    add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
-
-
-def add_smote_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, str]],
-                                              params_dict: Dict[str, Union[int, str]],
-                                              run_over: bool, trial_num: int):
-    method_name = 'ViterbiNet - SMOTE'
-    conf = Config()
-    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'smote.yaml'))
-    name = set_method_name(conf, method_name, params_dict)
-    print(method_name)
-    add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
-
 def add_borderline_smote_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, str]],
-                                              params_dict: Dict[str, Union[int, str]],
-                                              run_over: bool, trial_num: int):
+                                                         params_dict: Dict[str, Union[int, str]],
+                                                         run_over: bool, trial_num: int):
     method_name = 'ViterbiNet - Borderline SMOTE'
     conf = Config()
     conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'borderline_smote.yaml'))
@@ -144,9 +123,10 @@ def add_borderline_smote_augmentations_scheme_viterbinet(all_curves: List[Tuple[
     print(method_name)
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
 
+
 def add_adaptive_and_flipping_borderline_smote_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, str]],
-                                              params_dict: Dict[str, Union[int, str]],
-                                              run_over: bool, trial_num: int):
+                                                                               params_dict: Dict[str, Union[int, str]],
+                                                                               run_over: bool, trial_num: int):
     method_name = 'ViterbiNet - Adaptive + Flipping + Borderline SMOTE'
     conf = Config()
     conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'adaptive_flipping_borderline_smote.yaml'))
@@ -154,9 +134,10 @@ def add_adaptive_and_flipping_borderline_smote_augmentations_scheme_viterbinet(a
     print(method_name)
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
 
+
 def add_200_extended_pilot_no_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, str]],
-                                              params_dict: Dict[str, Union[int, str]],
-                                              run_over: bool, trial_num: int):
+                                                              params_dict: Dict[str, Union[int, str]],
+                                                              run_over: bool, trial_num: int):
     method_name = 'ViterbiNet - Extended Pilot Size (200)'
     conf = Config()
     conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'reg_200_extended_pilot.yaml'))
@@ -164,32 +145,22 @@ def add_200_extended_pilot_no_augmentations_scheme_viterbinet(all_curves: List[T
     print(method_name)
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
 
+
 def add_extended_pilot_no_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, str]],
-                                              params_dict: Dict[str, Union[int, str]],
-                                              run_over: bool, trial_num: int):
+                                                          params_dict: Dict[str, Union[int, str]],
+                                                          run_over: bool, trial_num: int):
     method_name = 'ViterbiNet - Extended Pilot Size (400)'
     conf = Config()
-    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'reg_extended_pilot.yaml'))
-    name = set_method_name(conf, method_name, params_dict)
-    print(method_name)
-    add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
-
-
-def add_max_pilot_no_augmentations_scheme_viterbinet(all_curves: List[Tuple[float, str]],
-                                              params_dict: Dict[str, Union[int, str]],
-                                              run_over: bool, trial_num: int):
-    method_name = 'ViterbiNet - Max Pilot Size (2000)'
-    conf = Config()
-    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'reg_max_pilot.yaml'))
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'reg_400_extended_pilot.yaml'))
     name = set_method_name(conf, method_name, params_dict)
     print(method_name)
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
 
 
 if __name__ == '__main__':
-    run_over = False  # whether to run over previous results
+    run_over = True  # whether to run over previous results
     plot_type = 'SNR_time_decay'  # either plot by block, or by SNR
-    trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
+    trial_num = 3  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
 
     # hyperparams for plot in Figure 3
     if plot_type == 'SNR_time_decay':
@@ -222,9 +193,9 @@ if __name__ == '__main__':
         add_flipping_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
         add_adaptive_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
         add_adaptive_and_flipping_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
-        add_adaptive_and_flipping_borderline_smote_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
+        add_adaptive_and_flipping_borderline_smote_augmentations_scheme_viterbinet(all_curves, params_dict, run_over,
+                                                                                   trial_num)
         add_200_extended_pilot_no_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
         add_extended_pilot_no_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
-        add_max_pilot_no_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
 
     plot_by_values(all_curves, label_name, [list(params_dict.values())[0] for params_dict in params_dicts])
