@@ -20,12 +20,9 @@ np.random.seed(conf.seed)
 class Trainer:
 
     def __init__(self):
-        self.train_frame_size = conf.test_pilot_size
-        self.test_frame_size = conf.test_pilot_size
-        self.train_dg = DataGenerator(conf.info_size, phase=Phase.TRAIN, frame_num=conf.train_frame_num)
-        self.test_dg = DataGenerator(conf.info_size, phase=Phase.TEST, frame_num=conf.test_frame_num)
+        self.test_frame_size = conf.pilot_size
+        self.test_dg = DataGenerator(conf.val_block_length, phase=Phase.TEST, frame_num=conf.val_frames)
         self.softmax = torch.nn.Softmax(dim=1)  # Single symbol probability inference
-        self.online_meta = False
         self.self_supervised = False
         self.phase = None
 
@@ -59,18 +56,15 @@ class Trainer:
         b_test, y_test = self.test_dg(snr=snr)
         c_pred = torch.zeros_like(y_test)
         b_pred = torch.zeros_like(b_test)
-        c_frame_size = c_pred.shape[0] // conf.test_frame_num
-        b_frame_size = b_pred.shape[0] // conf.test_frame_num
-        if conf.use_ecc:
-            probs_vec = HALF * torch.ones(c_frame_size, y_test.shape[1]).to(device)
-        else:
-            probs_vec = HALF * torch.ones(c_frame_size - conf.test_pilot_size, y_test.shape[1]).to(device)
+        c_frame_size = c_pred.shape[0] // conf.val_frames
+        b_frame_size = b_pred.shape[0] // conf.val_frames
+        probs_vec = HALF * torch.ones(c_frame_size - conf.pilot_size, y_test.shape[1]).to(device)
 
         # query for all detected words
         buffer_b, buffer_y = torch.empty([0, b_test.shape[1]]).to(device), torch.empty([0, y_test.shape[1]]).to(device)
 
         ber_list = []
-        for frame in range(conf.test_frame_num - 1):
+        for frame in range(conf.val_frames - 1):
             # current word
             c_start_ind = frame * c_frame_size
             c_end_ind = (frame + 1) * c_frame_size
@@ -102,9 +96,6 @@ class Trainer:
 
         # use last word inserted in the buffer for training
         if self.self_supervised and ber <= conf.ber_thresh:
-            if self.online_meta:
-                model = self.copy_model(self.saved_detector)
-
             # use last word inserted in the buffer for training
             self.online_train_loop(model, detected_word, current_y, conf.self_supervised_epochs, self.phase)
 
@@ -117,13 +108,10 @@ class Trainer:
         """
         all_bers = []  # Contains the ber
         print(f'training')
-        print(f'snr {conf.snr}')
-        self.phase = Phase.TRAIN
-        b_train, y_train = self.train_dg(snr=conf.snr)  # Generating data for the given snr
+        print(f'snr {conf.val_snr}')
         model = self.initialize_model()
-        self.train_loop(model, b_train, y_train, conf.max_epochs, self.phase)
         self.phase = Phase.TEST
-        ber = self.evaluate(model, conf.snr)
+        ber = self.evaluate(model, conf.val_snr)
         all_bers.append(ber)
         print(f'\nber :{sum(ber) / len(ber)} @ snr: {conf.snr} [dB]')
         print(f'Training and Testing Completed\nBERs: {all_bers}')

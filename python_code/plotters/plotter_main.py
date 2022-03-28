@@ -160,7 +160,7 @@ def add_extended_pilot_no_augmentations_scheme_viterbinet(all_curves: List[Tuple
 if __name__ == '__main__':
     run_over = True  # whether to run over previous results
     plot_type = 'SNR_time_decay'  # either plot by block, or by SNR
-    trial_num = 3  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
+    trial_num = 10  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
 
     # hyperparams for plot in Figure 3
     if plot_type == 'SNR_time_decay':

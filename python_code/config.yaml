@@ -9,6 +9,12 @@ channel_coefficients: 'time_decay' # The taps of the channel. values: ['time_dec
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
 gamma: 0.5 # gamma value for time decay fading
 
+# new
+n_user: 4
+n_ant: 4
+iterations: 5
+channel_mode: 'SED'
+
 # validation hyperparameters
 val_block_length: 11000 # coherence block time. values: int.
 pilot_size: 1000 # pilot symbols
