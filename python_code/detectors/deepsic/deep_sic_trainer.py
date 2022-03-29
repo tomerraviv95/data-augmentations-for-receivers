@@ -1,4 +1,4 @@
-from python_code.deepsic.trainer import Trainer
+from python_code.vnet.trainer import Trainer
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import Phase, HALF
 from typing import List
@@ -43,38 +43,33 @@ class DeepSICTrainer(Trainer):
     def __str__(self):
         return 'DeepSIC Trainer'
 
-    def initialize_model(self):
-        return [[self.initialize_single_detector() for _ in range(conf.iterations)] for _ in
-                range(conf.n_user)]  # 2D list for Storing the DeepSIC Networks
+    def initialize_detector(self):
+        self.detector = [[self.initialize_single_detector() for _ in range(conf.iterations)] for _ in
+                         range(conf.n_user)]  # 2D list for Storing the DeepSIC Networks
 
     def copy_model(self, model: nn.Module) -> List[nn.Module]:
         return [copy.deepcopy(single_model) for single_model in model]
 
     def train_models(self, model: nn.Module, i: int, b_train_all: torch.Tensor, y_train_all: torch.Tensor,
-                     max_epochs: int, phase: Phase):
+                     max_epochs: int):
         for user in range(conf.n_user):
-            if phase == Phase.TEST and conf.retrain_user is not None:
-                if not conf.retrain_user == user:
-                    continue
             self.train_model(model[user][i], b_train_all[user], y_train_all[user], max_epochs)
 
-    def online_train_loop(self, model: nn.Module, b_train: torch.Tensor, y_train: torch.Tensor, max_epochs: int,
-                          phase: Phase):
+    def online_training(self, model: nn.Module, b_train: torch.Tensor, y_train: torch.Tensor, max_epochs: int):
         pass
 
     def end_to_end_train_loop(self, model: nn.Module, b_train: torch.Tensor, y_train: torch.Tensor, max_epochs: int,
                               phase: Phase):
         pass
 
-    def train_loop(self, model: nn.Module, b_train: torch.Tensor, y_train: torch.Tensor, max_epochs: int, phase: Phase):
-        self.sequential_train_loop(model, b_train, y_train, conf.max_epochs, self.phase)
+    def train_loop(self, model: nn.Module, b_train: torch.Tensor, y_train: torch.Tensor, max_epochs: int):
+        self.sequential_train_loop(model, b_train, y_train, max_epochs)
 
-    def sequential_train_loop(self, model: nn.Module, b_train: torch.Tensor, y_train: torch.Tensor, max_epochs: int,
-                              phase: Phase):
+    def sequential_train_loop(self, model: nn.Module, b_train: torch.Tensor, y_train: torch.Tensor, max_epochs: int):
         initial_probs = b_train.clone()
         b_train_all, y_train_all = self.prepare_data_for_training(b_train, y_train, initial_probs)
         # Training the DeepSIC network for each user for iteration=1
-        self.train_models(model, 0, b_train_all, y_train_all, max_epochs, phase)
+        self.train_models(model, 0, b_train_all, y_train_all, max_epochs)
         # Initializing the probabilities
         probs_vec = HALF * torch.ones(b_train.shape).to(device)
         # Training the DeepSICNet for each user-symbol/iteration
@@ -84,7 +79,7 @@ class DeepSICTrainer(Trainer):
             # Obtaining the DeepSIC networks for each user-symbol and the i-th iteration
             b_train_all, y_train_all = self.prepare_data_for_training(b_train, y_train, probs_vec)
             # Training the DeepSIC networks for the iteration>1
-            self.train_models(model, i, b_train_all, y_train_all, max_epochs, phase)
+            self.train_models(model, i, b_train_all, y_train_all, max_epochs)
 
     def predict(self, model: nn.Module, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
         # detect and decode

@@ -5,12 +5,12 @@ from python_code.utils.metrics import calculate_error_rates
 from torch.nn import CrossEntropyLoss, BCELoss, MSELoss
 from torch.optim import RMSprop, Adam, SGD
 from typing import Tuple, Union
+from torch import nn
 import numpy as np
 import random
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 conf = Config()
 
 random.seed(conf.seed)
@@ -19,6 +19,7 @@ torch.cuda.manual_seed(conf.seed)
 np.random.seed(conf.seed)
 
 PRINT_FREQ = 10
+HALF = 0.5
 
 
 class Trainer(object):
@@ -31,6 +32,7 @@ class Trainer(object):
         self.initialize_dataloaders()
         self.initialize_detector()
         self.augmenter = AugmenterWrapper(conf.aug_type)
+        self.softmax = torch.nn.Softmax(dim=1)  # Single symbol probability inference
 
     def get_name(self):
         return self.__name__()
@@ -80,10 +82,14 @@ class Trainer(object):
         """
         self.channel_dataset = ChannelModelDataset(block_length=conf.val_block_length,
                                                    transmission_length=conf.val_block_length,
-                                                   words=conf.val_frames)
+                                                   words=conf.val_frames,
+                                                   n_ant=4 if conf.detector_type == 'deepsic' else 1)
         self.dataloaders = torch.utils.data.DataLoader(self.channel_dataset)
 
     def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor, snr: float):
+        pass
+
+    def predict(self, model: nn.Module, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
         pass
 
     def evaluate(self) -> Union[float, np.ndarray]:
@@ -92,33 +98,45 @@ class Trainer(object):
         data blocks for the paper.
         :return: np.ndarray
         """
-        if conf.is_online_training:
-            self.deep_learning_setup()
         total_ser = 0
         # draw words of given gamma for all snrs
         transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr],
                                                                                  gamma=conf.gamma)
+        if conf.detector_type == 'deepsic':
+            probs_vec = HALF * torch.ones(conf.n_ant, conf.val_block_length - conf.pilot_size).to(device)
+
         ser_by_word = np.zeros(transmitted_words.shape[0])
-        for count, (transmitted_word, received_word, h) in enumerate(zip(transmitted_words, received_words, hs)):
-            # get current channel word and true transmitted word (unknown to the receiver)
-            transmitted_word, received_word = transmitted_word.reshape(1, -1), received_word.reshape(1, -1)
+        for frame in range(conf.val_frames - 1):
+            # current word
+            start_ind = frame * conf.n_ant
+            end_ind = (frame + 1) * conf.n_ant
+            transmitted_word = transmitted_words[start_ind:end_ind]
+            received_word = received_words[start_ind:end_ind]
+            h = hs[start_ind:end_ind]
             # split words into data and pilot part
             x_pilot, x_data = transmitted_word[:, :conf.pilot_size], transmitted_word[:, conf.pilot_size:]
             y_pilot, y_data = received_word[:, :conf.pilot_size], received_word[:, conf.pilot_size:]
             # if online training flag is on - train using pilots part
             if conf.is_online_training:
-                self.online_training(x_pilot, y_pilot, h.reshape(1, -1), conf.val_snr)
+                if conf.detector_type == 'viterbi':
+                    self.online_training(x_pilot, y_pilot, h.reshape(1, -1), conf.val_snr)
+                else:
+                    self.online_training(self.detector, x_pilot.T, y_pilot.T, conf.online_total_words)
+
             # detect data part
-            detected_word = self.detector(y_data, phase='val')
+            if conf.detector_type == 'viterbi':
+                detected_word = self.detector(y_data, phase='val')
+            else:
+                detected_word = self.predict(self.detector, y_data.T, probs_vec.T).T
             # calculate accuracy
             ser, fer, err_indices = calculate_error_rates(detected_word, x_data)
             print('*' * 20)
-            print(f'current: {count, ser}')
+            print(f'current: {frame, ser}')
             total_ser += ser
-            ser_by_word[count] = ser
+            ser_by_word[frame] = ser
             # print progress
-            if (count + 1) % PRINT_FREQ == 0:
-                print(f'Self-supervised: {count + 1}/{transmitted_words.shape[0]}, SER {total_ser / (count + 1)}')
+            if (frame + 1) % PRINT_FREQ == 0:
+                print(f'Self-supervised: {frame + 1}/{transmitted_words.shape[0]}, SER {total_ser / (frame + 1)}')
 
         total_ser /= transmitted_words.shape[0]
         print(f'Final ser: {total_ser}')

@@ -52,6 +52,7 @@ class VNETTrainer(Trainer):
         :param h: channel coefficients
         :param snr: float signal to noise value
         """
+        self.deep_learning_setup()
         # augment received words by the number of desired repeats
         aug_rx, aug_tx = self.augment_words_wrapper(h, rx, tx, conf.online_total_words, conf.online_repeats_n,
                                                     phase='val')

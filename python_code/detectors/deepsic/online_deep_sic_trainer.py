@@ -1,7 +1,6 @@
-from python_code.deepsic.deep_sic_detector import DeepSICDetector
-from python_code.deepsic.deep_sic_trainer import DeepSICTrainer
+from python_code.detectors.deepsic.deep_sic_detector import DeepSICDetector
+from python_code.detectors.deepsic.deep_sic_trainer import DeepSICTrainer
 from python_code.utils.config_singleton import Config
-from python_code.utils.constants import Phase
 from torch import nn
 import torch
 
@@ -51,11 +50,5 @@ class OnlineDeepSICTrainer(DeepSICTrainer):
             loss.backward()
             opt.step()
 
-    def online_train_loop(self, model: nn.Module, b_train: torch.Tensor, y_train: torch.Tensor, max_epochs: int,
-                          phase: Phase):
-        self.train_loop(model, b_train, y_train, max_epochs, phase)
-
-
-if __name__ == "__main__":
-    trainer = OnlineDeepSICTrainer()
-    trainer.main()
+    def online_training(self, model: nn.Module, b_train: torch.Tensor, y_train: torch.Tensor, max_epochs: int):
+        self.train_loop(model, b_train, y_train, max_epochs)

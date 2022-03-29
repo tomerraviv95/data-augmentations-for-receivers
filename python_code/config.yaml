@@ -14,6 +14,7 @@ n_user: 4
 n_ant: 4
 iterations: 5
 channel_mode: 'SED'
+detector_type: 'deepsic'
 
 # validation hyperparameters
 val_block_length: 11000 # coherence block time. values: int.
