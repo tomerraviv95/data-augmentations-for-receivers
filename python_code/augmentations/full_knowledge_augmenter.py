@@ -1,4 +1,4 @@
-from python_code.channel.channel import ISIAWGNChannel
+from python_code.channel.isi_awgn_channel import ISIAWGNChannel
 from python_code.channel.modulator import BPSKModulator
 from python_code.utils.config_singleton import Config
 from typing import Tuple

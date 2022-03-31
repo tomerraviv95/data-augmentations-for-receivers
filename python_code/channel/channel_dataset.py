@@ -1,7 +1,6 @@
-from python_code.channel.channel_estimation import estimate_channel
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_ANT, N_USER
 from python_code.channel.modulator import BPSKModulator
-from python_code.channel.channel import ISIAWGNChannel
+from python_code.channel.isi_awgn_channel import ISIAWGNChannel
 from python_code.channel.sed_channel import SEDChannel
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
@@ -15,15 +14,6 @@ import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
-
-
-def calculate_sigma_from_snr(snr: int) -> float:
-    """
-    converts the Desired SNR into the noise power (noise variance)
-    :param snr: signal-to-noise ratio
-    :return: noise's sigma
-    """
-    return 10 ** (-0.1 * snr)
 
 
 class ChannelModelDataset(Dataset):
@@ -51,23 +41,12 @@ class ChannelModelDataset(Dataset):
             total_words = N_ANT * self.words
 
         index = 0
-
         # accumulate words until reaches desired number
         while y_full.shape[0] < total_words:
             if conf.channel_type == ChannelModes.SISO.name:
-                b = self.bits_generator.integers(0, 2, size=(1, self.block_length)).reshape(1, -1)
-                # add zero bits
-                padded_b = np.concatenate([b, np.zeros([b.shape[0], MEMORY_LENGTH])], axis=1)
-                # get channel values
-                h = estimate_channel(MEMORY_LENGTH, gamma, fading=conf.fading_in_channel, index=index)
-                # pass through channel
-                y = self.siso_transmit(padded_b, h, snr)
+                b, h, y = self.siso_transmission(gamma, index, snr)
             elif conf.channel_type == ChannelModes.MIMO.name:
-                b = self.bits_generator.integers(0, 2, size=(N_USER, self.block_length))
-                # get channel values
-                h = SEDChannel.calculate_channel(N_ANT, N_USER, index, conf.fading_in_channel)
-                # pass through channel
-                y = self.mimo_transmit(b, h, snr)
+                b, h, y = self.mimo_transmission(index, snr)
             else:
                 raise ValueError("No such channel type!!!")
             # accumulate
@@ -78,20 +57,27 @@ class ChannelModelDataset(Dataset):
 
         database.append((b_full, y_full, h_full))
 
-    def siso_transmit(self, b: np.ndarray, h: np.ndarray, snr: float):
+    def mimo_transmission(self, index, snr):
+        b = self.bits_generator.integers(0, 2, size=(N_USER, self.block_length))
+        # get channel values
+        h = SEDChannel.calculate_channel(N_ANT, N_USER, index, conf.fading_in_channel)
         # modulation
         s = BPSKModulator.modulate(b)
+        # pass through channel
+        y = SEDChannel.transmit(s, h, snr)
+        return b, h, y
+
+    def siso_transmission(self, gamma, index, snr):
+        b = self.bits_generator.integers(0, 2, size=(1, self.block_length)).reshape(1, -1)
+        # add zero bits
+        padded_b = np.concatenate([b, np.zeros([b.shape[0], MEMORY_LENGTH])], axis=1)
+        # get channel values
+        h = ISIAWGNChannel.calculate_channel(MEMORY_LENGTH, gamma, fading=conf.fading_in_channel, index=index)
+        # modulation
+        s = BPSKModulator.modulate(padded_b)
         # transmit through noisy channel
         y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=conf.memory_length)
-        return y
-
-    def mimo_transmit(self, b: np.ndarray, h: np.ndarray, snr: float):
-        # modulation
-        s = BPSKModulator.modulate(b)
-        sigma = calculate_sigma_from_snr(snr)
-        # transmit through noisy channel
-        y = np.matmul(h, s) + np.sqrt(sigma) * np.random.randn(N_ANT, s.shape[1])
-        return y
+        return b, h, y
 
     def __getitem__(self, snr_list: List[float], gamma: float) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         database = []
