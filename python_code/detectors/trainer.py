@@ -3,6 +3,7 @@ from python_code.utils.config_singleton import Config
 from python_code.channel.channel_dataset import ChannelModelDataset
 from python_code.utils.metrics import calculate_error_rates
 from torch.nn import CrossEntropyLoss, BCELoss, MSELoss
+from python_code.utils.constants import ChannelModes
 from torch.optim import RMSprop, Adam, SGD
 from typing import Tuple, Union
 from torch import nn
@@ -24,9 +25,6 @@ HALF = 0.5
 
 class Trainer(object):
     def __init__(self):
-
-        # initializes word and noise generator from seed
-        self.n_states = 2 ** conf.memory_length
 
         # initialize matrices, datasets and detector
         self.initialize_dataloaders()
@@ -67,9 +65,7 @@ class Trainer(object):
                                  lr=conf.lr)
         else:
             raise NotImplementedError("No such optimizer implemented!!!")
-        if conf.loss_type == 'BCE':
-            self.criterion = BCELoss().to(device)
-        elif conf.loss_type == 'CrossEntropy':
+        if conf.loss_type == 'CrossEntropy':
             self.criterion = CrossEntropyLoss().to(device)
         elif conf.loss_type == 'MSE':
             self.criterion = MSELoss().to(device)
@@ -82,14 +78,16 @@ class Trainer(object):
         """
         self.channel_dataset = ChannelModelDataset(block_length=conf.val_block_length,
                                                    transmission_length=conf.val_block_length,
-                                                   words=conf.val_frames,
-                                                   n_ant=4 if conf.detector_type == 'deepsic' else 1)
+                                                   words=conf.val_frames)
         self.dataloaders = torch.utils.data.DataLoader(self.channel_dataset)
 
     def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor, snr: float):
         pass
 
-    def predict(self, model: nn.Module, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
+    def forward(self, model: nn.Module, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
+        pass
+
+    def init_priors(self):
         pass
 
     def evaluate(self) -> Union[float, np.ndarray]:
@@ -102,18 +100,12 @@ class Trainer(object):
         # draw words of given gamma for all snrs
         transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr],
                                                                                  gamma=conf.gamma)
-        if conf.detector_type == 'deepsic':
-            probs_vec = HALF * torch.ones(conf.n_ant, conf.val_block_length - conf.pilot_size).to(device)
-
+        self.init_priors()
         ser_by_word = np.zeros(transmitted_words.shape[0])
         for frame in range(conf.val_frames - 1):
-            # current word
-            if conf.detector_type == 'deepsic':
-                start_ind = frame * conf.n_ant
-                end_ind = (frame + 1) * conf.n_ant
-            else:
-                start_ind = frame
-                end_ind = (frame + 1)
+            # get current word and channel
+            start_ind = frame * self.n_ant
+            end_ind = (frame + 1) * self.n_ant
             transmitted_word = transmitted_words[start_ind:end_ind]
             received_word = received_words[start_ind:end_ind]
             h = hs[start_ind:end_ind]
@@ -122,16 +114,16 @@ class Trainer(object):
             y_pilot, y_data = received_word[:, :conf.pilot_size], received_word[:, conf.pilot_size:]
             # if online training flag is on - train using pilots part
             if conf.is_online_training:
-                if conf.detector_type == 'viterbi':
+                if conf.channel_type == ChannelModes.SISO.name:
                     self.online_training(x_pilot, y_pilot, h.reshape(1, -1), conf.val_snr)
-                else:
+                elif conf.channel_type == ChannelModes.MIMO.name:
                     self.online_training(self.detector, x_pilot.T, y_pilot.T, conf.online_total_words)
 
             # detect data part
-            if conf.detector_type == 'viterbi':
-                detected_word = self.detector(y_data, phase='val')
-            else:
-                detected_word = self.predict(self.detector, y_data.T, probs_vec.T).T
+            if conf.channel_type == ChannelModes.SISO.name:
+                detected_word = self.detector.forward(y_data, phase='val')
+            elif conf.channel_type == ChannelModes.MIMO.name:
+                detected_word = self.forward(self.detector, y_data.T, self.probs_vec.T).T
             # calculate accuracy
             ser, fer, err_indices = calculate_error_rates(detected_word, x_data)
             print('*' * 20)
@@ -141,6 +133,7 @@ class Trainer(object):
             # print progress
             if (frame + 1) % PRINT_FREQ == 0:
                 print(f'Self-supervised: {frame + 1}/{transmitted_words.shape[0]}, SER {total_ser / (frame + 1)}')
+            self.init_priors()
 
         total_ser /= transmitted_words.shape[0]
         print(f'Final ser: {total_ser}')

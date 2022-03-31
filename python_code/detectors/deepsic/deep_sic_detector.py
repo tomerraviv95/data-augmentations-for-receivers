@@ -1,3 +1,4 @@
+from python_code.channel.channels_hyperparams import N_USER, N_ANT
 from python_code.utils.config_singleton import Config
 from torch import nn
 import torch
@@ -29,7 +30,7 @@ class DeepSICDetector(nn.Module):
 
     def __init__(self):
         super(DeepSICDetector, self).__init__()
-        self.fc0 = nn.Linear(conf.n_user + conf.n_ant - 1, HIDDEN_SIZE)
+        self.fc0 = nn.Linear(N_USER + N_ANT - 1, HIDDEN_SIZE)
         self.sigmoid = nn.Sigmoid()
         self.fc1 = nn.Linear(HIDDEN_SIZE, int(HIDDEN_SIZE / 2))
         self.relu = nn.ReLU()

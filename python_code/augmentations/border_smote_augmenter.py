@@ -1,11 +1,9 @@
+from python_code.utils.trellis_utils import calculate_states
 from python_code.utils.config_singleton import Config
-from imblearn.over_sampling import RandomOverSampler, SMOTE, BorderlineSMOTE
-# import smote_variants as sv
+from imblearn.over_sampling import BorderlineSMOTE
 from typing import Tuple
 import numpy as np
 import torch
-
-from python_code.utils.trellis_utils import calculate_states
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

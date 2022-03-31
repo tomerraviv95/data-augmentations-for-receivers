@@ -1,8 +1,10 @@
 from python_code.channel.channel_estimation import estimate_channel
+from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_ANT, N_USER
 from python_code.channel.modulator import BPSKModulator
 from python_code.channel.channel import ISIAWGNChannel
 from python_code.channel.sed_channel import SEDChannel
 from python_code.utils.config_singleton import Config
+from python_code.utils.constants import ChannelModes
 from torch.utils.data import Dataset
 from numpy.random import default_rng
 from typing import Tuple, List
@@ -13,12 +15,6 @@ import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
-
-DETECTOR_TYPE: str = 'deepsic'
-
-
-def bpsk_modulate(b: np.ndarray) -> np.ndarray:
-    return (-1) ** b
 
 
 def calculate_sigma_from_snr(snr: int) -> float:
@@ -35,44 +31,45 @@ class ChannelModelDataset(Dataset):
     Dataset object for the channel. Used in training and evaluation to draw minibatches of channel words and transmitted
     """
 
-    def __init__(self, block_length: int, transmission_length: int, words: int, n_ant: int):
+    def __init__(self, block_length: int, transmission_length: int, words: int):
 
         self.block_length = block_length
         self.transmission_length = transmission_length
         self.words = words
         self.bits_generator = default_rng(seed=conf.seed)
-        self.n_ant = n_ant
 
     def get_snr_data(self, snr: float, gamma: float, database: list):
         if database is None:
             database = []
         b_full = np.empty((0, self.block_length))
         y_full = np.empty((0, self.transmission_length))
-        h_full = np.empty((0, conf.memory_length))
+        if conf.channel_type == ChannelModes.SISO.name:
+            h_full = np.empty((0, MEMORY_LENGTH))
+            total_words = self.words
+        elif conf.channel_type == ChannelModes.MIMO.name:
+            h_full = np.empty((0, N_ANT))
+            total_words = N_ANT * self.words
+
         index = 0
 
         # accumulate words until reaches desired number
-        while y_full.shape[0] < self.n_ant * self.words:
-            if conf.detector_type == 'viterbi':
+        while y_full.shape[0] < total_words:
+            if conf.channel_type == ChannelModes.SISO.name:
                 b = self.bits_generator.integers(0, 2, size=(1, self.block_length)).reshape(1, -1)
                 # add zero bits
-                padded_b = np.concatenate([b, np.zeros([b.shape[0], conf.memory_length])], axis=1)
-                # transmit
-                h = estimate_channel(conf.memory_length, gamma,
-                                     fading=conf.fading_in_channel,
-                                     index=index)
-                y = self.transmit(padded_b, h, snr)
-            elif conf.detector_type == 'deepsic':
-                # get channel
-                h = SEDChannel.calculate_channel(conf.n_ant, conf.n_user, index, conf.fading_in_channel)
-                b = self.bits_generator.integers(0, 2, size=(conf.n_user, self.block_length))
-                # modulation
-                x = bpsk_modulate(b)
+                padded_b = np.concatenate([b, np.zeros([b.shape[0], MEMORY_LENGTH])], axis=1)
+                # get channel values
+                h = estimate_channel(MEMORY_LENGTH, gamma, fading=conf.fading_in_channel, index=index)
                 # pass through channel
-                sigma = calculate_sigma_from_snr(snr)
-                y = np.matmul(h, x) + np.sqrt(sigma) * np.random.randn(conf.n_ant, x.shape[1])
+                y = self.siso_transmit(padded_b, h, snr)
+            elif conf.channel_type == ChannelModes.MIMO.name:
+                b = self.bits_generator.integers(0, 2, size=(N_USER, self.block_length))
+                # get channel values
+                h = SEDChannel.calculate_channel(N_ANT, N_USER, index, conf.fading_in_channel)
+                # pass through channel
+                y = self.mimo_transmit(b, h, snr)
             else:
-                raise ValueError("No such detector type!!!")
+                raise ValueError("No such channel type!!!")
             # accumulate
             b_full = np.concatenate((b_full, b), axis=0)
             y_full = np.concatenate((y_full, y), axis=0)
@@ -81,14 +78,19 @@ class ChannelModelDataset(Dataset):
 
         database.append((b_full, y_full, h_full))
 
-    def transmit(self, c: np.ndarray, h: np.ndarray, snr: float):
-        if conf.channel_type == 'ISI_AWGN':
-            # modulation
-            s = BPSKModulator.modulate(c)
-            # transmit through noisy channel
-            y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=conf.memory_length)
-        else:
-            raise Exception('No such channel defined!!!')
+    def siso_transmit(self, b: np.ndarray, h: np.ndarray, snr: float):
+        # modulation
+        s = BPSKModulator.modulate(b)
+        # transmit through noisy channel
+        y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=conf.memory_length)
+        return y
+
+    def mimo_transmit(self, b: np.ndarray, h: np.ndarray, snr: float):
+        # modulation
+        s = BPSKModulator.modulate(b)
+        sigma = calculate_sigma_from_snr(snr)
+        # transmit through noisy channel
+        y = np.matmul(h, s) + np.sqrt(sigma) * np.random.randn(N_ANT, s.shape[1])
         return y
 
     def __getitem__(self, snr_list: List[float], gamma: float) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:

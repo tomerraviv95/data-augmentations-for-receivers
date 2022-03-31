@@ -1,3 +1,4 @@
+from python_code.channel.channels_hyperparams import MEMORY_LENGTH
 from python_code.utils.config_singleton import Config
 from python_code.detectors.vnet.vnet_detector import VNETDetector
 from python_code.utils.trellis_utils import calculate_states
@@ -15,15 +16,15 @@ class VNETTrainer(Trainer):
     """
 
     def __init__(self):
+        self.memory_length = MEMORY_LENGTH
+        self.n_states = 2 ** self.memory_length
+        self.n_user = 1
+        self.n_ant = 1
         super().__init__()
 
     def __name__(self):
-        if not conf.self_supervised:
-            training = ', untrained'
-        else:
-            training = ''
+        return 'ViterbiNet'
 
-        return 'ViterbiNet' + conf.channel_state + training
 
     def initialize_detector(self):
         """
@@ -38,7 +39,7 @@ class VNETTrainer(Trainer):
         :param transmitted_words: [1, transmission_length]
         :return: loss value
         """
-        gt_states = calculate_states(conf.memory_length, transmitted_words)
+        gt_states = calculate_states(self.memory_length, transmitted_words)
         gt_states_batch, input_batch = self.select_batch(gt_states, soft_estimation.reshape(-1, self.n_states))
         loss = self.criterion(input=input_batch, target=gt_states_batch)
         return loss

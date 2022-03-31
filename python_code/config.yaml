@@ -4,17 +4,10 @@ seed: 0 # run seed
 
 # channel
 memory_length: 4 # Memory length of the channel. values: int. Tested with values <=4.
-channel_type: 'ISI_AWGN' # Channel type. For this paper, we only used ISI AWGN. values: ['ISI_AWGN'].
+channel_type: 'SISO' # Channel type. For this paper, we only used ISI AWGN/SED. values: ['SISO','MIMO'].
 channel_coefficients: 'time_decay' # The taps of the channel. values: ['time_decay','cost2100'].
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
 gamma: 0.5 # gamma value for time decay fading
-
-# new
-n_user: 4
-n_ant: 4
-iterations: 5
-channel_mode: 'SED'
-detector_type: 'viterbi' # 'deepsic', 'viterbi'
 
 # validation hyperparameters
 val_block_length: 11000 # coherence block time. values: int.
@@ -33,6 +26,6 @@ optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
 from_scratch_flag: True
 
 # augmentations
-aug_type: ['adaptive_augmenter']
+aug_type: ['no_aug']
 # ['no_aug','full_knowledge_augmenter','partial_knowledge_augmenter','adaptive_augmenter','flipping_augmenter','border_smote_augmenter']
 online_repeats_n: 25 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
