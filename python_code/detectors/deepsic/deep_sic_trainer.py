@@ -1,4 +1,4 @@
-from python_code.vnet.trainer import Trainer
+from python_code.detectors.trainer import Trainer
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import Phase, HALF
 from typing import List

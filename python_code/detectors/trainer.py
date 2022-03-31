@@ -108,8 +108,12 @@ class Trainer(object):
         ser_by_word = np.zeros(transmitted_words.shape[0])
         for frame in range(conf.val_frames - 1):
             # current word
-            start_ind = frame * conf.n_ant
-            end_ind = (frame + 1) * conf.n_ant
+            if conf.detector_type == 'deepsic':
+                start_ind = frame * conf.n_ant
+                end_ind = (frame + 1) * conf.n_ant
+            else:
+                start_ind = frame
+                end_ind = (frame + 1)
             transmitted_word = transmitted_words[start_ind:end_ind]
             received_word = received_words[start_ind:end_ind]
             h = hs[start_ind:end_ind]

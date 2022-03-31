@@ -14,7 +14,7 @@ n_user: 4
 n_ant: 4
 iterations: 5
 channel_mode: 'SED'
-detector_type: 'deepsic'
+detector_type: 'viterbi' # 'deepsic', 'viterbi'
 
 # validation hyperparameters
 val_block_length: 11000 # coherence block time. values: int.
@@ -33,6 +33,6 @@ optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
 from_scratch_flag: True
 
 # augmentations
-aug_type: ['no_aug']
+aug_type: ['adaptive_augmenter']
 # ['no_aug','full_knowledge_augmenter','partial_knowledge_augmenter','adaptive_augmenter','flipping_augmenter','border_smote_augmenter']
 online_repeats_n: 25 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
