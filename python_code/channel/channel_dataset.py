@@ -21,26 +21,29 @@ class ChannelModelDataset(Dataset):
     Dataset object for the channel. Used in training and evaluation to draw minibatches of channel words and transmitted
     """
 
-    def __init__(self, block_length: int, transmission_length: int, words: int):
+    def __init__(self, block_length: int, words: int, seed: int):
         self.block_length = block_length
-        self.transmission_length = transmission_length
         self.words = words if conf.channel_type == ChannelModes.SISO.name else N_ANT * words
-        self.bits_generator = default_rng(seed=conf.seed)
+        self.bits_generator = default_rng(seed=seed)
         self.h_length = MEMORY_LENGTH if conf.channel_type == ChannelModes.SISO.name else N_ANT
 
     def get_snr_data(self, snr: float, database: list):
         if database is None:
             database = []
         b_full = np.empty((0, self.block_length))
-        y_full = np.empty((0, self.transmission_length))
+        y_full = np.empty((0, self.block_length))
         h_full = np.empty((0, self.h_length))
         index = 0
         # accumulate words until reaches desired number
         while y_full.shape[0] < self.words:
             if conf.channel_type == ChannelModes.SISO.name:
-                b, h, y = self.siso_transmission(index, snr)
+                # get channel values
+                h = ISIAWGNChannel.calculate_channel(MEMORY_LENGTH, fading=conf.fading_in_channel, index=index)
+                b, y = self.siso_transmission(h, snr)
             elif conf.channel_type == ChannelModes.MIMO.name:
-                b, h, y = self.mimo_transmission(index, snr)
+                # get channel values
+                h = SEDChannel.calculate_channel(N_ANT, N_USER, index, conf.fading_in_channel)
+                b, y = self.mimo_transmission(h, snr)
             else:
                 raise ValueError("No such channel type!!!")
             # accumulate
@@ -51,27 +54,23 @@ class ChannelModelDataset(Dataset):
 
         database.append((b_full, y_full, h_full))
 
-    def siso_transmission(self, index: int, snr: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def siso_transmission(self, h: np.ndarray, snr: float) -> Tuple[np.ndarray, np.ndarray]:
         b = self.bits_generator.integers(0, 2, size=(1, self.block_length)).reshape(1, -1)
         # add zero bits
         padded_b = np.concatenate([b, np.zeros([b.shape[0], MEMORY_LENGTH])], axis=1)
-        # get channel values
-        h = ISIAWGNChannel.calculate_channel(MEMORY_LENGTH, fading=conf.fading_in_channel, index=index)
         # modulation
         s = BPSKModulator.modulate(padded_b)
         # transmit through noisy channel
         y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=MEMORY_LENGTH)
-        return b, h, y
+        return b, y
 
-    def mimo_transmission(self, index: int, snr: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def mimo_transmission(self, h: np.ndarray, snr: float) -> Tuple[np.ndarray, np.ndarray]:
         b = self.bits_generator.integers(0, 2, size=(N_USER, self.block_length))
-        # get channel values
-        h = SEDChannel.calculate_channel(N_ANT, N_USER, index, conf.fading_in_channel)
         # modulation
         s = BPSKModulator.modulate(b)
         # pass through channel
         y = SEDChannel.transmit(s, h, snr)
-        return b, h, y
+        return b, y
 
     def __getitem__(self, snr_list: List[float]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         database = []
@@ -84,4 +83,4 @@ class ChannelModelDataset(Dataset):
         return b, y, h
 
     def __len__(self):
-        return self.transmission_length
+        return self.block_length

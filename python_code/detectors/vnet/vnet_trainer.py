@@ -59,8 +59,7 @@ class VNETTrainer(Trainer):
         :param h: channel coefficients
         """
         # augment received words by the number of desired repeats
-        aug_rx, aug_tx = self.augment_words_wrapper(h, rx, tx, conf.online_total_words, conf.online_repeats_n,
-                                                    phase='val')
+        aug_rx, aug_tx = self.augment_words_wrapper(h, rx, tx, conf.online_total_words, conf.online_repeats_n)
 
         if conf.from_scratch_flag:
             self.initialize_detector()

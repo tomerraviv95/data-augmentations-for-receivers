@@ -3,13 +3,14 @@ run_name: 'test' #'augmented_version'
 seed: 0 # run seed
 
 # channel
-channel_type: 'MIMO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
+channel_type: 'SISO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
 
 # augmentations
 # ['no_aug','full_knowledge_augmenter','partial_knowledge_augmenter','adaptive_augmenter','flipping_augmenter','border_smote_augmenter']
-aug_type: ['no_aug']
+aug_type: ['full_knowledge_augmenter']
 online_repeats_n: 25 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
+online_total_words: 200 # Number of words per iteration trained on in the online training. values: int.
 
 # validation hyperparameters
 val_block_length: 10080 # coherence block time, total size of pilot + data. values: int.
@@ -20,7 +21,6 @@ eval_mode: 'by_word' # Type of evaluation per block - 'by_word'.
 
 # online training hyperparameters
 is_online_training: True # Whether to run the online training (as in ViterbiNet). values: [True, False].
-online_total_words: 200 # Number of words per iteration trained on in the online training. values: int.
 train_minibatch_size: 32 # the size of a given minibatch. values: int.
 lr: 0.001 # learning rate. values: float.
 loss_type: 'CrossEntropy' # Loss type. values: 'BCE','CrossEntropy','MSE'.

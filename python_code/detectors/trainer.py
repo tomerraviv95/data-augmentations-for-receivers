@@ -74,9 +74,8 @@ class Trainer(object):
         """
         Sets up the data loader - a generator from which we draw batches, in iterations
         """
-        self.channel_dataset = ChannelModelDataset(block_length=conf.val_block_length,
-                                                   transmission_length=conf.val_block_length,
-                                                   words=conf.val_frames)
+        self.channel_dataset = ChannelModelDataset(block_length=conf.val_block_length, words=conf.val_frames,
+                                                   seed=conf.seed)
         self.dataloaders = torch.utils.data.DataLoader(self.channel_dataset)
 
     def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor):
@@ -130,7 +129,7 @@ class Trainer(object):
         return ser_by_word
 
     def augment_words_wrapper(self, h: torch.Tensor, received_words: torch.Tensor, transmitted_words: torch.Tensor,
-                              total_size: int, n_repeats: int, phase: str):
+                              total_size: int, n_repeats: int):
         """
         The main augmentation function, used to augment each pilot in the evaluation phase.
         :param h: channel coefficients
@@ -143,7 +142,7 @@ class Trainer(object):
         """
         transmitted_words = transmitted_words.repeat(total_size, 1)
         received_words = received_words.repeat(total_size, 1)
-        for i in range(total_size):
+        for i in range(transmitted_words.shape[0]):
             update_hyper_params_flag = (i == 0)
             upd_idx = i % n_repeats
             current_received = received_words[upd_idx].reshape(1, -1)

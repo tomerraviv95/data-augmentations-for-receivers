@@ -1,10 +1,10 @@
-from python_code.channel.channels_hyperparams import MEMORY_LENGTH
-from python_code.channel.isi_awgn_channel import ISIAWGNChannel
-from python_code.channel.modulator import BPSKModulator
+from python_code.channel.channel_dataset import ChannelModelDataset
 from python_code.utils.config_singleton import Config
 from typing import Tuple
-import numpy as np
+import random
 import torch
+
+from python_code.utils.constants import ChannelModes
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -20,15 +20,11 @@ class FullKnowledgeAugmenter:
 
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
                 update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
-        binary_mask = torch.rand_like(transmitted_word) >= HALF
-        new_transmitted_word = (transmitted_word + binary_mask) % 2
-        # encoding - errors correction code
-        c = new_transmitted_word.cpu().numpy()
-        # add zero bits
-        padded_c = np.concatenate([c, np.zeros([c.shape[0], MEMORY_LENGTH])], axis=1)
-        # from channel dataset
-        s = BPSKModulator.modulate(padded_c)
-        # transmit through noisy channel
-        new_received_word = ISIAWGNChannel.transmit(s=s, h=h.cpu().numpy(), snr=snr,
-                                                    memory_length=MEMORY_LENGTH)
-        return torch.Tensor(new_received_word).to(device), new_transmitted_word
+        channel_dataset = ChannelModelDataset(block_length=conf.pilot_size, words=1, seed=random.randint(0, 1e8))
+        if conf.channel_type == ChannelModes.SISO.name:
+            new_transmitted_word2, new_received_word2 = channel_dataset.siso_transmission(h.cpu().numpy(), snr)
+        elif conf.channel_type == ChannelModes.MIMO.name:
+            new_transmitted_word2, new_received_word2 = channel_dataset.mimo_transmission(h.cpu().numpy(), snr)
+        else:
+            raise ValueError("No such channel type!!!")
+        return torch.Tensor(new_received_word2).to(device), torch.Tensor(new_transmitted_word2).to(device)

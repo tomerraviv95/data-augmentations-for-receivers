@@ -83,6 +83,7 @@ class DeepSICTrainer(Trainer):
         if conf.from_scratch_flag:
             self.initialize_detector()
         b_train, y_train = b_train.T, y_train.T
+        aug_rx, aug_tx = self.augment_words_wrapper(h, y_train, b_train, conf.online_total_words, conf.online_repeats_n)
         initial_probs = b_train.clone()
         b_train_all, y_train_all = self.prepare_data_for_training(b_train, y_train, initial_probs)
         # Training the DeepSIC network for each user for iteration=1
