@@ -3,6 +3,7 @@ from python_code.utils.config_singleton import Config
 from python_code.detectors.vnet.vnet_detector import VNETDetector
 from python_code.utils.trellis_utils import calculate_states
 from python_code.detectors.trainer import Trainer
+from torch import nn
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -20,11 +21,11 @@ class VNETTrainer(Trainer):
         self.n_states = 2 ** self.memory_length
         self.n_user = 1
         self.n_ant = 1
+        self.probs_vec = None
         super().__init__()
 
-    def __name__(self):
+    def __str__(self):
         return 'ViterbiNet'
-
 
     def initialize_detector(self):
         """
@@ -44,23 +45,26 @@ class VNETTrainer(Trainer):
         loss = self.criterion(input=input_batch, target=gt_states_batch)
         return loss
 
-    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor, snr: float):
+    def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
+        # detect and decode
+        detected_word = self.detector(y, phase='val')
+        return detected_word
+
+    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor):
         """
         Online training module - trains on the detected word.
         Start from the saved meta-trained weights.
         :param tx: transmitted word
         :param rx: received word
         :param h: channel coefficients
-        :param snr: float signal to noise value
         """
-        self.deep_learning_setup()
         # augment received words by the number of desired repeats
         aug_rx, aug_tx = self.augment_words_wrapper(h, rx, tx, conf.online_total_words, conf.online_repeats_n,
                                                     phase='val')
 
         if conf.from_scratch_flag:
             self.initialize_detector()
-            self.deep_learning_setup()
+        self.deep_learning_setup()
 
         # run training loops
         loss = 0

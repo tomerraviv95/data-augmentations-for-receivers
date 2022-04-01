@@ -25,7 +25,6 @@ HALF = 0.5
 
 class Trainer(object):
     def __init__(self):
-
         # initialize matrices, datasets and detector
         self.initialize_dataloaders()
         self.initialize_detector()
@@ -40,7 +39,6 @@ class Trainer(object):
         Every trainer must have some base detector model
         """
         self.detector = None
-        pass
 
     # calculate train loss
     def calc_loss(self, soft_estimation: torch.Tensor, transmitted_words: torch.Tensor) -> torch.Tensor:
@@ -81,10 +79,10 @@ class Trainer(object):
                                                    words=conf.val_frames)
         self.dataloaders = torch.utils.data.DataLoader(self.channel_dataset)
 
-    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor, snr: float):
+    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor):
         pass
 
-    def forward(self, model: nn.Module, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
+    def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
         pass
 
     def init_priors(self):
@@ -113,16 +111,9 @@ class Trainer(object):
             y_pilot, y_data = received_word[:, :conf.pilot_size], received_word[:, conf.pilot_size:]
             # if online training flag is on - train using pilots part
             if conf.is_online_training:
-                if conf.channel_type == ChannelModes.SISO.name:
-                    self.online_training(x_pilot, y_pilot, h.reshape(1, -1), conf.val_snr)
-                elif conf.channel_type == ChannelModes.MIMO.name:
-                    self.online_training(self.detector, x_pilot.T, y_pilot.T, conf.online_total_words)
-
+                self.online_training(x_pilot, y_pilot, h)
             # detect data part
-            if conf.channel_type == ChannelModes.SISO.name:
-                detected_word = self.detector.forward(y_data, phase='val')
-            elif conf.channel_type == ChannelModes.MIMO.name:
-                detected_word = self.forward(self.detector, y_data.T, self.probs_vec.T).T
+            detected_word = self.forward(y_data, self.probs_vec)
             # calculate accuracy
             ser, fer, err_indices = calculate_error_rates(detected_word, x_data)
             print('*' * 20)

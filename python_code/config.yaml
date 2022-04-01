@@ -3,12 +3,12 @@ run_name: 'test' #'augmented_version'
 seed: 0 # run seed
 
 # channel
-channel_type: 'SISO' # Channel type. For this paper, we only used ISI AWGN/SED. values: ['SISO','MIMO'].
+channel_type: 'MIMO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
 
 # validation hyperparameters
-val_block_length: 11000 # coherence block time. values: int.
-pilot_size: 1000 # pilot symbols
+val_block_length: 10080 # coherence block time, total size of pilot + data. values: int.
+pilot_size: 80 # pilot symbols
 val_frames: 10 # number of validation frames. values: int.
 val_snr: 12 # start SNR value. values: float.
 eval_mode: 'by_word' # Type of evaluation per block - 'by_word'.
@@ -20,7 +20,7 @@ train_minibatch_size: 32 # the size of a given minibatch. values: int.
 lr: 0.001 # learning rate. values: float.
 loss_type: 'CrossEntropy' # Loss type. values: 'BCE','CrossEntropy','MSE'.
 optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
-from_scratch_flag: True
+from_scratch_flag: False # whether to initialize the detector at each new channel instance (True) or continue from previous weights (False)
 
 # augmentations
 aug_type: ['no_aug']

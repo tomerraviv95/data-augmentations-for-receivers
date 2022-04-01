@@ -24,7 +24,7 @@ class ChannelModelDataset(Dataset):
     def __init__(self, block_length: int, transmission_length: int, words: int):
         self.block_length = block_length
         self.transmission_length = transmission_length
-        self.words = words if conf.channel_type == ChannelModes.SISO.name else N_ANT * self.words
+        self.words = words if conf.channel_type == ChannelModes.SISO.name else N_ANT * words
         self.bits_generator = default_rng(seed=conf.seed)
         self.h_length = MEMORY_LENGTH if conf.channel_type == ChannelModes.SISO.name else N_ANT
 
