@@ -1,3 +1,4 @@
+from python_code.channel.channels_hyperparams import MEMORY_LENGTH
 from python_code.utils.config_singleton import Config
 from imblearn.over_sampling import RandomOverSampler, SMOTE, BorderlineSMOTE
 import smote_variants as sv
@@ -23,10 +24,10 @@ class SMOTEAugmenter:
         # generate new word, and populate the received bits by plugging in values from the samples above
         new_transmitted_word = transmitted_word.clone()
         new_received_word = received_word.clone()
-        new_gt_states = calculate_states(conf.memory_length, new_transmitted_word)
+        new_gt_states = calculate_states(MEMORY_LENGTH, new_transmitted_word)
 
         # filter single samples states and received values
-        states = calculate_states(conf.memory_length, transmitted_word)
+        states = calculate_states(MEMORY_LENGTH, transmitted_word)
         unique_states, counts = torch.unique(states, return_counts=True)
         single_sample_states = unique_states[counts == 1]
         for single_sample_state in single_sample_states:

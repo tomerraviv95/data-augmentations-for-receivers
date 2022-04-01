@@ -15,7 +15,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 
-
 class ChannelModelDataset(Dataset):
     """
     Dataset object for the channel. Used in training and evaluation to draw minibatches of channel words and transmitted
@@ -28,7 +27,7 @@ class ChannelModelDataset(Dataset):
         self.words = words
         self.bits_generator = default_rng(seed=conf.seed)
 
-    def get_snr_data(self, snr: float, gamma: float, database: list):
+    def get_snr_data(self, snr: float, database: list):
         if database is None:
             database = []
         b_full = np.empty((0, self.block_length))
@@ -44,7 +43,7 @@ class ChannelModelDataset(Dataset):
         # accumulate words until reaches desired number
         while y_full.shape[0] < total_words:
             if conf.channel_type == ChannelModes.SISO.name:
-                b, h, y = self.siso_transmission(gamma, index, snr)
+                b, h, y = self.siso_transmission(index, snr)
             elif conf.channel_type == ChannelModes.MIMO.name:
                 b, h, y = self.mimo_transmission(index, snr)
             else:
@@ -57,6 +56,18 @@ class ChannelModelDataset(Dataset):
 
         database.append((b_full, y_full, h_full))
 
+    def siso_transmission(self, index, snr):
+        b = self.bits_generator.integers(0, 2, size=(1, self.block_length)).reshape(1, -1)
+        # add zero bits
+        padded_b = np.concatenate([b, np.zeros([b.shape[0], MEMORY_LENGTH])], axis=1)
+        # get channel values
+        h = ISIAWGNChannel.calculate_channel(MEMORY_LENGTH, fading=conf.fading_in_channel, index=index)
+        # modulation
+        s = BPSKModulator.modulate(padded_b)
+        # transmit through noisy channel
+        y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=MEMORY_LENGTH)
+        return b, h, y
+
     def mimo_transmission(self, index, snr):
         b = self.bits_generator.integers(0, 2, size=(N_USER, self.block_length))
         # get channel values
@@ -67,23 +78,11 @@ class ChannelModelDataset(Dataset):
         y = SEDChannel.transmit(s, h, snr)
         return b, h, y
 
-    def siso_transmission(self, gamma, index, snr):
-        b = self.bits_generator.integers(0, 2, size=(1, self.block_length)).reshape(1, -1)
-        # add zero bits
-        padded_b = np.concatenate([b, np.zeros([b.shape[0], MEMORY_LENGTH])], axis=1)
-        # get channel values
-        h = ISIAWGNChannel.calculate_channel(MEMORY_LENGTH, gamma, fading=conf.fading_in_channel, index=index)
-        # modulation
-        s = BPSKModulator.modulate(padded_b)
-        # transmit through noisy channel
-        y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=conf.memory_length)
-        return b, h, y
-
-    def __getitem__(self, snr_list: List[float], gamma: float) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def __getitem__(self, snr_list: List[float]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         database = []
         # do not change max_workers
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-            [executor.submit(self.get_snr_data, snr, gamma, database) for snr in snr_list]
+            [executor.submit(self.get_snr_data, snr, database) for snr in snr_list]
         b, y, h = (np.concatenate(arrays) for arrays in zip(*database))
         b, y, h = torch.Tensor(b).to(device=device), torch.Tensor(y).to(device=device), torch.Tensor(h).to(
             device=device)

@@ -3,11 +3,8 @@ run_name: 'test' #'augmented_version'
 seed: 0 # run seed
 
 # channel
-memory_length: 4 # Memory length of the channel. values: int. Tested with values <=4.
 channel_type: 'SISO' # Channel type. For this paper, we only used ISI AWGN/SED. values: ['SISO','MIMO'].
-channel_coefficients: 'time_decay' # The taps of the channel. values: ['time_decay','cost2100'].
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
-gamma: 0.5 # gamma value for time decay fading
 
 # validation hyperparameters
 val_block_length: 11000 # coherence block time. values: int.

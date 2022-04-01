@@ -3,7 +3,6 @@ run_name: 'test' #'augmented_version'
 seed: 0 # run seed
 
 # channel
-memory_length: 4 # Memory length of the channel. values: int. Tested with values <=4.
 channel_type: 'ISI_AWGN' # Channel type. For this paper, we only used ISI AWGN. values: ['ISI_AWGN'].
 channel_coefficients: 'time_decay' # The taps of the channel. values: ['time_decay','cost2100'].
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]

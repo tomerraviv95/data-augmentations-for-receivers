@@ -1,3 +1,4 @@
+from python_code.channel.channels_hyperparams import MEMORY_LENGTH
 from python_code.utils.trellis_utils import calculate_states
 from python_code.utils.config_singleton import Config
 from typing import Tuple
@@ -30,7 +31,7 @@ class AdaptiveAugmenter:
             self.update_centers_stds(cur_centers, cur_stds)
 
         new_transmitted_word = torch.rand_like(transmitted_word) >= 0.5
-        new_gt_states = calculate_states(conf.memory_length, new_transmitted_word)
+        new_gt_states = calculate_states(MEMORY_LENGTH, new_transmitted_word)
         new_received_word = torch.empty_like(received_word)
 
         # generate new words using the smoothed centers and stds
@@ -68,10 +69,10 @@ class AdaptiveAugmenter:
         :param transmitted_word: binary word
         :return: updated centers and stds values
         """
-        gt_states = calculate_states(conf.memory_length, transmitted_word)
-        centers = torch.empty(2 ** conf.memory_length).to(device)
-        stds = torch.empty(2 ** conf.memory_length).to(device)
-        for state in range(2 ** conf.memory_length):
+        gt_states = calculate_states(MEMORY_LENGTH, transmitted_word)
+        centers = torch.empty(2 ** MEMORY_LENGTH).to(device)
+        stds = torch.empty(2 ** MEMORY_LENGTH).to(device)
+        for state in range(2 ** MEMORY_LENGTH):
             state_ind = (gt_states == state)
             state_received = received_word[0, state_ind]
             stds[state] = torch.std(state_received)

@@ -98,8 +98,7 @@ class Trainer(object):
         """
         total_ser = 0
         # draw words of given gamma for all snrs
-        transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr],
-                                                                                 gamma=conf.gamma)
+        transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr])
         self.init_priors()
         ser_by_word = np.zeros(transmitted_words.shape[0])
         for frame in range(conf.val_frames - 1):

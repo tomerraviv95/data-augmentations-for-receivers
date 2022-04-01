@@ -7,12 +7,14 @@ conf = Config()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+GAMMA = 0.5  # gamma value for time decay SISO fading
+
 
 class ISIAWGNChannel:
     @staticmethod
-    def calculate_channel(memory_length: int, gamma: float, fading: bool = False, index: int = 0) -> np.ndarray:
-        h = np.reshape(np.exp(-gamma * np.arange(memory_length)), [1, memory_length])
-        if fading and conf.channel_coefficients == 'time_decay':
+    def calculate_channel(memory_length: int, fading: bool = False, index: int = 0) -> np.ndarray:
+        h = np.reshape(np.exp(-GAMMA * np.arange(memory_length)), [1, memory_length])
+        if fading:
             h = ISIAWGNChannel.add_fading(h, memory_length, index)
         else:
             h *= 0.8

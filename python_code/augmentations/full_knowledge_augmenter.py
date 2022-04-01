@@ -1,3 +1,4 @@
+from python_code.channel.channels_hyperparams import MEMORY_LENGTH
 from python_code.channel.isi_awgn_channel import ISIAWGNChannel
 from python_code.channel.modulator import BPSKModulator
 from python_code.utils.config_singleton import Config
@@ -24,10 +25,10 @@ class FullKnowledgeAugmenter:
         # encoding - errors correction code
         c = new_transmitted_word.cpu().numpy()
         # add zero bits
-        padded_c = np.concatenate([c, np.zeros([c.shape[0], conf.memory_length])], axis=1)
+        padded_c = np.concatenate([c, np.zeros([c.shape[0], MEMORY_LENGTH])], axis=1)
         # from channel dataset
         s = BPSKModulator.modulate(padded_c)
         # transmit through noisy channel
         new_received_word = ISIAWGNChannel.transmit(s=s, h=h.cpu().numpy(), snr=snr,
-                                                    memory_length=conf.memory_length)
+                                                    memory_length=MEMORY_LENGTH)
         return torch.Tensor(new_received_word).to(device), new_transmitted_word
