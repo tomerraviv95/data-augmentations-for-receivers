@@ -15,33 +15,28 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 
+
 class ChannelModelDataset(Dataset):
     """
     Dataset object for the channel. Used in training and evaluation to draw minibatches of channel words and transmitted
     """
 
     def __init__(self, block_length: int, transmission_length: int, words: int):
-
         self.block_length = block_length
         self.transmission_length = transmission_length
-        self.words = words
+        self.words = words if conf.channel_type == ChannelModes.SISO.name else N_ANT * self.words
         self.bits_generator = default_rng(seed=conf.seed)
+        self.h_length = MEMORY_LENGTH if conf.channel_type == ChannelModes.SISO.name else N_ANT
 
     def get_snr_data(self, snr: float, database: list):
         if database is None:
             database = []
         b_full = np.empty((0, self.block_length))
         y_full = np.empty((0, self.transmission_length))
-        if conf.channel_type == ChannelModes.SISO.name:
-            h_full = np.empty((0, MEMORY_LENGTH))
-            total_words = self.words
-        elif conf.channel_type == ChannelModes.MIMO.name:
-            h_full = np.empty((0, N_ANT))
-            total_words = N_ANT * self.words
-
+        h_full = np.empty((0, self.h_length))
         index = 0
         # accumulate words until reaches desired number
-        while y_full.shape[0] < total_words:
+        while y_full.shape[0] < self.words:
             if conf.channel_type == ChannelModes.SISO.name:
                 b, h, y = self.siso_transmission(index, snr)
             elif conf.channel_type == ChannelModes.MIMO.name:
@@ -56,7 +51,7 @@ class ChannelModelDataset(Dataset):
 
         database.append((b_full, y_full, h_full))
 
-    def siso_transmission(self, index, snr):
+    def siso_transmission(self, index: int, snr: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         b = self.bits_generator.integers(0, 2, size=(1, self.block_length)).reshape(1, -1)
         # add zero bits
         padded_b = np.concatenate([b, np.zeros([b.shape[0], MEMORY_LENGTH])], axis=1)
@@ -68,7 +63,7 @@ class ChannelModelDataset(Dataset):
         y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=MEMORY_LENGTH)
         return b, h, y
 
-    def mimo_transmission(self, index, snr):
+    def mimo_transmission(self, index: int, snr: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         b = self.bits_generator.integers(0, 2, size=(N_USER, self.block_length))
         # get channel values
         h = SEDChannel.calculate_channel(N_ANT, N_USER, index, conf.fading_in_channel)
