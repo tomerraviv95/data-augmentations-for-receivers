@@ -167,8 +167,7 @@ class Trainer(object):
             return np.nan
         current_loss = loss.item()
         # back propagation
-        for param in self.detector.parameters():
-            param.grad = None
+        self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
         return current_loss

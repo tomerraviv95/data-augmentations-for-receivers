@@ -55,19 +55,24 @@ class DeepSICTrainer(Trainer):
         self.detector = [[DeepSICDetector().to(device) for _ in range(ITERATIONS)] for _ in
                          range(self.n_user)]  # 2D list for Storing the DeepSIC Networks
 
+    def calc_loss(self, soft_estimation: torch.Tensor, transmitted_words: torch.IntTensor) -> torch.Tensor:
+        """
+        Cross Entropy loss - distribution over states versus the gt state label
+        """
+        return self.criterion(input=soft_estimation, target=transmitted_words.squeeze(-1).long())
+
     def train_model(self, single_model: nn.Module, b_train: torch.Tensor, y_train: torch.Tensor):
         """
         Trains a DeepSIC Network
         """
-        opt = torch.optim.Adam(single_model.parameters(), lr=conf.lr)
-        crt = torch.nn.CrossEntropyLoss()
+        self.optimizer = torch.optim.Adam(single_model.parameters(), lr=conf.lr)
+        self.criterion = torch.nn.CrossEntropyLoss()
         single_model = single_model.to(device)
+        loss = 0
         for _ in range(conf.online_total_words):
-            opt.zero_grad()
-            out = single_model(y_train)
-            loss = crt(out, b_train.squeeze(-1).long())
-            loss.backward()
-            opt.step()
+            soft_estimation = single_model(y_train)
+            current_loss = self.run_train_loop(soft_estimation, b_train)
+            loss += current_loss
 
     def train_models(self, model: List[List[DeepSICDetector]], i: int, b_train_all: List[torch.Tensor],
                      y_train_all: List[torch.Tensor]):
