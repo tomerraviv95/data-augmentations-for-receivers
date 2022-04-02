@@ -141,7 +141,7 @@ def add_200_extended_pilot_no_augmentations_scheme_viterbinet(all_curves: List[T
                                                               run_over: bool, trial_num: int):
     method_name = 'ViterbiNet - Extended Pilot Size (200)'
     conf = Config()
-    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'reg_200_extended_pilot.yaml'))
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'reg_300_extended_pilot.yaml'))
     name = set_method_name(conf, method_name, params_dict)
     print(method_name)
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)
@@ -152,7 +152,7 @@ def add_extended_pilot_no_augmentations_scheme_viterbinet(all_curves: List[Tuple
                                                           run_over: bool, trial_num: int):
     method_name = 'ViterbiNet - Extended Pilot Size (400)'
     conf = Config()
-    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'reg_400_extended_pilot.yaml'))
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, 'reg_150_extended_pilot.yaml'))
     name = set_method_name(conf, method_name, params_dict)
     print(method_name)
     add_avg_ser(all_curves, conf, method_name, name, run_over, trial_num)

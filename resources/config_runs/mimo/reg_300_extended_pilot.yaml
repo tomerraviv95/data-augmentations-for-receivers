@@ -3,17 +3,20 @@ run_name: 'test' #'augmented_version'
 seed: 0 # run seed
 
 # channel
-channel_type: 'ISI_AWGN' # Channel type. For this paper, we only used ISI AWGN. values: ['ISI_AWGN'].
-channel_coefficients: 'time_decay' # The taps of the channel. values: ['time_decay','cost2100'].
+channel_type: 'MIMO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
-gamma: 0.5 # gamma value for time decay fading
+
+# augmentations
+# ['no_aug','full_knowledge_augmenter','partial_knowledge_augmenter','adaptive_augmenter','flipping_augmenter','border_smote_augmenter']
+aug_type: ['no_aug']
+online_repeats_n: 500 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
 
 # validation hyperparameters
-val_block_length: 10200 # coherence block time. values: int.
+val_block_length: 5300 # coherence block time, total size of pilot + data. values: int.
 pilot_size: 300 # pilot symbols
 val_frames: 10 # number of validation frames. values: int.
 val_snr: 12 # start SNR value. values: float.
-eval_mode: 'by_word' # Type of evaluation. Per snr - 'aggregated', Per block - 'by_word'.
+eval_mode: 'by_word' # Type of evaluation per block - 'by_word'.
 
 # online training hyperparameters
 is_online_training: True # Whether to run the online training (as in ViterbiNet). values: [True, False].
@@ -21,8 +24,4 @@ train_minibatch_size: 32 # the size of a given minibatch. values: int.
 lr: 0.001 # learning rate. values: float.
 loss_type: 'CrossEntropy' # Loss type. values: 'BCE','CrossEntropy','MSE'.
 optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
-from_scratch_flag: True
-
-# augmentations
-aug_type: ['no_aug'] # ['no_aug','full_knowledge_augmenter','partial_knowledge_augmenter','adaptive_augmenter','flipping_augmenter']
-online_repeats_n: 100 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
+from_scratch_flag: True # whether to initialize the detector at each new channel instance (True) or continue from previous weights (False)
