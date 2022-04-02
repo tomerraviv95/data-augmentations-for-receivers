@@ -1,15 +1,15 @@
-from python_code.augmentations.augmenter_wrapper import AugmenterWrapper
-from python_code.utils.config_singleton import Config
-from python_code.channel.channel_dataset import ChannelModelDataset
-from python_code.utils.metrics import calculate_error_rates
-from torch.nn import CrossEntropyLoss, BCELoss, MSELoss
-from python_code.utils.constants import ChannelModes
-from torch.optim import RMSprop, Adam, SGD
-from typing import Tuple, Union
-from torch import nn
-import numpy as np
 import random
+from typing import Tuple, Union
+
+import numpy as np
 import torch
+from torch.nn import CrossEntropyLoss, MSELoss
+from torch.optim import RMSprop, Adam, SGD
+
+from python_code.augmentations.augmenter_wrapper import AugmenterWrapper
+from python_code.channel.channel_dataset import ChannelModelDataset
+from python_code.utils.config_singleton import Config
+from python_code.utils.metrics import calculate_error_rates
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conf = Config()

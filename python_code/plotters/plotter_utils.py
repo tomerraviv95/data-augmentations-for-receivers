@@ -1,13 +1,15 @@
-from python_code.plotters.plotter_config import COLORS_DICT, LINESTYLES_DICT, MARKERS_DICT
-from python_code.utils.config_singleton import Config
-from python_code.utils.python_utils import load_pkl, save_pkl
-from python_code.vnet.trainer import Trainer
-from dir_definitions import FIGURES_DIR, PLOTS_DIR
 import datetime
 import os
 from typing import List, Tuple
+
 import matplotlib.pyplot as plt
 import numpy as np
+from python_code.detectors.vnet.trainer import Trainer
+
+from dir_definitions import FIGURES_DIR, PLOTS_DIR
+from python_code.plotters.plotter_config import COLORS_DICT, LINESTYLES_DICT, MARKERS_DICT
+from python_code.utils.config_singleton import Config
+from python_code.utils.python_utils import load_pkl, save_pkl
 
 conf = Config()
 

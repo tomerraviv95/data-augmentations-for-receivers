@@ -1,8 +1,9 @@
-from python_code.utils.config_singleton import Config
 from random import randint
 from typing import Tuple
+
 import torch
 
+from python_code.utils.config_singleton import Config
 from python_code.utils.python_utils import sample_random_mimo_word
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

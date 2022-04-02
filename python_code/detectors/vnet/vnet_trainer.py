@@ -1,9 +1,10 @@
-from python_code.channel.channels_hyperparams import MEMORY_LENGTH
-from python_code.utils.config_singleton import Config
-from python_code.detectors.vnet.vnet_detector import VNETDetector
-from python_code.utils.trellis_utils import calculate_states
-from python_code.detectors.trainer import Trainer
 import torch
+
+from python_code.channel.channels_hyperparams import MEMORY_LENGTH
+from python_code.detectors.trainer import Trainer
+from python_code.detectors.vnet.vnet_detector import VNETDetector
+from python_code.utils.config_singleton import Config
+from python_code.utils.trellis_utils import calculate_states
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

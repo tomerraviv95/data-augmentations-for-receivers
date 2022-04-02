@@ -1,9 +1,10 @@
-from python_code.channel.channel_dataset import ChannelModelDataset
-from python_code.utils.config_singleton import Config
-from typing import Tuple
 import random
+from typing import Tuple
+
 import torch
 
+from python_code.channel.channel_dataset import ChannelModelDataset
+from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

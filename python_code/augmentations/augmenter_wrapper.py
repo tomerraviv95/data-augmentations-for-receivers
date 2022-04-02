@@ -1,11 +1,13 @@
+from typing import Tuple, List
+
+import torch
+
+from python_code.augmentations.adaptive_augmenter import AdaptiveAugmenter
 from python_code.augmentations.border_smote_augmenter import BorderSMOTEAugmenter
 from python_code.augmentations.flipping_augmenter import FlippingAugmenter
 from python_code.augmentations.full_knowledge_augmenter import FullKnowledgeAugmenter
-from python_code.augmentations.partial_knowledge_augmenter import PartialKnowledgeAugmenter
-from python_code.augmentations.adaptive_augmenter import AdaptiveAugmenter
 from python_code.augmentations.no_augmenter import NoAugmenter
-from typing import Tuple, List
-import torch
+from python_code.augmentations.partial_knowledge_augmenter import PartialKnowledgeAugmenter
 
 
 class AugmenterWrapper:

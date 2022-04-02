@@ -1,5 +1,6 @@
-from python_code.channel.channels_hyperparams import N_ANT
 import numpy as np
+
+from python_code.channel.channels_hyperparams import N_ANT
 
 
 class SEDChannel:

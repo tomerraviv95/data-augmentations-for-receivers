@@ -1,6 +1,7 @@
-from python_code.utils.config_singleton import Config
 import numpy as np
 import torch
+
+from python_code.utils.config_singleton import Config
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

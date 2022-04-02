@@ -1,11 +1,12 @@
+import os
+from typing import Dict, List, Union, Tuple
+
+import numpy as np
+from python_code.detectors.vnet.vnet_trainer import VNETTrainer
+
+from dir_definitions import CONFIG_RUNS_DIR
 from python_code.plotters.plotter_utils import get_ser_plot, plot_by_values
 from python_code.utils.config_singleton import Config
-from python_code.vnet.vnet_trainer import VNETTrainer
-from python_code.plotters.plotter_config import *
-from typing import Dict, List, Union, Tuple
-from dir_definitions import CONFIG_RUNS_DIR
-import numpy as np
-import os
 
 
 def set_method_name(conf: Config, method_name: str, params_dict: Dict[str, Union[int, str]]) -> str:

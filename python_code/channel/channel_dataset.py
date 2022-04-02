@@ -1,15 +1,17 @@
+import concurrent.futures
+from typing import Tuple, List
+
+import numpy as np
+import torch
+from numpy.random import default_rng
+from torch.utils.data import Dataset
+
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_ANT, N_USER
-from python_code.channel.modulator import BPSKModulator
 from python_code.channel.isi_awgn_channel import ISIAWGNChannel
+from python_code.channel.modulator import BPSKModulator
 from python_code.channel.sed_channel import SEDChannel
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
-from torch.utils.data import Dataset
-from numpy.random import default_rng
-from typing import Tuple, List
-import concurrent.futures
-import numpy as np
-import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

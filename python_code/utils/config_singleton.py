@@ -1,6 +1,8 @@
-from dir_definitions import CONFIG_PATH
-import yaml
 import os
+
+import yaml
+
+from dir_definitions import CONFIG_PATH
 
 
 class Config:

@@ -1,7 +1,8 @@
+import torch
+from torch import nn
+
 from python_code.channel.channels_hyperparams import N_USER, N_ANT
 from python_code.utils.config_singleton import Config
-from torch import nn
-import torch
 
 conf = Config()
 
