@@ -69,7 +69,7 @@ class ChannelModelDataset(Dataset):
         # modulation
         s = BPSKModulator.modulate(b)
         # pass through channel
-        y = SEDChannel.transmit(s, h, snr)
+        y = SEDChannel.transmit(s=s, h=h, snr=snr)
         return b, y
 
     def __getitem__(self, snr_list: List[float]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:

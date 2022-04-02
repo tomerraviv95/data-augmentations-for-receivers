@@ -28,7 +28,7 @@ class ISIAWGNChannel:
         return h
 
     @staticmethod
-    def transmit(s: np.ndarray, snr: float, h: np.ndarray, memory_length: int) -> np.ndarray:
+    def transmit(s: np.ndarray, h: np.ndarray, snr: float, memory_length: int) -> np.ndarray:
         """
         The AWGN Channel
         :param s: to transmit symbol words
@@ -37,18 +37,21 @@ class ISIAWGNChannel:
         :param memory_length: length of channel memory
         :return: received word
         """
-        snr_value = 10 ** (snr / 10)
-
-        blockwise_s = np.concatenate([s[:, i:-memory_length + i] for i in range(memory_length)], axis=0)
-
-        conv = np.dot(h[:, ::-1], blockwise_s)
-
+        conv = ISIAWGNChannel.compute_channel_signal_convolution(h, memory_length, s)
         [row, col] = conv.shape
-
-        noise_generator = default_rng(seed=conf.seed)
-
-        w = (snr_value ** (-0.5)) * noise_generator.standard_normal((row, col))
-
+        w = ISIAWGNChannel.sample_noise_vector(row, col, snr)
         y = conv + w
-
         return y
+
+    @staticmethod
+    def compute_channel_signal_convolution(h, memory_length, s):
+        blockwise_s = np.concatenate([s[:, i:-memory_length + i] for i in range(memory_length)], axis=0)
+        conv = np.dot(h[:, ::-1], blockwise_s)
+        return conv
+
+    @staticmethod
+    def sample_noise_vector(row, col, snr):
+        noise_generator = default_rng(seed=conf.seed)
+        snr_value = 10 ** (snr / 10)
+        w = (snr_value ** (-0.5)) * noise_generator.standard_normal((row, col))
+        return w

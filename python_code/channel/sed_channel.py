@@ -23,7 +23,14 @@ class SEDChannel:
         return H * fade_mat
 
     @staticmethod
-    def transmit(s: np.ndarray, h: np.ndarray, snr: float):
+    def transmit(s: np.ndarray, h: np.ndarray, snr: float) -> np.ndarray:
+        conv = SEDChannel.compute_channel_signal_convolution(h, s)
         sigma = 10 ** (-0.1 * snr)
-        y = np.matmul(h, s) + np.sqrt(sigma) * np.random.randn(N_ANT, s.shape[1])
+        w = np.sqrt(sigma) * np.random.randn(N_ANT, s.shape[1])
+        y = conv + w
         return y
+
+    @staticmethod
+    def compute_channel_signal_convolution(h: np.ndarray, s: np.ndarray) -> np.ndarray:
+        conv = np.matmul(h, s)
+        return conv

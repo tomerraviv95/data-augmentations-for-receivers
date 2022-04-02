@@ -30,7 +30,7 @@ class AugmenterWrapper:
         :param update_hyper_params: whether to update the hyper parameters of an augmentation scheme
         :return: the augmented received and transmitted pairs
         """
-        x, y = received_word, transmitted_word.reshape(1, -1)
+        x, y = received_word, transmitted_word
         for augmentation_name in self._augmentations:
             augmenter = self._augmenters_dict[augmentation_name]
             x, y = augmenter.augment(x, y, h, snr, update_hyper_params)

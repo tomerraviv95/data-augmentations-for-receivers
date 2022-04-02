@@ -1,9 +1,13 @@
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH
+from python_code.channel.isi_awgn_channel import ISIAWGNChannel
 from python_code.channel.modulator import BPSKModulator
+from python_code.channel.sed_channel import SEDChannel
 from python_code.utils.config_singleton import Config
 from typing import Tuple
 import numpy as np
 import torch
+
+from python_code.utils.constants import ChannelModes
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -21,29 +25,44 @@ class PartialKnowledgeAugmenter:
 
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
                 update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
-        h = h.cpu().numpy()
-        #### first calculate estimated noise pattern
-        c = transmitted_word.cpu().numpy()
-        # add zero bits
-        padded_c = np.concatenate([c, np.zeros([c.shape[0], MEMORY_LENGTH])], axis=1)
-        # from channel dataset
-        s = BPSKModulator.modulate(padded_c)
-        blockwise_s = np.concatenate([s[:, i:-MEMORY_LENGTH + i] for i in range(conf.memory_length)],
-                                     axis=0)
-        trans_conv = np.dot(h[:, ::-1], blockwise_s)
-        w_est = received_word.cpu().numpy() - trans_conv
+        if conf.channel_type == ChannelModes.SISO.name:
+            # add zero bits
+            padded_b = np.concatenate(
+                [transmitted_word.cpu().numpy(), np.zeros([transmitted_word.shape[0], MEMORY_LENGTH])], axis=1)
+            # modulation
+            s = BPSKModulator.modulate(padded_b)
+            # compute convolution
+            conv = ISIAWGNChannel.compute_channel_signal_convolution(h.cpu().numpy(), MEMORY_LENGTH, s)
+            # estimate noise as difference between received and transmitted symbols words
+            w_est = received_word.cpu().numpy() - conv
 
-        ### use the noise and add it to a new word
-        binary_mask = torch.rand_like(transmitted_word) >= HALF
-        new_transmitted_word = (transmitted_word + binary_mask) % 2
-        # encoding - errors correction code
-        c = new_transmitted_word.cpu().numpy()
-        # add zero bits
-        padded_c = np.concatenate([c, np.zeros([c.shape[0], MEMORY_LENGTH])], axis=1)
-        # from channel dataset
-        s = BPSKModulator.modulate(padded_c)
-        blockwise_s = np.concatenate([s[:, i:-MEMORY_LENGTH + i] for i in range(conf.memory_length)],
-                                     axis=0)
-        new_trans_conv = np.dot(h[:, ::-1], blockwise_s)
-        new_received_word = new_trans_conv + w_est
-        return torch.Tensor(new_received_word).to(device), new_transmitted_word
+            # generate a random transmitted word
+            new_transmitted_word = torch.rand_like(transmitted_word) >= HALF
+            # add zero bits
+            new_padded_b = np.concatenate(
+                [new_transmitted_word.cpu().numpy(), np.zeros([new_transmitted_word.shape[0], MEMORY_LENGTH])], axis=1)
+            # modulation
+            new_s = BPSKModulator.modulate(new_padded_b)
+            # compute convolution
+            new_conv = ISIAWGNChannel.compute_channel_signal_convolution(h.cpu().numpy(), MEMORY_LENGTH, new_s)
+            # estimate new received word using the above noise
+            new_received_word = new_conv + w_est
+        elif conf.channel_type == ChannelModes.MIMO.name:
+            # modulation
+            s = BPSKModulator.modulate(transmitted_word.cpu().numpy().T)
+            # compute convolution
+            conv = SEDChannel.compute_channel_signal_convolution(h.cpu().numpy(), s).T
+            # estimate noise as difference between received and transmitted symbols words
+            w_est = received_word.cpu().numpy() - conv
+
+            # generate a random transmitted word
+            new_transmitted_word = torch.rand_like(transmitted_word) >= HALF
+            # modulation
+            new_s = BPSKModulator.modulate(new_transmitted_word.cpu().numpy().T)
+            # compute convolution
+            new_conv = SEDChannel.compute_channel_signal_convolution(h.cpu().numpy(), new_s).T
+            # estimate new received word using the above noise
+            new_received_word = new_conv + w_est
+        else:
+            raise ValueError("No such channel type!!!")
+        return torch.Tensor(new_received_word).to(device), new_transmitted_word.int()
