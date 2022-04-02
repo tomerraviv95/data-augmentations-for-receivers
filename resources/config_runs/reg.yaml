@@ -17,7 +17,6 @@ eval_mode: 'by_word' # Type of evaluation. Per snr - 'aggregated', Per block - '
 
 # online training hyperparameters
 is_online_training: True # Whether to run the online training (as in ViterbiNet). values: [True, False].
-online_total_words: 300 # Number of words per iteration trained on in the online training. values: int.
 train_minibatch_size: 32 # the size of a given minibatch. values: int.
 lr: 0.001 # learning rate. values: float.
 loss_type: 'CrossEntropy' # Loss type. values: 'BCE','CrossEntropy','MSE'.

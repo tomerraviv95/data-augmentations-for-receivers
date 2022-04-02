@@ -3,12 +3,12 @@ from python_code.utils.config_singleton import Config
 from python_code.detectors.vnet.vnet_detector import VNETDetector
 from python_code.utils.trellis_utils import calculate_states
 from python_code.detectors.trainer import Trainer
-from torch import nn
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
+EPOCHS = 750
 
 
 class VNETTrainer(Trainer):
@@ -41,8 +41,7 @@ class VNETTrainer(Trainer):
         :return: loss value
         """
         gt_states = calculate_states(self.memory_length, transmitted_words)
-        gt_states_batch, input_batch = self.select_batch(gt_states, soft_estimation.reshape(-1, self.n_states))
-        loss = self.criterion(input=input_batch, target=gt_states_batch)
+        loss = self.criterion(input=soft_estimation.reshape(-1, self.n_states), target=gt_states)
         return loss
 
     def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
@@ -59,7 +58,7 @@ class VNETTrainer(Trainer):
         :param h: channel coefficients
         """
         # augment received words by the number of desired repeats
-        aug_rx, aug_tx = self.augment_words_wrapper(h, rx, tx, conf.online_total_words, conf.online_repeats_n)
+        aug_rx, aug_tx = self.augment_words_wrapper(h, rx, tx)
 
         if conf.from_scratch_flag:
             self.initialize_detector()
@@ -67,10 +66,8 @@ class VNETTrainer(Trainer):
 
         # run training loops
         loss = 0
-        for i in range(conf.online_total_words):
-            cur_rx = aug_rx[i].reshape(1, -1)
-            cur_tx = aug_tx[i].reshape(1, -1)
+        for i in range(EPOCHS):
             # pass through detector
-            soft_estimation = self.detector(cur_rx, phase='train')
-            current_loss = self.run_train_loop(soft_estimation=soft_estimation, transmitted_words=cur_tx)
+            soft_estimation = self.detector(aug_rx, phase='train')
+            current_loss = self.run_train_loop(soft_estimation=soft_estimation, transmitted_words=aug_tx)
             loss += current_loss

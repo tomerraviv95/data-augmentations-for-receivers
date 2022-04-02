@@ -36,9 +36,9 @@ class AdaptiveAugmenter:
         new_transmitted_word = torch.rand_like(transmitted_word) >= 0.5
         # calculate states of transmitted, and copy to variable that will hold the new states for the new transmitted
         if conf.channel_type == ChannelModes.SISO.name:
-            new_gt_states = calculate_states(MEMORY_LENGTH, transmitted_word)
+            new_gt_states = calculate_states(MEMORY_LENGTH, new_transmitted_word)
         elif conf.channel_type == ChannelModes.MIMO.name:
-            new_gt_states = calculate_mimo_states(N_USER, transmitted_word)
+            new_gt_states = calculate_mimo_states(N_USER, new_transmitted_word)
         else:
             raise ValueError("No such channel type!!!")
         new_received_word = torch.empty_like(received_word)

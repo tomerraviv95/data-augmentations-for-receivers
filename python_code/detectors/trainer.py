@@ -19,9 +19,6 @@ torch.manual_seed(conf.seed)
 torch.cuda.manual_seed(conf.seed)
 np.random.seed(conf.seed)
 
-PRINT_FREQ = 10
-HALF = 0.5
-
 
 class Trainer(object):
     def __init__(self):
@@ -125,8 +122,7 @@ class Trainer(object):
         print(f'Final ser: {total_ser}')
         return ser_by_word
 
-    def augment_words_wrapper(self, h: torch.Tensor, received_words: torch.Tensor, transmitted_words: torch.Tensor,
-                              total_size: int, n_repeats: int):
+    def augment_words_wrapper(self, h: torch.Tensor, received_words: torch.Tensor, transmitted_words: torch.Tensor):
         """
         The main augmentation function, used to augment each pilot in the evaluation phase.
         :param h: channel coefficients
@@ -137,8 +133,9 @@ class Trainer(object):
         :param phase: validation phase
         :return: the received and transmitted words
         """
-        aug_tx = transmitted_words.repeat(total_size, 1)
-        aug_rx = received_words.repeat(total_size, 1)
+        n_repeats = conf.online_repeats_n
+        aug_tx = torch.empty([n_repeats, transmitted_words.shape[1]]).to(device)
+        aug_rx = torch.empty([n_repeats, received_words.shape[1]]).to(device)
         update_hyper_params_flag = True
         for i in range(aug_tx.shape[0]):
             upd_idx = i % n_repeats
