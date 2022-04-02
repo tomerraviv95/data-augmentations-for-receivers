@@ -41,13 +41,5 @@ if __name__ == '__main__':
         for params_dict in params_dicts:
             print(params_dict)
             compute_ser_for_method(all_curves, method, params_dict, run_params_obj)
-        # add_borderline_smote_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
-        # add_flipping_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
-        # add_adaptive_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
-        # add_adaptive_and_flipping_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
-        # add_adaptive_and_flipping_borderline_smote_augmentations_scheme_viterbinet(all_curves, params_dict, run_over,
-        #                                                                            trial_num)
-        # add_200_extended_pilot_no_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
-        # add_extended_pilot_no_augmentations_scheme_viterbinet(all_curves, params_dict, run_over, trial_num)
 
     plot_by_values(all_curves, label_name, [list(params_dict.values())[0] for params_dict in params_dicts])
