@@ -10,7 +10,7 @@ import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conf = Config()
 ITERATIONS = 5
-
+EPOCHS = 250
 
 def symbol_to_prob(s: torch.Tensor) -> torch.Tensor:
     """
@@ -69,7 +69,7 @@ class DeepSICTrainer(Trainer):
         self.criterion = torch.nn.CrossEntropyLoss()
         single_model = single_model.to(device)
         loss = 0
-        for _ in range(conf.online_total_words):
+        for _ in range(EPOCHS):
             soft_estimation = single_model(y_train)
             current_loss = self.run_train_loop(soft_estimation, b_train)
             loss += current_loss
@@ -85,7 +85,6 @@ class DeepSICTrainer(Trainer):
         b_train, y_train = b_train.T, y_train.T
         y_train, b_train = self.augment_words_wrapper(h, y_train, b_train, conf.online_total_words,
                                                       conf.online_repeats_n)
-
         initial_probs = b_train.clone()
         b_train_all, y_train_all = self.prepare_data_for_training(b_train, y_train, initial_probs)
         # Training the DeepSIC network for each user for iteration=1

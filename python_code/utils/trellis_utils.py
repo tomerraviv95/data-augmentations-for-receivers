@@ -47,3 +47,9 @@ def calculate_states(memory_length: int, transmitted_words: torch.Tensor) -> tor
     gt_states = torch.sum(blockwise_words.transpose(1, 2).reshape(-1, memory_length) * states_enumerator,
                           dim=1).long()
     return gt_states
+
+
+def calculate_mimo_states(n_user: int, transmitted_words: torch.Tensor) -> torch.Tensor:
+    states_enumerator = (2 ** torch.arange(n_user)).to(device)
+    gt_states = torch.sum(transmitted_words * states_enumerator, dim=1).long()
+    return gt_states

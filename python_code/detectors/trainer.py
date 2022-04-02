@@ -98,7 +98,7 @@ class Trainer(object):
         transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr])
         self.init_priors()
         ser_by_word = np.zeros(transmitted_words.shape[0])
-        for frame in range(conf.val_frames - 1):
+        for frame in range(conf.val_frames):
             # get current word and channel
             start_ind = frame * self.n_ant
             end_ind = (frame + 1) * self.n_ant
@@ -119,12 +119,9 @@ class Trainer(object):
             print(f'current: {frame, ser}')
             total_ser += ser
             ser_by_word[frame] = ser
-            # print progress
-            if (frame + 1) % PRINT_FREQ == 0:
-                print(f'Self-supervised: {frame + 1}/{transmitted_words.shape[0]}, SER {total_ser / (frame + 1)}')
             self.init_priors()
 
-        total_ser /= transmitted_words.shape[0]
+        total_ser /= conf.val_frames
         print(f'Final ser: {total_ser}')
         return ser_by_word
 
@@ -140,22 +137,21 @@ class Trainer(object):
         :param phase: validation phase
         :return: the received and transmitted words
         """
-        transmitted_words = transmitted_words.repeat(total_size, 1)
-        received_words = received_words.repeat(total_size, 1)
-        for i in range(transmitted_words.shape[0]):
-            update_hyper_params_flag = (i == 0)
+        aug_tx = transmitted_words.repeat(total_size, 1)
+        aug_rx = received_words.repeat(total_size, 1)
+        update_hyper_params_flag = True
+        for i in range(aug_tx.shape[0]):
             upd_idx = i % n_repeats
-            current_received = received_words[upd_idx].reshape(1, -1)
-            current_transmitted = transmitted_words[upd_idx].reshape(1, -1)
             if i < n_repeats:
-                received_words[i], transmitted_words[i] = self.augmenter.augment(current_received,
-                                                                                 current_transmitted,
-                                                                                 h, conf.val_snr,
-                                                                                 update_hyper_params=
-                                                                                 update_hyper_params_flag)
+                aug_rx[i], aug_tx[i] = self.augmenter.augment(received_words,
+                                                              transmitted_words,
+                                                              h, conf.val_snr,
+                                                              update_hyper_params=
+                                                              update_hyper_params_flag)
             else:
-                received_words[i], transmitted_words[i] = current_received, current_transmitted
-        return received_words, transmitted_words
+                aug_rx[i], aug_tx[i] = aug_rx[upd_idx].reshape(1, -1), aug_tx[upd_idx].reshape(1, -1)
+            update_hyper_params_flag = False
+        return aug_rx, aug_tx
 
     def run_train_loop(self, soft_estimation: torch.Tensor, transmitted_words: torch.Tensor) -> float:
         # calculate loss

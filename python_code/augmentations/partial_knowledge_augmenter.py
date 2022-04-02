@@ -53,10 +53,10 @@ class PartialKnowledgeAugmenter:
             # compute convolution
             conv = SEDChannel.compute_channel_signal_convolution(h.cpu().numpy(), s).T
             # estimate noise as difference between received and transmitted symbols words
-            w_est = received_word.cpu().numpy() - conv
+            w_est = np.mean(received_word.cpu().numpy() - conv, axis=0).reshape(1, -1)
 
             # generate a random transmitted word
-            new_transmitted_word = torch.rand_like(transmitted_word) >= HALF
+            new_transmitted_word = torch.rand([1,transmitted_word.shape[1]]) >= HALF
             # modulation
             new_s = BPSKModulator.modulate(new_transmitted_word.cpu().numpy().T)
             # compute convolution
