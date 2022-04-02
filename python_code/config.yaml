@@ -3,18 +3,18 @@ run_name: 'test' #'augmented_version'
 seed: 0 # run seed
 
 # channel
-channel_type: 'MIMO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
+channel_type: 'SISO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
 
 # augmentations
 # ['no_aug','full_knowledge_augmenter','partial_knowledge_augmenter','adaptive_augmenter','flipping_augmenter','border_smote_augmenter']
-aug_type: ['partial_knowledge_augmenter']
-online_repeats_n: 25 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
-online_total_words: 200 # Number of words per iteration trained on in the online training. values: int.
+aug_type: ['border_smote_augmenter']
+online_repeats_n: 100 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
+online_total_words: 100 # Number of words per iteration trained on in the online training. values: int.
 
 # validation hyperparameters
-val_block_length: 10080 # coherence block time, total size of pilot + data. values: int.
-pilot_size: 80 # pilot symbols
+val_block_length: 5050 # coherence block time, total size of pilot + data. values: int.
+pilot_size: 50 # pilot symbols
 val_frames: 10 # number of validation frames. values: int.
 val_snr: 12 # start SNR value. values: float.
 eval_mode: 'by_word' # Type of evaluation per block - 'by_word'.

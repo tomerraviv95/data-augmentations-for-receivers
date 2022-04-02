@@ -1,4 +1,4 @@
-# from python_code.augmentations.border_smote_augmenter import BorderSMOTEAugmenter
+from python_code.augmentations.border_smote_augmenter import BorderSMOTEAugmenter
 from python_code.augmentations.flipping_augmenter import FlippingAugmenter
 from python_code.augmentations.full_knowledge_augmenter import FullKnowledgeAugmenter
 from python_code.augmentations.partial_knowledge_augmenter import PartialKnowledgeAugmenter
@@ -15,7 +15,7 @@ class AugmenterWrapper:
                                  'partial_knowledge_augmenter': PartialKnowledgeAugmenter(),
                                  'adaptive_augmenter': AdaptiveAugmenter(),
                                  'flipping_augmenter': FlippingAugmenter(),
-                                 # 'border_smote_augmenter': BorderSMOTEAugmenter(),
+                                 'border_smote_augmenter': BorderSMOTEAugmenter(),
                                  'no_aug': NoAugmenter()}
         self._augmentations = augmentations
 
