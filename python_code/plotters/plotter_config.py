@@ -13,43 +13,53 @@ mpl.rcParams['legend.fontsize'] = 20
 mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
 
-#
 
-COLORS_DICT = {
-    'ViterbiNet - Regular Training': 'green',
-    'ViterbiNet - SMOTE': 'yellow',
-    'ViterbiNet - Borderline SMOTE': 'orange',
-    'ViterbiNet - Flipping': 'blue',
-    'ViterbiNet - Adaptive': 'purple',
-    'ViterbiNet - Adaptive + Flipping': 'red',
-    'ViterbiNet - Adaptive + Flipping + Borderline SMOTE': 'black',
-    'ViterbiNet - Extended Pilot Size (200)': 'pink',
-    'ViterbiNet - Extended Pilot Size (400)': 'pink',
-    'ViterbiNet - Max Pilot Size (2000)': 'pink',
-}
+def get_linestyle(method_name):
+    if 'DeepSIC' in method_name:
+        return '-.'
+    elif 'ViterbiNet' in method_name:
+        return '-'
+    else:
+        raise ValueError('No such detector!!!')
 
-MARKERS_DICT = {
-    'ViterbiNet - Regular Training': 'o',
-    'ViterbiNet - SMOTE': '>',
-    'ViterbiNet - Borderline SMOTE': '>',
-    'ViterbiNet - Flipping': 'x',
-    'ViterbiNet - Adaptive': 'd',
-    'ViterbiNet - Adaptive + Flipping': '+',
-    'ViterbiNet - Adaptive + Flipping + Borderline SMOTE': '>',
-    'ViterbiNet - Extended Pilot Size (200)': 'o',
-    'ViterbiNet - Extended Pilot Size (400)': 'o',
-    'ViterbiNet - Max Pilot Size (2000)': 'o',
-}
 
-LINESTYLES_DICT = {
-    'ViterbiNet - Regular Training': 'dashed',
-    'ViterbiNet - SMOTE': 'solid',
-    'ViterbiNet - Borderline SMOTE': 'solid',
-    'ViterbiNet - Flipping': 'solid',
-    'ViterbiNet - Adaptive': 'solid',
-    'ViterbiNet - Adaptive + Flipping': 'solid',
-    'ViterbiNet - Adaptive + Flipping + Borderline SMOTE': 'solid',
-    'ViterbiNet - Extended Pilot Size (200)': 'dashed',
-    'ViterbiNet - Extended Pilot Size (400)': 'dashed',
-    'ViterbiNet - Max Pilot Size (2000)': 'dashed'
-}
+def get_marker(method_name):
+    if 'Regular Training' in method_name:
+        return '.'
+    elif 'FK Genie' in method_name:
+        return 'X'
+    elif 'PK Genie' in method_name:
+        return 'x'
+    elif 'Adaptive' in method_name:
+        return '>'
+    elif 'Flipping' in method_name:
+        return '<'
+    elif 'SMOTE' in method_name:
+        return 'v'
+    elif 'Combined' in method_name:
+        return 'D'
+    elif 'Extended Pilot Regular Training' in method_name:
+        return 'o'
+    else:
+        raise ValueError('No such method!!!')
+
+
+def get_color(method_name):
+    if 'Regular Training' in method_name:
+        return 'b'
+    elif 'FK Genie' in method_name:
+        return 'black'
+    elif 'PK Genie' in method_name:
+        return 'brown'
+    elif 'Adaptive' in method_name:
+        return 'orange'
+    elif 'Flipping' in method_name:
+        return 'pink'
+    elif 'SMOTE' in method_name:
+        return 'green'
+    elif 'Combined' in method_name:
+        return 'red'
+    elif 'Extended Pilot Regular Training' in method_name:
+        return 'royalblue'
+    else:
+        raise ValueError('No such method!!!')

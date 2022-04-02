@@ -120,7 +120,7 @@ class Trainer(object):
 
         total_ser /= conf.val_frames
         print(f'Final ser: {total_ser}')
-        return ser_by_word
+        return total_ser
 
     def augment_words_wrapper(self, h: torch.Tensor, received_words: torch.Tensor, transmitted_words: torch.Tensor):
         """
@@ -163,15 +163,3 @@ class Trainer(object):
         loss.backward()
         self.optimizer.step()
         return current_loss
-
-    def select_batch(self, gt_examples: torch.LongTensor, soft_estimation: torch.Tensor) -> Tuple[
-        torch.Tensor, torch.Tensor]:
-        """
-        Select a batch from the input and gt labels
-        :param gt_examples: training labels
-        :param soft_estimation: the soft approximation, distribution over states (per word)
-        :return: selected batch from the entire "epoch", contains both labels and the NN soft approximation
-        """
-        rand_ind = torch.multinomial(torch.arange(gt_examples.shape[0]).float(),
-                                     conf.train_minibatch_size).long().to(device)
-        return gt_examples[rand_ind], soft_estimation[rand_ind]

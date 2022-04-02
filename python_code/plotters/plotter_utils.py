@@ -4,10 +4,10 @@ from typing import List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
-from python_code.detectors.vnet.trainer import Trainer
 
 from dir_definitions import FIGURES_DIR, PLOTS_DIR
-from python_code.plotters.plotter_config import COLORS_DICT, LINESTYLES_DICT, MARKERS_DICT
+from python_code.detectors.trainer import Trainer
+from python_code.plotters.plotter_config import get_color, get_marker, get_linestyle
 from python_code.utils.config_singleton import Config
 from python_code.utils.python_utils import load_pkl, save_pkl
 
@@ -36,7 +36,7 @@ def get_ser_plot(dec: Trainer, run_over: bool, method_name: str, trial=None):
         print("calculating fresh")
         ser_total = dec.evaluate()
         save_pkl(plots_path, ser_total)
-    print(np.mean(ser_total))
+    print(ser_total)
     return ser_total
 
 
@@ -61,8 +61,9 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_n
                 continue
             mean_sers.append(mean_ser)
         plt.plot(values, mean_sers, label=method_name,
-                 color=COLORS_DICT[method_name], marker=MARKERS_DICT[method_name],
-                 linestyle=LINESTYLES_DICT[method_name], linewidth=2.2)
+                 color=get_color(method_name),
+                 marker=get_marker(method_name),
+                 linestyle=get_linestyle(method_name), linewidth=2.2)
 
     plt.xticks(values, values)
     plt.xlabel(field_name)
