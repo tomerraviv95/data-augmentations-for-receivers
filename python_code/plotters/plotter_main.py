@@ -14,16 +14,24 @@ if __name__ == '__main__':
     run_over = False  # whether to run over previous results
     plot_type = ChannelModes.MIMO.name  # either SISO (ChannelModes.SISO.name) or MIMO (ChannelModes.MIMO.name)
     trial_num = 1  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
-    methods_list = ['Regular Training']
+    methods_list = ['Regular Training',
+                    'SMOTE',
+                    'Flipping',
+                    'Adaptive',
+                    'Combined',
+                    'PK Genie',
+                    'FK Genie',
+                    'Extended Pilot Regular Training'
+                    ]
     run_params_obj = RunParams(run_over=run_over,
                                plot_type=plot_type,
                                trial_num=trial_num)
     params_dicts = [
         {'val_snr': 9},
         {'val_snr': 10},
-        # {'val_snr': 11},
-        # {'val_snr': 12},
-        # {'val_snr': 13}
+        {'val_snr': 11},
+        {'val_snr': 12},
+        {'val_snr': 13}
     ]
     label_name = 'SNR'
     all_curves = []
