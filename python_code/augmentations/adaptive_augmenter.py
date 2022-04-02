@@ -2,7 +2,7 @@ from typing import Tuple
 
 import torch
 
-from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER
+from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER, N_ANT
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
 from python_code.utils.python_utils import sample_random_mimo_word
@@ -31,7 +31,12 @@ class AdaptiveAugmenter:
         # if pilot, then update_hyper_params is True and we update the centers and stds internal parameters
         if update_hyper_params:
             # first calculate estimated noise pattern
-            cur_centers, cur_stds = self.estimate_cur_params(received_word, transmitted_word)
+            if conf.channel_type == ChannelModes.SISO.name:
+                cur_centers, cur_stds = self.estimate_siso_params(received_word, transmitted_word)
+            elif conf.channel_type == ChannelModes.MIMO.name:
+                cur_centers, cur_stds = self.estimate_mimo_params(received_word, transmitted_word)
+            else:
+                raise ValueError("No such channel type!!!")
             # average the current centers & stds estimates with previous estimates to reduce noise
             self.update_centers_stds(cur_centers, cur_stds)
 
@@ -80,7 +85,7 @@ class AdaptiveAugmenter:
         else:
             self._stds = cur_stds
 
-    def estimate_cur_params(self, received_word: torch.Tensor, transmitted_word: torch.Tensor) -> Tuple[
+    def estimate_siso_params(self, received_word: torch.Tensor, transmitted_word: torch.Tensor) -> Tuple[
         torch.Tensor, torch.Tensor]:
         """
         Estimate parameters of centers and stds in the jth step based on the known states of the pilot word.
@@ -88,31 +93,43 @@ class AdaptiveAugmenter:
         :param transmitted_word: binary word
         :return: updated centers and stds values
         """
-        if conf.channel_type == ChannelModes.SISO.name:
-            gt_states = calculate_states(MEMORY_LENGTH, transmitted_word)
-            n_states = 2 ** MEMORY_LENGTH
-        elif conf.channel_type == ChannelModes.MIMO.name:
-            gt_states = calculate_mimo_states(N_USER, transmitted_word)
-            n_states = 2 ** N_USER
-        else:
-            raise ValueError("No such channel type!!!")
-        centers = torch.empty(n_states).to(device)
-        stds = torch.empty(n_states).to(device)
+        gt_states = calculate_states(MEMORY_LENGTH, transmitted_word)
+        n_states = 2 ** MEMORY_LENGTH
+        centers = torch.empty([n_states]).to(device)
+        stds = torch.empty([n_states]).to(device)
         for state in range(n_states):
             state_ind = (gt_states == state)
-            if conf.channel_type == ChannelModes.SISO.name:
-                state_received = received_word[0, state_ind]
-            elif conf.channel_type == ChannelModes.MIMO.name:
-                state_received = received_word[state_ind]
-            else:
-                raise ValueError("No such channel type!!!")
-
+            state_received = received_word[0, state_ind]
             stds[state] = torch.std(state_received)
             if state_received.shape[0] > 0:
                 centers[state] = torch.mean(state_received)
             else:
                 centers[state] = 0
         stds[torch.isnan(stds)] = torch.mean(stds[~torch.isnan(stds)])
+        return centers, stds
+
+    def estimate_mimo_params(self, received_word: torch.Tensor, transmitted_word: torch.Tensor) -> Tuple[
+        torch.Tensor, torch.Tensor]:
+        """
+        Estimate parameters of centers and stds in the jth step based on the known states of the pilot word.
+        :param received_word: float words of channel values
+        :param transmitted_word: binary word
+        :return: updated centers and stds values
+        """
+        gt_states = calculate_mimo_states(N_USER, transmitted_word)
+        n_states = 2 ** N_USER
+        state_size = N_ANT
+        centers = torch.empty([n_states, state_size]).to(device)
+        stds = torch.empty([n_states, state_size]).to(device)
+        for state in range(n_states):
+            state_ind = (gt_states == state)
+            state_received = received_word[state_ind]
+            stds[state] = torch.std(state_received, dim=0)
+            if state_received.shape[0] > 0:
+                centers[state] = torch.mean(state_received, dim=0)
+            else:
+                centers[state] = 0
+        stds[torch.isnan(stds[:, 0])] = torch.mean(stds[~torch.isnan(stds[:, 0])], dim=0)
         return centers, stds
 
     @property
