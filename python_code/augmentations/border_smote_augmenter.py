@@ -25,7 +25,7 @@ class BorderSMOTEAugmenter:
         new_transmitted_word = transmitted_word.clone()
         new_received_word = received_word.clone()
 
-        # calculate states for both
+        # calculate states of transmitted, and copy to variable that will hold the new states for the new transmitted
         if conf.channel_type == ChannelModes.SISO.name:
             states = calculate_states(MEMORY_LENGTH, transmitted_word)
             new_gt_states = states.clone()

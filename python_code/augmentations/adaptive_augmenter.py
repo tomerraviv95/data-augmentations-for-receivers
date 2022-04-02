@@ -1,5 +1,7 @@
-from python_code.channel.channels_hyperparams import MEMORY_LENGTH
-from python_code.utils.trellis_utils import calculate_states
+from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER
+from python_code.utils.constants import ChannelModes
+from python_code.utils.python_utils import sample_random_mimo_word
+from python_code.utils.trellis_utils import calculate_states, calculate_mimo_states
 from python_code.utils.config_singleton import Config
 from typing import Tuple
 import torch
@@ -19,7 +21,8 @@ class AdaptiveAugmenter:
         super().__init__()
         self._centers = None
         self._stds = None
-        self._alpha = 1  # augmentation hyperparameter
+        self._alpha1 = 1  # mean smoothing hyperparameter
+        self._alpha2 = 1  # std smoothing hyperparameter
 
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
                 update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -31,16 +34,30 @@ class AdaptiveAugmenter:
             self.update_centers_stds(cur_centers, cur_stds)
 
         new_transmitted_word = torch.rand_like(transmitted_word) >= 0.5
-        new_gt_states = calculate_states(MEMORY_LENGTH, new_transmitted_word)
+        # calculate states of transmitted, and copy to variable that will hold the new states for the new transmitted
+        if conf.channel_type == ChannelModes.SISO.name:
+            new_gt_states = calculate_states(MEMORY_LENGTH, transmitted_word)
+        elif conf.channel_type == ChannelModes.MIMO.name:
+            new_gt_states = calculate_mimo_states(N_USER, transmitted_word)
+        else:
+            raise ValueError("No such channel type!!!")
         new_received_word = torch.empty_like(received_word)
 
         # generate new words using the smoothed centers and stds
         for state in torch.unique(new_gt_states):
             state_ind = (new_gt_states == state)
-            new_received_word[0, state_ind] = self._centers[state] + self._stds[state] * \
-                                              torch.randn_like(transmitted_word)[
-                                                  0, state_ind]
-        return new_received_word, new_transmitted_word.to(torch.int)
+            if conf.channel_type == ChannelModes.SISO.name:
+                new_received_word[0, state_ind] = self._centers[state] + self._stds[state] * \
+                                                  torch.randn_like(transmitted_word)[0, state_ind]
+            elif conf.channel_type == ChannelModes.MIMO.name:
+                new_received_word[state_ind] = self._centers[state] + self._stds[state] * \
+                                               torch.randn_like(transmitted_word)[state_ind]
+            else:
+                raise ValueError("No such channel type!!!")
+        new_received_word, new_transmitted_word = sample_random_mimo_word(new_received_word,
+                                                                          new_transmitted_word,
+                                                                          received_word)
+        return new_received_word, new_transmitted_word.int()
 
     def update_centers_stds(self, cur_centers: torch.Tensor, cur_stds: torch.Tensor):
         """
@@ -52,12 +69,12 @@ class AdaptiveAugmenter:
 
         # self._centers = cur_centers
         if self._centers is not None:
-            self._centers = self._alpha * cur_centers + (1 - self._alpha) * self._centers
+            self._centers = self._alpha1 * cur_centers + (1 - self._alpha1) * self._centers
         else:
             self._centers = cur_centers
 
         if self._stds is not None:
-            self._stds = self._alpha * cur_stds + (1 - self._alpha) * self._stds
+            self._stds = self._alpha2 * cur_stds + (1 - self._alpha2) * self._stds
         else:
             self._stds = cur_stds
 
@@ -69,12 +86,25 @@ class AdaptiveAugmenter:
         :param transmitted_word: binary word
         :return: updated centers and stds values
         """
-        gt_states = calculate_states(MEMORY_LENGTH, transmitted_word)
-        centers = torch.empty(2 ** MEMORY_LENGTH).to(device)
-        stds = torch.empty(2 ** MEMORY_LENGTH).to(device)
-        for state in range(2 ** MEMORY_LENGTH):
+        if conf.channel_type == ChannelModes.SISO.name:
+            gt_states = calculate_states(MEMORY_LENGTH, transmitted_word)
+            n_states = 2 ** MEMORY_LENGTH
+        elif conf.channel_type == ChannelModes.MIMO.name:
+            gt_states = calculate_mimo_states(N_USER, transmitted_word)
+            n_states = 2 ** N_USER
+        else:
+            raise ValueError("No such channel type!!!")
+        centers = torch.empty(n_states).to(device)
+        stds = torch.empty(n_states).to(device)
+        for state in range(n_states):
             state_ind = (gt_states == state)
-            state_received = received_word[0, state_ind]
+            if conf.channel_type == ChannelModes.SISO.name:
+                state_received = received_word[0, state_ind]
+            elif conf.channel_type == ChannelModes.MIMO.name:
+                state_received = received_word[state_ind]
+            else:
+                raise ValueError("No such channel type!!!")
+
             stds[state] = torch.std(state_received)
             if state_received.shape[0] > 0:
                 centers[state] = torch.mean(state_received)
