@@ -26,8 +26,6 @@ class FullKnowledgeAugmenter:
             new_transmitted_word, new_received_word = channel_dataset.siso_transmission(h.cpu().numpy(), snr)
         elif conf.channel_type == ChannelModes.MIMO.name:
             new_transmitted_word, new_received_word = channel_dataset.mimo_transmission(h.cpu().numpy(), snr)
-            new_transmitted_word = new_transmitted_word[:, 0].reshape(1, -1)
-            new_received_word = new_received_word[:, 0].reshape(1, -1)
         else:
             raise ValueError("No such channel type!!!")
         return torch.Tensor(new_received_word).to(device), torch.Tensor(new_transmitted_word).to(device)

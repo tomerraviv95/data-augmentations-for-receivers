@@ -8,6 +8,7 @@ from python_code.augmentations.flipping_augmenter import FlippingAugmenter
 from python_code.augmentations.full_knowledge_augmenter import FullKnowledgeAugmenter
 from python_code.augmentations.no_augmenter import NoAugmenter
 from python_code.augmentations.partial_knowledge_augmenter import PartialKnowledgeAugmenter
+from python_code.utils.python_utils import sample_random_mimo_word
 
 
 class AugmenterWrapper:
@@ -36,4 +37,5 @@ class AugmenterWrapper:
         for augmentation_name in self._augmentations:
             augmenter = self._augmenters_dict[augmentation_name]
             x, y = augmenter.augment(x, y, h, snr, update_hyper_params)
-        return x, y
+        new_received_word, new_transmitted_word = sample_random_mimo_word(x, y, x)
+        return new_received_word, new_transmitted_word

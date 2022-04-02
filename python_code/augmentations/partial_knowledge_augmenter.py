@@ -54,7 +54,7 @@ class PartialKnowledgeAugmenter:
             # compute convolution
             conv = SEDChannel.compute_channel_signal_convolution(h.cpu().numpy(), s).T
             # estimate noise as difference between received and transmitted symbols words
-            w_est = np.mean(received_word.cpu().numpy() - conv, axis=0).reshape(1, -1)
+            w_est = received_word.cpu().numpy() - conv
 
             # generate a random transmitted word
             new_transmitted_word = torch.rand([1,transmitted_word.shape[1]]) >= HALF

@@ -5,7 +5,6 @@ import torch
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER, N_ANT
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
-from python_code.utils.python_utils import sample_random_mimo_word
 from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -61,9 +60,6 @@ class AdaptiveAugmenter:
                                                torch.randn_like(transmitted_word)[state_ind]
             else:
                 raise ValueError("No such channel type!!!")
-        new_received_word, new_transmitted_word = sample_random_mimo_word(new_received_word,
-                                                                          new_transmitted_word,
-                                                                          received_word)
         return new_received_word, new_transmitted_word.int()
 
     def update_centers_stds(self, cur_centers: torch.Tensor, cur_stds: torch.Tensor):

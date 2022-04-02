@@ -14,10 +14,11 @@ if __name__ == '__main__':
     run_over = False  # whether to run over previous results
     plot_type = ChannelModes.MIMO.name  # either SISO (ChannelModes.SISO.name) or MIMO (ChannelModes.MIMO.name)
     trial_num = 1  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
-    methods_list = ['Regular Training',
-                    'SMOTE',
-                    'Flipping',
-                    'Adaptive',
+    methods_list = [
+        # 'Regular Training',
+                    # 'SMOTE',
+                    # 'Flipping',
+                    # 'Adaptive',
                     'Combined',
                     'PK Genie',
                     'FK Genie',
