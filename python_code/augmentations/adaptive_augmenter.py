@@ -6,7 +6,7 @@ from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER, N_AN
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
 from python_code.utils.python_utils import sample_random_mimo_word
-from python_code.utils.trellis_utils import calculate_states, calculate_mimo_states
+from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -43,7 +43,7 @@ class AdaptiveAugmenter:
         new_transmitted_word = torch.rand_like(transmitted_word) >= 0.5
         # calculate states of transmitted, and copy to variable that will hold the new states for the new transmitted
         if conf.channel_type == ChannelModes.SISO.name:
-            new_gt_states = calculate_states(MEMORY_LENGTH, new_transmitted_word)
+            new_gt_states = calculate_siso_states(MEMORY_LENGTH, new_transmitted_word)
         elif conf.channel_type == ChannelModes.MIMO.name:
             new_gt_states = calculate_mimo_states(N_USER, new_transmitted_word)
         else:
@@ -93,7 +93,7 @@ class AdaptiveAugmenter:
         :param transmitted_word: binary word
         :return: updated centers and stds values
         """
-        gt_states = calculate_states(MEMORY_LENGTH, transmitted_word)
+        gt_states = calculate_siso_states(MEMORY_LENGTH, transmitted_word)
         n_states = 2 ** MEMORY_LENGTH
         centers = torch.empty([n_states]).to(device)
         stds = torch.empty([n_states]).to(device)

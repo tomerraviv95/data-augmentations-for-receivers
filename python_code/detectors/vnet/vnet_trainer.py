@@ -4,7 +4,7 @@ from python_code.channel.channels_hyperparams import MEMORY_LENGTH
 from python_code.detectors.trainer import Trainer
 from python_code.detectors.vnet.vnet_detector import VNETDetector
 from python_code.utils.config_singleton import Config
-from python_code.utils.trellis_utils import calculate_states
+from python_code.utils.trellis_utils import calculate_siso_states
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -41,7 +41,7 @@ class VNETTrainer(Trainer):
         :param transmitted_words: [1, transmission_length]
         :return: loss value
         """
-        gt_states = calculate_states(self.memory_length, transmitted_words)
+        gt_states = calculate_siso_states(self.memory_length, transmitted_words)
         loss = self.criterion(input=soft_estimation.reshape(-1, self.n_states), target=gt_states)
         return loss
 
