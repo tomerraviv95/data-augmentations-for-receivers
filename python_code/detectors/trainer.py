@@ -23,7 +23,7 @@ np.random.seed(conf.seed)
 class Trainer(object):
     def __init__(self):
         # initialize matrices, datasets and detector
-        self.initialize_dataloaders()
+        self.initialize_dataloader()
         self.initialize_detector()
         self.augmenter = AugmenterWrapper(conf.aug_type)
         self.softmax = torch.nn.Softmax(dim=1)  # Single symbol probability inference
@@ -67,13 +67,13 @@ class Trainer(object):
         else:
             raise NotImplementedError("No such loss function implemented!!!")
 
-    def initialize_dataloaders(self):
+    def initialize_dataloader(self):
         """
         Sets up the data loader - a generator from which we draw batches, in iterations
         """
-        self.channel_dataset = ChannelModelDataset(block_length=conf.val_block_length, words=conf.val_frames,
-                                                   seed=conf.seed)
-        self.dataloaders = torch.utils.data.DataLoader(self.channel_dataset)
+        self.channel_dataset = ChannelModelDataset(block_length=conf.val_block_length, pilots_length=conf.pilot_size,
+                                                   words=conf.val_frames, seed=conf.seed)
+        self.dataloader = torch.utils.data.DataLoader(self.channel_dataset)
 
     def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor):
         pass

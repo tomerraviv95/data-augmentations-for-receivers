@@ -21,11 +21,13 @@ class FullKnowledgeAugmenter:
 
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
                 update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
-        channel_dataset = ChannelModelDataset(block_length=conf.pilot_size, words=1, seed=random.randint(0, 1e8))
+        channel_dataset = ChannelModelDataset(block_length=conf.pilot_size, pilots_length=conf.pilot_size, words=1,
+                                              seed=random.randint(0, 1e8))
         if conf.channel_type == ChannelModes.SISO.name:
             new_transmitted_word, new_received_word = channel_dataset.siso_transmission(h.cpu().numpy(), snr)
         elif conf.channel_type == ChannelModes.MIMO.name:
             new_transmitted_word, new_received_word = channel_dataset.mimo_transmission(h.cpu().numpy(), snr)
+            new_transmitted_word, new_received_word = new_transmitted_word.T, new_received_word.T
         else:
             raise ValueError("No such channel type!!!")
         return torch.Tensor(new_received_word).to(device), torch.Tensor(new_transmitted_word).to(device)

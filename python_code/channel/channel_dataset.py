@@ -12,6 +12,7 @@ from python_code.channel.modulator import BPSKModulator
 from python_code.channel.sed_channel import SEDChannel
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
+from python_code.utils.trellis_utils import calculate_mimo_states_np
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -23,8 +24,9 @@ class ChannelModelDataset(Dataset):
     Dataset object for the channel. Used in training and evaluation to draw minibatches of channel words and transmitted
     """
 
-    def __init__(self, block_length: int, words: int, seed: int):
+    def __init__(self, block_length: int, pilots_length: int, words: int, seed: int):
         self.block_length = block_length
+        self.pilots_length = pilots_length
         self.words = words if conf.channel_type == ChannelModes.SISO.name else N_ANT * words
         self.bits_generator = default_rng(seed=seed)
         self.h_length = MEMORY_LENGTH if conf.channel_type == ChannelModes.SISO.name else N_ANT
@@ -66,8 +68,17 @@ class ChannelModelDataset(Dataset):
         y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=MEMORY_LENGTH)
         return b, y
 
+    def generate_mimo_pilots(self):
+        b_pilots = self.bits_generator.integers(0, 2, size=(N_USER, self.pilots_length))
+        states = calculate_mimo_states_np(N_USER, b_pilots)
+        if len(np.unique(states)) < 2 ** N_USER:
+            return self.generate_mimo_pilots()
+        return b_pilots
+
     def mimo_transmission(self, h: np.ndarray, snr: float) -> Tuple[np.ndarray, np.ndarray]:
-        b = self.bits_generator.integers(0, 2, size=(N_USER, self.block_length))
+        b_pilots = self.generate_mimo_pilots()
+        b_data = self.bits_generator.integers(0, 2, size=(N_USER, self.block_length - self.pilots_length))
+        b = np.concatenate([b_pilots, b_data], axis=1)
         # modulation
         s = BPSKModulator.modulate(b)
         # pass through channel

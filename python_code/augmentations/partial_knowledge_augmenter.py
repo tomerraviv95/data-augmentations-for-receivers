@@ -57,7 +57,7 @@ class PartialKnowledgeAugmenter:
             w_est = received_word.cpu().numpy() - conv
 
             # generate a random transmitted word
-            new_transmitted_word = torch.rand([1,transmitted_word.shape[1]]) >= HALF
+            new_transmitted_word = torch.rand_like(transmitted_word) >= HALF
             # modulation
             new_s = BPSKModulator.modulate(new_transmitted_word.cpu().numpy().T)
             # compute convolution
