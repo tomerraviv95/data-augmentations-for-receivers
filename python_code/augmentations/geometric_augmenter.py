@@ -15,7 +15,7 @@ conf = Config()
 DEBUG = True
 
 
-class AdaptiveAugmenter:
+class GeometricAugmenter:
     """
     The proposed augmentations scheme. Calculates centers and variances for each class as specified in the paper,
     then smooths the estimate via a window running mean with alpha = 0.3

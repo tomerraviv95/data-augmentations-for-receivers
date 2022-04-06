@@ -1,5 +1,5 @@
 import random
-from typing import Tuple, Union
+from typing import Union
 
 import numpy as np
 import torch
@@ -105,7 +105,7 @@ class Trainer(object):
             # split words into data and pilot part
             x_pilot, x_data = transmitted_word[:, :conf.pilot_size], transmitted_word[:, conf.pilot_size:]
             y_pilot, y_data = received_word[:, :conf.pilot_size], received_word[:, conf.pilot_size:]
-            # if online training flag is on - train using pilots part
+            # if online_plotting is on - plot the augmentations
             if conf.is_online_training:
                 self.online_training(x_pilot, y_pilot, h)
             # detect data part
@@ -121,6 +121,7 @@ class Trainer(object):
         total_ser /= conf.val_frames
         print(f'Final ser: {total_ser}')
         return total_ser
+
 
     def augment_words_wrapper(self, h: torch.Tensor, received_words: torch.Tensor, transmitted_words: torch.Tensor):
         """

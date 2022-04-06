@@ -2,7 +2,7 @@ from typing import Tuple, List
 
 import torch
 
-from python_code.augmentations.adaptive_augmenter import AdaptiveAugmenter
+from python_code.augmentations.geometric_augmenter import GeometricAugmenter
 from python_code.augmentations.border_smote_augmenter import BorderSMOTEAugmenter
 from python_code.augmentations.flipping_augmenter import FlippingAugmenter
 from python_code.augmentations.full_knowledge_augmenter import FullKnowledgeAugmenter
@@ -16,7 +16,7 @@ class AugmenterWrapper:
     def __init__(self, augmentations: List[str]):
         self._augmenters_dict = {'full_knowledge_augmenter': FullKnowledgeAugmenter(),
                                  'partial_knowledge_augmenter': PartialKnowledgeAugmenter(),
-                                 'adaptive_augmenter': AdaptiveAugmenter(),
+                                 'geometric_augmenter': GeometricAugmenter(),
                                  'flipping_augmenter': FlippingAugmenter(),
                                  'border_smote_augmenter': BorderSMOTEAugmenter(),
                                  'no_aug': NoAugmenter()}

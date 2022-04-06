@@ -30,7 +30,7 @@ def get_marker(method_name):
         return 'X'
     elif 'PK Genie' in method_name:
         return 'x'
-    elif 'Adaptive' in method_name:
+    elif 'Geometric' in method_name:
         return '>'
     elif 'Flipping' in method_name:
         return '<'
@@ -51,7 +51,7 @@ def get_color(method_name):
         return 'black'
     elif 'PK Genie' in method_name:
         return 'brown'
-    elif 'Adaptive' in method_name:
+    elif 'Geometric' in method_name:
         return 'orange'
     elif 'Flipping' in method_name:
         return 'pink'
