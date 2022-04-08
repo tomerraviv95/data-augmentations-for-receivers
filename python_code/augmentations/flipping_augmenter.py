@@ -19,8 +19,8 @@ class FlippingAugmenter:
                 update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
         random_ind = randint(a=0, b=1)
         if random_ind == 0:
-            new_transmitted_word = torch.flip(transmitted_word, dims=[0, 1])
-            new_received_word = torch.flip(received_word, dims=[0, 1])
+            new_transmitted_word = torch.flip(transmitted_word, dims=[1])
+            new_received_word = torch.flip(received_word, dims=[1])
         else:
             new_transmitted_word = transmitted_word
             new_received_word = received_word
