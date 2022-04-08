@@ -21,8 +21,6 @@ torch.cuda.manual_seed(conf.seed)
 np.random.seed(conf.seed)
 
 
-
-
 class Trainer(object):
     def __init__(self):
         # initialize matrices, datasets and detector
@@ -142,14 +140,14 @@ class Trainer(object):
         update_hyper_params_flag = True
         for i in range(aug_tx.shape[0]):
             if i < transmitted_words.shape[0]:
-                aug_rx[i], aug_tx[i] = received_words[i],transmitted_words[i]
+                aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]
             else:
                 aug_rx[i], aug_tx[i] = self.augmenter.augment(received_words,
                                                               transmitted_words,
                                                               h, conf.val_snr,
                                                               update_hyper_params=
                                                               update_hyper_params_flag)
-            update_hyper_params_flag = False
+                update_hyper_params_flag = False
         return aug_rx, aug_tx
 
     def run_train_loop(self, soft_estimation: torch.Tensor, transmitted_words: torch.Tensor) -> float:

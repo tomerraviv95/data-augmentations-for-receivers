@@ -15,7 +15,7 @@ online_repeats_n: 500 # number of desired augmented words out of online_total_wo
 val_block_length: 5300 # coherence block time, total size of pilot + data. values: int.
 pilot_size: 300 # pilot symbols
 val_frames: 10 # number of validation frames. values: int.
-val_snr: 12 # start SNR value. values: float.
+val_snr: 10 # start SNR value. values: float.
 eval_mode: 'by_word' # Type of evaluation per block - 'by_word'.
 
 # online training hyperparameters

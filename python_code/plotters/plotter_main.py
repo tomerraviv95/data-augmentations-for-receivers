@@ -11,30 +11,41 @@ RunParams = namedtuple(
 )
 
 if __name__ == '__main__':
-    run_over = True  # whether to run over previous results
+    run_over = False  # whether to run over previous results
     plot_type = ChannelModes.MIMO.name  # either SISO (ChannelModes.SISO.name) or MIMO (ChannelModes.MIMO.name)
-    trial_num = 10  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
+    trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     methods_list = [
-        # 'Regular Training',
-        'Flipping',
+        'Regular Training',
         'Negation',
+        'Flipping',
         'Geometric',
         'Combined',
-        # 'PK Genie',
-        # 'FK Genie',
-        # 'Extended Pilot Regular Training'
+        'PK Genie',
+        'FK Genie',
+        'Extended Pilot Regular Training'
     ]
     run_params_obj = RunParams(run_over=run_over,
                                plot_type=plot_type,
                                trial_num=trial_num)
-    params_dicts = [
-        {'val_snr': 9},
-        {'val_snr': 10},
-        {'val_snr': 11},
-        {'val_snr': 12},
-        {'val_snr': 13}
-    ]
-    label_name = 'SNR'
+    label_name = 'Pilots'
+    if label_name == 'SNR':
+        params_dicts = [
+            {'val_snr': 9},
+            {'val_snr': 10},
+            {'val_snr': 11},
+            {'val_snr': 12},
+            {'val_snr': 13}
+        ]
+    elif label_name == 'Pilots':
+        params_dicts = [
+            {'val_block_length': 5025, 'pilot_size': 25},
+            {'val_block_length': 5050, 'pilot_size': 50},
+            {'val_block_length': 5100, 'pilot_size': 100},
+            {'val_block_length': 5150, 'pilot_size': 150},
+            {'val_block_length': 5200, 'pilot_size': 200}
+        ]
+    else:
+        raise ValueError('No such plot type!!!')
     all_curves = []
 
     for method in methods_list:
