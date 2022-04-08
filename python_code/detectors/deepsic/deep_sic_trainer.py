@@ -1,11 +1,9 @@
 from typing import List
 
-import numpy as np
 import torch
 from torch import nn
 
 from python_code.channel.channels_hyperparams import N_ANT, N_USER
-from python_code.channel.modulator import BPSKModulator
 from python_code.detectors.deepsic.deep_sic_detector import DeepSICDetector
 from python_code.detectors.trainer import Trainer
 from python_code.utils.config_singleton import Config
@@ -36,25 +34,6 @@ def prob_to_symbol(p: torch.Tensor) -> torch.Tensor:
     """
     return torch.sign(p - HALF)
 
-
-colors_dict = {0: 'red', 1: 'orange', 2: 'blue', 3: 'green'}
-
-
-def online_plotting(transmitted_words: torch.Tensor, received_words: torch.Tensor, h: torch.Tensor):
-    import matplotlib.pyplot as plt
-    from matplotlib.pyplot import scatter
-    received_array = received_words.cpu().numpy()
-    transmitted_array = transmitted_words.cpu().numpy()
-    color_codings = np.sum(np.array([2, 1]) * transmitted_array, axis=1)
-    s = BPSKModulator.modulate(transmitted_array)
-    true_received_centers = np.matmul(s, h.cpu().numpy())
-    for color_coding in np.unique(color_codings):
-        print(colors_dict[color_coding])
-        mask = (color_codings == color_coding)
-        scatter(x=received_array[mask, 0], y=received_array[mask, 1], marker='o', c=colors_dict[color_coding])
-        scatter(x=true_received_centers[mask, 0], y=true_received_centers[mask, 1], marker='x',
-                c='black')
-    plt.show()
 
 
 class DeepSICTrainer(Trainer):
@@ -109,9 +88,6 @@ class DeepSICTrainer(Trainer):
             self.initialize_detector()
         b_train, y_train = b_train.T, y_train.T
         y_train, b_train = self.augment_words_wrapper(h, y_train, b_train)
-        # if online training flag is on - train using pilots part
-        if conf.online_plotting:
-            online_plotting(b_train, y_train, h)
         initial_probs = b_train.clone()
         b_train_all, y_train_all = self.prepare_data_for_training(b_train, y_train, initial_probs)
         # Training the DeepSIC network for each user for iteration=1

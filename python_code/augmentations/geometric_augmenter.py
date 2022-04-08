@@ -1,4 +1,3 @@
-import itertools
 from typing import Tuple
 
 import torch
@@ -41,20 +40,6 @@ class GeometricAugmenter:
                 raise ValueError("No such channel type!!!")
             # average the current centers & stds estimates with previous estimates to reduce noise
             self.update_centers_stds(cur_centers, cur_stds)
-
-        # if DEBUG and update_hyper_params:
-        #     genie_bits = torch.Tensor(list(itertools.product([0, 1], repeat=4))).to(device)
-        #     genie_gt_states = calculate_mimo_states(N_USER, genie_bits)
-        #     genie_symbols = (-1) ** genie_bits
-        #     reordered_genie_symbols = genie_symbols[genie_gt_states]
-        #     genie_centers = torch.matmul(h, reordered_genie_symbols.T).T
-        #     zero_ind = torch.sum(torch.abs(self._centers), dim=1) == 0
-        #     print(zero_ind, torch.sum(torch.abs(self._centers), dim=1), torch.sum(torch.abs(self._stds), dim=1))
-        #     self._centers[zero_ind] = genie_centers[zero_ind]
-        #     self._centers = genie_centers
-        #     n_states = 2 ** N_USER
-        #     state_size = N_ANT
-        #     self._stds = torch.zeros([n_states, state_size]).to(device)
 
         new_transmitted_word = torch.rand_like(transmitted_word) >= 0.5
         # calculate states of transmitted, and copy to variable that will hold the new states for the new transmitted

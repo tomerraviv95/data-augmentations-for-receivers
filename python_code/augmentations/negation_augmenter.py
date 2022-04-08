@@ -20,5 +20,4 @@ class NegationAugmenter:
         random_ind = randint(a=0, b=1)
         new_transmitted_word = (1 - random_ind) * transmitted_word + random_ind * (1 - transmitted_word)
         new_received_word = (-1) ** random_ind * received_word
-
         return new_received_word, new_transmitted_word

@@ -15,14 +15,14 @@ if __name__ == '__main__':
     plot_type = ChannelModes.MIMO.name  # either SISO (ChannelModes.SISO.name) or MIMO (ChannelModes.MIMO.name)
     trial_num = 10  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     methods_list = [
-        'Regular Training',
-        'SMOTE',
+        # 'Regular Training',
         'Flipping',
+        'Negation',
         'Geometric',
         'Combined',
-        'PK Genie',
-        'FK Genie',
-        'Extended Pilot Regular Training'
+        # 'PK Genie',
+        # 'FK Genie',
+        # 'Extended Pilot Regular Training'
     ]
     run_params_obj = RunParams(run_over=run_over,
                                plot_type=plot_type,

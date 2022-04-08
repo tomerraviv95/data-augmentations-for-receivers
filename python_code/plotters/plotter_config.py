@@ -34,7 +34,7 @@ def get_marker(method_name):
         return '>'
     elif 'Flipping' in method_name:
         return '<'
-    elif 'SMOTE' in method_name:
+    elif 'Negation' in method_name:
         return 'v'
     elif 'Combined' in method_name:
         return 'D'
@@ -55,7 +55,7 @@ def get_color(method_name):
         return 'orange'
     elif 'Flipping' in method_name:
         return 'pink'
-    elif 'SMOTE' in method_name:
+    elif 'Negation' in method_name:
         return 'green'
     elif 'Combined' in method_name:
         return 'red'

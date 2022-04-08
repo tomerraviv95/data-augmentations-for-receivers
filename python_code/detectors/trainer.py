@@ -7,6 +7,7 @@ from torch.nn import CrossEntropyLoss, MSELoss
 from torch.optim import RMSprop, Adam, SGD
 
 from python_code.augmentations.augmenter_wrapper import AugmenterWrapper
+from python_code.augmentations.plotting_utils import online_plotting
 from python_code.channel.channel_dataset import ChannelModelDataset
 from python_code.utils.config_singleton import Config
 from python_code.utils.metrics import calculate_error_rates
@@ -18,6 +19,8 @@ random.seed(conf.seed)
 torch.manual_seed(conf.seed)
 torch.cuda.manual_seed(conf.seed)
 np.random.seed(conf.seed)
+
+
 
 
 class Trainer(object):
@@ -122,7 +125,6 @@ class Trainer(object):
         print(f'Final ser: {total_ser}')
         return total_ser
 
-
     def augment_words_wrapper(self, h: torch.Tensor, received_words: torch.Tensor, transmitted_words: torch.Tensor):
         """
         The main augmentation function, used to augment each pilot in the evaluation phase.
@@ -139,15 +141,14 @@ class Trainer(object):
         aug_rx = torch.empty([n_repeats, received_words.shape[1]]).to(device)
         update_hyper_params_flag = True
         for i in range(aug_tx.shape[0]):
-            upd_idx = i % n_repeats
-            if i < n_repeats:
+            if i < transmitted_words.shape[0]:
+                aug_rx[i], aug_tx[i] = received_words[i],transmitted_words[i]
+            else:
                 aug_rx[i], aug_tx[i] = self.augmenter.augment(received_words,
                                                               transmitted_words,
                                                               h, conf.val_snr,
                                                               update_hyper_params=
                                                               update_hyper_params_flag)
-            else:
-                aug_rx[i], aug_tx[i] = aug_rx[upd_idx].reshape(1, -1), aug_tx[upd_idx].reshape(1, -1)
             update_hyper_params_flag = False
         return aug_rx, aug_tx
 
@@ -164,3 +165,22 @@ class Trainer(object):
         loss.backward()
         self.optimizer.step()
         return current_loss
+
+    def plot_regions(self):
+        # draw words of given gamma for all snrs
+        transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr])
+        for frame in range(conf.val_frames):
+            # get current word and channel
+            start_ind = frame * self.n_ant
+            end_ind = (frame + 1) * self.n_ant
+            transmitted_word = transmitted_words[start_ind:end_ind]
+            received_word = received_words[start_ind:end_ind]
+            h = hs[start_ind:end_ind]
+            # split words into data and pilot part
+            x_pilot, x_data = transmitted_word[:, :conf.pilot_size], transmitted_word[:, conf.pilot_size:]
+            y_pilot, y_data = received_word[:, :conf.pilot_size], received_word[:, conf.pilot_size:]
+
+            b_train, y_train = x_pilot.T, y_pilot.T
+            y_train, b_train = self.augment_words_wrapper(h, y_train, b_train)
+            # if online training flag is on - train using pilots part
+            online_plotting(b_train, y_train, h)
