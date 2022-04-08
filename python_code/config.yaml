@@ -7,15 +7,15 @@ channel_type: 'MIMO' # Channel type values: ['SISO','MIMO']. For this paper, we 
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
 
 # augmentations
-# ['no_aug','full_knowledge_augmenter','partial_knowledge_augmenter','geometric_augmenter','flipping_augmenter','border_smote_augmenter']
-aug_type: ['geometric_augmenter']
+# ['no_aug','full_knowledge_augmenter','partial_knowledge_augmenter','geometric_augmenter','negation_augmenter','flipping_augmenter']
+aug_type: ['flipping_augmenter']
 online_repeats_n: 300 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
 
 # validation hyperparameters
 val_block_length: 5100 # coherence block time, total size of pilot + data. values: int.
 pilot_size: 100 # pilot symbols
 val_frames: 10 # number of validation frames. values: int.
-val_snr: 12 # start SNR value. values: float.
+val_snr: 11 # start SNR value. values: float.
 eval_mode: 'by_word' # Type of evaluation per block - 'by_word'.
 
 # online training hyperparameters
@@ -27,4 +27,4 @@ optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
 from_scratch_flag: True # whether to initialize the detector at each new channel instance (True) or continue from previous weights (False)
 
 # extra
-online_plotting: True # whether to plot online the augmentation scheme
+online_plotting: False # whether to plot online the augmentation scheme

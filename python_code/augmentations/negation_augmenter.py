@@ -10,7 +10,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conf = Config()
 
 
-class FlippingAugmenter:
+class NegationAugmenter:
     """
     No augmentations class, return the received and transmitted pairs. Implemented for completeness.
     """
@@ -18,11 +18,7 @@ class FlippingAugmenter:
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
                 update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
         random_ind = randint(a=0, b=1)
-        if random_ind == 0:
-            new_transmitted_word = torch.flip(transmitted_word, dims=[0, 1])
-            new_received_word = torch.flip(received_word, dims=[0, 1])
-        else:
-            new_transmitted_word = transmitted_word
-            new_received_word = received_word
+        new_transmitted_word = (1 - random_ind) * transmitted_word + random_ind * (1 - transmitted_word)
+        new_received_word = (-1) ** random_ind * received_word
 
         return new_received_word, new_transmitted_word

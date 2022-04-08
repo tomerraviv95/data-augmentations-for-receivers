@@ -45,14 +45,15 @@ def online_plotting(transmitted_words: torch.Tensor, received_words: torch.Tenso
     from matplotlib.pyplot import scatter
     received_array = received_words.cpu().numpy()
     transmitted_array = transmitted_words.cpu().numpy()
-    color_codings = np.sum(transmitted_words, axis=1)
+    color_codings = np.sum(np.array([2, 1]) * transmitted_array, axis=1)
     s = BPSKModulator.modulate(transmitted_array)
     true_received_centers = np.matmul(s, h.cpu().numpy())
     for color_coding in np.unique(color_codings):
+        print(colors_dict[color_coding])
         mask = (color_codings == color_coding)
         scatter(x=received_array[mask, 0], y=received_array[mask, 1], marker='o', c=colors_dict[color_coding])
         scatter(x=true_received_centers[mask, 0], y=true_received_centers[mask, 1], marker='x',
-                c=colors_dict[color_coding])
+                c='black')
     plt.show()
 
 
