@@ -12,7 +12,7 @@ from python_code.channel.modulator import BPSKModulator
 from python_code.channel.sed_channel import SEDChannel
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
-from python_code.utils.trellis_utils import calculate_mimo_states_np
+from python_code.utils.trellis_utils import calculate_mimo_states, calculate_siso_states
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -58,8 +58,25 @@ class ChannelModelDataset(Dataset):
 
         database.append((b_full, y_full, h_full))
 
+    def generate_all_classes_pilots(self):
+        if conf.channel_type == ChannelModes.SISO.name:
+            b_pilots = self.bits_generator.integers(0, 2, size=(1, self.pilots_length)).reshape(1, -1)
+            states = calculate_siso_states(MEMORY_LENGTH, torch.Tensor(b_pilots).to(device)).cpu().numpy()
+            n_unique = 2 ** MEMORY_LENGTH
+        elif conf.channel_type == ChannelModes.MIMO.name:
+            b_pilots = self.bits_generator.integers(0, 2, size=(N_USER, self.pilots_length))
+            states = calculate_mimo_states(N_USER, torch.Tensor(b_pilots).T.to(device)).cpu().numpy()
+            n_unique = 2 ** N_USER
+        else:
+            raise ValueError("No such channel type!!!")
+        if len(np.unique(states)) < n_unique:
+            return self.generate_all_classes_pilots()
+        return b_pilots
+
     def siso_transmission(self, h: np.ndarray, snr: float) -> Tuple[np.ndarray, np.ndarray]:
-        b = self.bits_generator.integers(0, 2, size=(1, self.block_length)).reshape(1, -1)
+        b_pilots = self.generate_all_classes_pilots()
+        b_data = self.bits_generator.integers(0, 2, size=(1, self.block_length - self.pilots_length))
+        b = np.concatenate([b_pilots, b_data], axis=1).reshape(1, -1)
         # add zero bits
         padded_b = np.concatenate([b, np.zeros([b.shape[0], MEMORY_LENGTH])], axis=1)
         # modulation
@@ -68,15 +85,8 @@ class ChannelModelDataset(Dataset):
         y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=MEMORY_LENGTH)
         return b, y
 
-    def generate_mimo_pilots(self):
-        b_pilots = self.bits_generator.integers(0, 2, size=(N_USER, self.pilots_length))
-        states = calculate_mimo_states_np(N_USER, b_pilots)
-        if len(np.unique(states)) < 2 ** N_USER:
-            return self.generate_mimo_pilots()
-        return b_pilots
-
     def mimo_transmission(self, h: np.ndarray, snr: float) -> Tuple[np.ndarray, np.ndarray]:
-        b_pilots = self.generate_mimo_pilots()
+        b_pilots = self.generate_all_classes_pilots()
         b_data = self.bits_generator.integers(0, 2, size=(N_USER, self.block_length - self.pilots_length))
         b = np.concatenate([b_pilots, b_data], axis=1)
         # modulation

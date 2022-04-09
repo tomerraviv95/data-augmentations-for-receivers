@@ -40,7 +40,7 @@ def get_ser_plot(dec: Trainer, run_over: bool, method_name: str, trial=None):
     return ser_total
 
 
-def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_name, values: List[float]):
+def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_name, values: List[float], ylabel: str):
     # path for the saved figure
     current_day_time = datetime.datetime.now()
     folder_name = f'{current_day_time.month}-{current_day_time.day}-{current_day_time.hour}-{current_day_time.minute}'
@@ -53,6 +53,7 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_n
         if all_curves[i][1] not in names:
             names.append(all_curves[i][1])
 
+    mean_sers_dict = {}
     for method_name in names:
         mean_sers = []
         for ser, cur_name in all_curves:
@@ -60,14 +61,25 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_n
             if cur_name != method_name:
                 continue
             mean_sers.append(mean_ser)
-        plt.plot(values, mean_sers, label=method_name,
-                 color=get_color(method_name),
-                 marker=get_marker(method_name),
-                 linestyle=get_linestyle(method_name), linewidth=2.2)
+        mean_sers_dict[method_name] = mean_sers
+
+    for method_name in names:
+        if field_name == 'SNR':
+            plt.plot(values, mean_sers_dict[method_name], label=method_name,
+                     color=get_color(method_name),
+                     marker=get_marker(method_name),
+                     linestyle=get_linestyle(method_name), linewidth=2.2)
+        elif field_name == 'Pilots':
+            plt.plot(values,
+                     -np.log(np.array(mean_sers_dict[method_name]) / np.array(mean_sers_dict['DeepSIC - Regular Training'])),
+                     label=method_name,
+                     color=get_color(method_name),
+                     marker=get_marker(method_name),
+                     linestyle=get_linestyle(method_name), linewidth=2.2)
 
     plt.xticks(values, values)
     plt.xlabel(field_name)
-    plt.ylabel('BER')
+    plt.ylabel(ylabel)
     plt.grid(which='both', ls='--')
     plt.legend(loc='lower left', prop={'size': 15})
     plt.yscale('log')

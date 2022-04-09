@@ -12,18 +12,8 @@ RunParams = namedtuple(
 
 if __name__ == '__main__':
     run_over = False  # whether to run over previous results
-    plot_type = ChannelModes.MIMO.name  # either SISO (ChannelModes.SISO.name) or MIMO (ChannelModes.MIMO.name)
+    plot_type = ChannelModes.SISO.name  # either SISO (ChannelModes.SISO.name) or MIMO (ChannelModes.MIMO.name)
     trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
-    methods_list = [
-        'Regular Training',
-        'Negation',
-        'Flipping',
-        'Geometric',
-        'Combined',
-        'PK Genie',
-        # 'FK Genie',
-        # 'Extended Pilot Regular Training'
-    ]
     run_params_obj = RunParams(run_over=run_over,
                                plot_type=plot_type,
                                trial_num=trial_num)
@@ -47,6 +37,7 @@ if __name__ == '__main__':
             'Extended Pilot Regular Training'
         ]
         plot_by_field = 'val_snr'
+        ylabel = 'BER'
     elif label_name == 'Pilots':
         params_dicts = [
             {'val_block_length': 5025, 'pilot_size': 25},
@@ -65,6 +56,7 @@ if __name__ == '__main__':
             # 'FK Genie'
         ]
         plot_by_field = 'pilot_size'
+        ylabel = '-log( BER(Method) / BER(Regular) )'
     else:
         raise ValueError('No such plot type!!!')
     all_curves = []
@@ -74,5 +66,4 @@ if __name__ == '__main__':
         for params_dict in params_dicts:
             print(params_dict)
             compute_ser_for_method(all_curves, method, params_dict, run_params_obj)
-
-    plot_by_values(all_curves, label_name, [params_dict[plot_by_field] for params_dict in params_dicts])
+    plot_by_values(all_curves, label_name, [params_dict[plot_by_field] for params_dict in params_dicts], ylabel)
