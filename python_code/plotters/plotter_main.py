@@ -21,8 +21,8 @@ if __name__ == '__main__':
         'Geometric',
         'Combined',
         'PK Genie',
-        'FK Genie',
-        'Extended Pilot Regular Training'
+        # 'FK Genie',
+        # 'Extended Pilot Regular Training'
     ]
     run_params_obj = RunParams(run_over=run_over,
                                plot_type=plot_type,
@@ -36,6 +36,17 @@ if __name__ == '__main__':
             {'val_snr': 12},
             {'val_snr': 13}
         ]
+        methods_list = [
+            'Regular Training',
+            'Negation',
+            'Flipping',
+            'Geometric',
+            'Combined',
+            'PK Genie',
+            'FK Genie',
+            'Extended Pilot Regular Training'
+        ]
+        plot_by_field = 'val_snr'
     elif label_name == 'Pilots':
         params_dicts = [
             {'val_block_length': 5025, 'pilot_size': 25},
@@ -44,6 +55,16 @@ if __name__ == '__main__':
             {'val_block_length': 5150, 'pilot_size': 150},
             {'val_block_length': 5200, 'pilot_size': 200}
         ]
+        methods_list = [
+            'Regular Training',
+            'Negation',
+            'Flipping',
+            'Geometric',
+            'Combined',
+            'PK Genie',
+            # 'FK Genie'
+        ]
+        plot_by_field = 'pilot_size'
     else:
         raise ValueError('No such plot type!!!')
     all_curves = []
@@ -54,4 +75,4 @@ if __name__ == '__main__':
             print(params_dict)
             compute_ser_for_method(all_curves, method, params_dict, run_params_obj)
 
-    plot_by_values(all_curves, label_name, [list(params_dict.values())[0] for params_dict in params_dicts])
+    plot_by_values(all_curves, label_name, [params_dict[plot_by_field] for params_dict in params_dicts])
