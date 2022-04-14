@@ -17,7 +17,7 @@ if __name__ == '__main__':
     run_params_obj = RunParams(run_over=run_over,
                                plot_type=plot_type,
                                trial_num=trial_num)
-    label_name = 'Pilots'
+    label_name = 'SNR'
     if label_name == 'SNR':
         params_dicts = [
             {'val_snr': 9},
@@ -29,7 +29,7 @@ if __name__ == '__main__':
         methods_list = [
             'Regular Training',
             'Negation',
-            'Flipping',
+            'Translation',
             'Geometric',
             'Combined',
             'PK Genie',
@@ -49,11 +49,11 @@ if __name__ == '__main__':
         methods_list = [
             'Regular Training',
             'Negation',
-            'Flipping',
+            'Translation',
             'Geometric',
             'Combined',
             'PK Genie',
-            # 'FK Genie'
+            'FK Genie'
         ]
         plot_by_field = 'pilot_size'
         ylabel = '-log( BER(Method) / BER(Regular) )'

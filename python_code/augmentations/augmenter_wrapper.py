@@ -2,12 +2,12 @@ from typing import Tuple, List
 
 import torch
 
-from python_code.augmentations.flipping_augmenter import FlippingAugmenter
 from python_code.augmentations.full_knowledge_augmenter import FullKnowledgeAugmenter
 from python_code.augmentations.geometric_augmenter import GeometricAugmenter
 from python_code.augmentations.negation_augmenter import NegationAugmenter
 from python_code.augmentations.no_augmenter import NoAugmenter
 from python_code.augmentations.partial_knowledge_augmenter import PartialKnowledgeAugmenter
+from python_code.augmentations.translation_augmenter import TranslationAugmenter
 from python_code.utils.python_utils import sample_random_mimo_word
 
 
@@ -18,7 +18,7 @@ class AugmenterWrapper:
                                  'partial_knowledge_augmenter': PartialKnowledgeAugmenter(),
                                  'geometric_augmenter': GeometricAugmenter(),
                                  'negation_augmenter': NegationAugmenter(),
-                                 'flipping_augmenter': FlippingAugmenter(),
+                                 'translation_augmenter': TranslationAugmenter(),
                                  'no_aug': NoAugmenter()}
         self._augmentations = augmentations
 

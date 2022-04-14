@@ -7,7 +7,7 @@ channel_type: 'MIMO' # Channel type values: ['SISO','MIMO']. For this paper, we 
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
 
 # augmentations
-# ['no_aug','full_knowledge_augmenter','partial_knowledge_augmenter','geometric_augmenter','flipping_augmenter','border_smote_augmenter']
+# ['no_aug','full_knowledge_augmenter','partial_knowledge_augmenter','geometric_augmenter','translation_augmenter','border_smote_augmenter']
 aug_type: ['negation_augmenter']
 online_repeats_n: 500 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
 

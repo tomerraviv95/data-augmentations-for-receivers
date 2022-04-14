@@ -32,7 +32,7 @@ def get_marker(method_name):
         return 'x'
     elif 'Geometric' in method_name:
         return '>'
-    elif 'Flipping' in method_name:
+    elif 'Translation' in method_name:
         return '<'
     elif 'Negation' in method_name:
         return 'v'
