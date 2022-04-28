@@ -9,6 +9,7 @@ from dir_definitions import FIGURES_DIR, PLOTS_DIR
 from python_code.detectors.trainer import Trainer
 from python_code.plotters.plotter_config import get_color, get_marker, get_linestyle
 from python_code.utils.config_singleton import Config
+from python_code.utils.constants import ChannelModes
 from python_code.utils.python_utils import load_pkl, save_pkl
 
 conf = Config()
@@ -70,8 +71,11 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_n
                      marker=get_marker(method_name),
                      linestyle=get_linestyle(method_name), linewidth=2.2)
         elif field_name == 'Pilots':
+            mean_vals = np.array(mean_sers_dict[
+                                     'DeepSIC - Regular Training']) if conf.channel_type == ChannelModes.MIMO.name else \
+                np.array(mean_sers_dict['ViterbiNet - Regular Training'])
             plt.plot(values,
-                     -np.log(np.array(mean_sers_dict[method_name]) / np.array(mean_sers_dict['DeepSIC - Regular Training'])),
+                     -np.log(np.array(mean_sers_dict[method_name]) / mean_vals),
                      label=method_name,
                      color=get_color(method_name),
                      marker=get_marker(method_name),

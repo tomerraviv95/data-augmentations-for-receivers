@@ -39,7 +39,7 @@ class TranslationAugmenter:
             # average the current centers & stds estimates with previous estimates to reduce noise
             self.update_centers(cur_centers)
 
-        new_transmitted_word = torch.rand_like(transmitted_word) >= 0.5
+        new_transmitted_word = torch.rand(transmitted_word.shape).to(device) >= 0.5
         # calculate states of transmitted, and copy to variable that will hold the new states for the new transmitted
         if conf.channel_type == ChannelModes.SISO.name:
             gt_states = calculate_siso_states(MEMORY_LENGTH, transmitted_word)

@@ -53,7 +53,7 @@ def get_color(method_name):
         return 'brown'
     elif 'Geometric' in method_name:
         return 'orange'
-    elif 'Flipping' in method_name:
+    elif 'Translation' in method_name:
         return 'pink'
     elif 'Negation' in method_name:
         return 'green'

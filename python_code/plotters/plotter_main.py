@@ -11,7 +11,7 @@ RunParams = namedtuple(
 )
 
 if __name__ == '__main__':
-    run_over = False  # whether to run over previous results
+    run_over = True  # whether to run over previous results
     plot_type = ChannelModes.SISO.name  # either SISO (ChannelModes.SISO.name) or MIMO (ChannelModes.MIMO.name)
     trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
@@ -20,21 +20,21 @@ if __name__ == '__main__':
     label_name = 'SNR'
     if label_name == 'SNR':
         params_dicts = [
-            {'val_snr': 9},
-            {'val_snr': 10},
+            # {'val_snr': 9},
+            # {'val_snr': 10},
             {'val_snr': 11},
             {'val_snr': 12},
             {'val_snr': 13}
         ]
         methods_list = [
-            'Regular Training',
+            # 'Regular Training',
             'Negation',
             'Translation',
-            'Geometric',
+            # 'Geometric',
             'Combined',
-            'PK Genie',
-            'FK Genie',
-            'Extended Pilot Regular Training'
+            # 'PK Genie',
+            # 'FK Genie',
+            # 'Extended Pilot Regular Training'
         ]
         plot_by_field = 'val_snr'
         ylabel = 'BER'
