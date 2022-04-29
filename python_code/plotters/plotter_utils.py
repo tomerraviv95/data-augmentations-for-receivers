@@ -66,7 +66,7 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_n
 
     for method_name in names:
         if field_name == 'SNR':
-            plt.plot(values, mean_sers_dict[method_name], label=method_name,
+            plt.plot(values, mean_sers_dict[method_name], label=method_name.split('-')[1][1:],
                      color=get_color(method_name),
                      marker=get_marker(method_name),
                      linestyle=get_linestyle(method_name), linewidth=2.2)

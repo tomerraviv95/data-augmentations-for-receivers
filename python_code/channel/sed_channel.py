@@ -1,6 +1,9 @@
 import numpy as np
 
 from python_code.channel.channels_hyperparams import N_ANT
+from python_code.utils.config_singleton import Config
+
+conf = Config()
 
 
 class SEDChannel:
@@ -29,6 +32,8 @@ class SEDChannel:
         sigma = 10 ** (-0.1 * snr)
         w = np.sqrt(sigma) * np.random.randn(N_ANT, s.shape[1])
         y = conv + w
+        if not conf.linear_channel:
+            y = np.tanh(0.5 * y)
         return y
 
     @staticmethod
