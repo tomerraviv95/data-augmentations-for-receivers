@@ -19,8 +19,7 @@ class FullKnowledgeAugmenter:
     generate new random words from this channel
     """
 
-    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
-                update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
+    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
         channel_dataset = ChannelModelDataset(block_length=conf.pilot_size, pilots_length=conf.pilot_size, words=1,
                                               seed=random.randint(0, 1e8))
         if conf.channel_type == ChannelModes.SISO.name:

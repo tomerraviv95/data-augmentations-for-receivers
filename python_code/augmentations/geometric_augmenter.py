@@ -20,27 +20,17 @@ class GeometricAugmenter:
     then smooths the estimate via a window running mean with alpha = 0.3
     """
 
-    def __init__(self):
+    def __init__(self, received_word: torch.Tensor, transmitted_word: torch.Tensor):
         super().__init__()
-        self._centers = None
-        self._stds = None
-        self._alpha1 = 1  # mean smoothing hyperparameter
-        self._alpha2 = 1  # std smoothing hyperparameter
+        if conf.channel_type == ChannelModes.SISO.name:
+            self._centers, self._stds = self.estimate_siso_params(received_word, transmitted_word)
+        elif conf.channel_type == ChannelModes.MIMO.name:
+            self._centers, self._stds = self.estimate_mimo_params(received_word, transmitted_word)
+        else:
+            raise ValueError("No such channel type!!!")
 
-    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
-                update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
-        # if pilot, then update_hyper_params is True and we update the centers and stds internal parameters
-        if update_hyper_params:
-            # first calculate estimated noise pattern
-            if conf.channel_type == ChannelModes.SISO.name:
-                cur_centers, cur_stds = self.estimate_siso_params(received_word, transmitted_word)
-            elif conf.channel_type == ChannelModes.MIMO.name:
-                cur_centers, cur_stds = self.estimate_mimo_params(received_word, transmitted_word)
-            else:
-                raise ValueError("No such channel type!!!")
-            # average the current centers & stds estimates with previous estimates to reduce noise
-            self.update_centers_stds(cur_centers, cur_stds)
-
+    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float) -> \
+            Tuple[torch.Tensor, torch.Tensor]:
         new_transmitted_word = torch.rand_like(transmitted_word) >= 0.5
         # calculate states of transmitted, and copy to variable that will hold the new states for the new transmitted
         if conf.channel_type == ChannelModes.SISO.name:
@@ -64,25 +54,6 @@ class GeometricAugmenter:
                 raise ValueError("No such channel type!!!")
 
         return new_received_word, new_transmitted_word.int()
-
-    def update_centers_stds(self, cur_centers: torch.Tensor, cur_stds: torch.Tensor):
-        """
-        Update the parameters via temporal smoothing over a window with parameter alpha
-        :param cur_centers: jth step estimated centers
-        :param cur_stds:  jth step estimated stds
-        :return: smoothed centers and stds vectors
-        """
-
-        # self._centers = cur_centers
-        if self._centers is not None:
-            self._centers = self._alpha1 * cur_centers + (1 - self._alpha1) * self._centers
-        else:
-            self._centers = cur_centers
-
-        if self._stds is not None:
-            self._stds = self._alpha2 * cur_stds + (1 - self._alpha2) * self._stds
-        else:
-            self._stds = cur_stds
 
     def estimate_siso_params(self, received_word: torch.Tensor, transmitted_word: torch.Tensor) -> Tuple[
         torch.Tensor, torch.Tensor]:

@@ -24,8 +24,8 @@ class PartialKnowledgeAugmenter:
     but with the noise estimated from the received and transmitted pairs.
     """
 
-    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float,
-                update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
+    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float) -> \
+    Tuple[torch.Tensor, torch.Tensor]:
         if conf.channel_type == ChannelModes.SISO.name:
             # add zero bits
             padded_b = np.concatenate(

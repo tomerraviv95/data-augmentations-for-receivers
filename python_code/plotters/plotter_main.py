@@ -20,16 +20,16 @@ if __name__ == '__main__':
     label_name = 'SNR'
     if label_name == 'SNR':
         params_dicts = [
-            # {'val_snr': 9},
-            # {'val_snr': 10},
-            {'val_snr': 11},
-            {'val_snr': 12},
-            {'val_snr': 13}
+            {'val_snr': 9},
+            {'val_snr': 10},
+            # {'val_snr': 11},
+            # {'val_snr': 12},
+            # {'val_snr': 13}
         ]
         methods_list = [
             # 'Regular Training',
-            'Negation',
-            'Translation',
+            # 'Negation',
+            # 'Translation',
             # 'Geometric',
             'Combined',
             # 'PK Genie',

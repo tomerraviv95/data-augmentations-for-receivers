@@ -26,7 +26,6 @@ class Trainer(object):
         # initialize matrices, datasets and detector
         self.initialize_dataloader()
         self.initialize_detector()
-        self.augmenter = AugmenterWrapper(conf.aug_type)
         self.softmax = torch.nn.Softmax(dim=1)  # Single symbol probability inference
 
     def get_name(self):
@@ -91,6 +90,7 @@ class Trainer(object):
         data blocks for the paper.
         :return: np.ndarray
         """
+        print(conf.aug_type)
         total_ser = 0
         # draw words of given gamma for all snrs
         transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr])
@@ -137,17 +137,14 @@ class Trainer(object):
         n_repeats = conf.online_repeats_n
         aug_tx = torch.empty([n_repeats, transmitted_words.shape[1]]).to(device)
         aug_rx = torch.empty([n_repeats, received_words.shape[1]]).to(device)
-        update_hyper_params_flag = True
+        augmenter = AugmenterWrapper(conf.aug_type, received_words, transmitted_words)
         for i in range(aug_tx.shape[0]):
-            if i < transmitted_words.shape[0]:
+            if 1 < i < transmitted_words.shape[0]:
                 aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]
             else:
-                aug_rx[i], aug_tx[i] = self.augmenter.augment(received_words,
-                                                              transmitted_words,
-                                                              h, conf.val_snr,
-                                                              update_hyper_params=
-                                                              update_hyper_params_flag)
-                update_hyper_params_flag = False
+                aug_rx[i], aug_tx[i] = augmenter.augment(received_words,
+                                                         transmitted_words,
+                                                         h, conf.val_snr)
         return aug_rx, aug_tx
 
     def run_train_loop(self, soft_estimation: torch.Tensor, transmitted_words: torch.Tensor) -> float:

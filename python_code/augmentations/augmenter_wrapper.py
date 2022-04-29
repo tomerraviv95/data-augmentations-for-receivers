@@ -13,29 +13,28 @@ from python_code.utils.python_utils import sample_random_mimo_word
 
 class AugmenterWrapper:
 
-    def __init__(self, augmentations: List[str]):
+    def __init__(self, augmentations: List[str], received_word, transmitted_word):
         self._augmenters_dict = {'full_knowledge_augmenter': FullKnowledgeAugmenter(),
                                  'partial_knowledge_augmenter': PartialKnowledgeAugmenter(),
-                                 'geometric_augmenter': GeometricAugmenter(),
+                                 'geometric_augmenter': GeometricAugmenter(received_word, transmitted_word),
                                  'negation_augmenter': NegationAugmenter(),
-                                 'translation_augmenter': TranslationAugmenter(),
+                                 'translation_augmenter': TranslationAugmenter(received_word, transmitted_word),
                                  'no_aug': NoAugmenter()}
         self._augmentations = augmentations
 
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor,
-                h: torch.Tensor, snr: float, update_hyper_params: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
+                h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Augment the received word using one of the given augmentations methods.
         :param received_word: Tensor of float values
         :param transmitted_word: Ground truth transmitted word
         :param h: float function
         :param snr: signal to noise ratio value
-        :param update_hyper_params: whether to update the hyper parameters of an augmentation scheme
         :return: the augmented received and transmitted pairs
         """
         x, y = received_word, transmitted_word
         for augmentation_name in self._augmentations:
             augmenter = self._augmenters_dict[augmentation_name]
-            x, y = augmenter.augment(x, y, h, snr, update_hyper_params)
+            x, y = augmenter.augment(x, y, h, snr)
         new_received_word, new_transmitted_word = sample_random_mimo_word(x, y, x)
         return new_received_word, new_transmitted_word
