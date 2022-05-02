@@ -42,7 +42,7 @@ class ISIAWGNChannel:
         [row, col] = conv.shape
         w = ISIAWGNChannel.sample_noise_vector(row, col, snr)
         y = conv + w
-        if not conf.linear_channel:
+        if not conf.linear:
             y = np.tanh(0.5 * y)
         return y
 

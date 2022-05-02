@@ -1,3 +1,4 @@
+from random import randint
 from typing import Tuple, List
 
 import torch
@@ -8,12 +9,11 @@ from python_code.augmentations.negation_augmenter import NegationAugmenter
 from python_code.augmentations.no_augmenter import NoAugmenter
 from python_code.augmentations.partial_knowledge_augmenter import PartialKnowledgeAugmenter
 from python_code.augmentations.translation_augmenter import TranslationAugmenter
-from python_code.utils.python_utils import sample_random_mimo_word
 
 
 class AugmenterWrapper:
 
-    def __init__(self, augmentations: List[str], received_word, transmitted_word):
+    def __init__(self, augmentations: List[str], received_word: torch.Tensor, transmitted_word: torch.Tensor):
         self._augmenters_dict = {'full_knowledge_augmenter': FullKnowledgeAugmenter(),
                                  'partial_knowledge_augmenter': PartialKnowledgeAugmenter(),
                                  'geometric_augmenter': GeometricAugmenter(received_word, transmitted_word),
@@ -32,9 +32,9 @@ class AugmenterWrapper:
         :param snr: signal to noise ratio value
         :return: the augmented received and transmitted pairs
         """
-        x, y = received_word, transmitted_word
+        random_ind = randint(a=0, b=received_word.shape[0]-1)
+        x, y = received_word[random_ind].reshape(1, -1), transmitted_word[random_ind].reshape(1, -1)
         for augmentation_name in self._augmentations:
             augmenter = self._augmenters_dict[augmentation_name]
             x, y = augmenter.augment(x, y, h, snr)
-        new_received_word, new_transmitted_word = sample_random_mimo_word(x, y, x)
-        return new_received_word, new_transmitted_word
+        return x, y

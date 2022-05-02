@@ -17,8 +17,8 @@ if __name__ == '__main__':
     run_params_obj = RunParams(run_over=run_over,
                                plot_type=plot_type,
                                trial_num=trial_num)
-    label_name = 'SNR'
-    if label_name == 'SNR':
+    label_name = 'SNR_non_linear'
+    if label_name == 'SNR_linear':
         params_dicts = [
             {'val_snr': 9},
             {'val_snr': 10},
@@ -37,7 +37,27 @@ if __name__ == '__main__':
             'Extended Pilot Regular Training'
         ]
         plot_by_field = 'val_snr'
-        ylabel = 'BER'
+        ylabel = 'SER'
+    elif label_name == 'SNR_non_linear':
+        params_dicts = [
+            {'val_snr': 9, 'linearity': False},
+            {'val_snr': 10, 'linearity': False},
+            {'val_snr': 11, 'linearity': False},
+            {'val_snr': 12, 'linearity': False},
+            {'val_snr': 13, 'linearity': False}
+        ]
+        methods_list = [
+            'Regular Training',
+            'Negation',
+            'Translation',
+            'Geometric',
+            'Combined',
+            'PK Genie',
+            'FK Genie',
+            'Extended Pilot Regular Training'
+        ]
+        plot_by_field = 'val_snr'
+        ylabel = 'SER'
     elif label_name == 'Pilots':
         params_dicts = [
             {'val_block_length': 5025, 'pilot_size': 25},
