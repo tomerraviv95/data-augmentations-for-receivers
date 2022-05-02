@@ -31,7 +31,7 @@ class TranslationAugmenter:
 
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float) -> \
             Tuple[torch.Tensor, torch.Tensor]:
-        new_transmitted_word = torch.rand(transmitted_word.shape).to(device) >= 0.5
+        new_transmitted_word = (torch.rand(transmitted_word.shape).to(device) >= 0.5).int()
         # calculate states of transmitted, and copy to variable that will hold the new states for the new transmitted
         if conf.channel_type == ChannelModes.SISO.name:
             gt_states = calculate_siso_states(MEMORY_LENGTH, transmitted_word)
@@ -41,7 +41,6 @@ class TranslationAugmenter:
             new_gt_states = calculate_mimo_states(N_USER, new_transmitted_word)
         else:
             raise ValueError("No such channel type!!!")
-
         # calculate diffs from centers for the original word
         diffs_from_centers = torch.empty_like(received_word)
         for state in torch.unique(gt_states):
@@ -64,7 +63,7 @@ class TranslationAugmenter:
             else:
                 raise ValueError("No such channel type!!!")
 
-        return new_received_word, new_transmitted_word.int()
+        return new_received_word, new_transmitted_word
 
     def estimate_siso_params(self, received_word: torch.Tensor, transmitted_word: torch.Tensor) -> torch.Tensor:
         """
