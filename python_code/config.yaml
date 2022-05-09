@@ -3,7 +3,7 @@ run_name: 'test' #'augmented_version'
 seed: 0 # run seed
 
 # channel
-channel_type: 'SISO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
+channel_type: 'MIMO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
 linear: True # channel linearity. Boolean value.
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
 
@@ -15,7 +15,7 @@ online_repeats_n: 300 # number of desired augmented words out of online_total_wo
 
 # validation hyperparameters
 val_block_length: 5100 # coherence block time, total size of pilot + data. values: int.
-pilot_size: 100 # pilot symbols
+pilot_size: 20 # pilot symbols
 val_frames: 10 # number of validation frames. values: int.
 val_snr: 12 # start SNR value. values: float.
 eval_mode: 'by_word' # Type of evaluation per block - 'by_word'.

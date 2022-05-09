@@ -7,8 +7,11 @@ conf = Config()
 
 CHANNEL_TYPE_TO_TRAINER_DICT = {ChannelModes.SISO.name: VNETTrainer,
                                 ChannelModes.MIMO.name: DeepSICTrainer}
+AUGMENTATION_PLOTTING = False
 
 if __name__ == '__main__':
     trainer = CHANNEL_TYPE_TO_TRAINER_DICT[conf.channel_type]()
     print(trainer)
+    if conf.channel_type != ChannelModes.MIMO.name:
+        raise ValueError("Only valid for MIMO channels!")
     trainer.plot_regions()

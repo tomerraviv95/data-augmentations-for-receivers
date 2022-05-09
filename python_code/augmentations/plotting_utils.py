@@ -14,7 +14,7 @@ mpl.rcParams['figure.autolayout'] = True
 mpl.rcParams['figure.figsize'] = [9.5, 6.45]
 mpl.rcParams['axes.titlesize'] = 28
 mpl.rcParams['axes.labelsize'] = 28
-mpl.rcParams['lines.linewidth'] = 2
+mpl.rcParams['lines.linewidth'] = 3
 mpl.rcParams['lines.markersize'] = 8
 mpl.rcParams['legend.fontsize'] = 20
 mpl.rcParams['mathtext.fontset'] = 'stix'
@@ -36,4 +36,12 @@ def online_plotting(transmitted_words: torch.Tensor, received_words: torch.Tenso
         scatter(x=received_array[mask, 0], y=received_array[mask, 1], marker='o', c=colors_dict[color_coding])
         scatter(x=true_received_centers[mask, 0], y=true_received_centers[mask, 1], marker='x',
                 c='black')
+    RIGHT_LIM, TOP_LIM = 2, 2
+    LEFT_LIM, BOTTOM_LIM = -2, -2
+    plt.plot([LEFT_LIM, RIGHT_LIM], [0, 0], c='black')
+    plt.plot([0, 0], [BOTTOM_LIM, TOP_LIM], c='black')
+    plt.xlim([LEFT_LIM, RIGHT_LIM])
+    plt.ylim([BOTTOM_LIM, TOP_LIM])
+    plt.xticks([-1, 1])
+    plt.yticks([-1, 1])
     plt.show()
