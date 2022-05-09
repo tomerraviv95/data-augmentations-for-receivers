@@ -1,10 +1,10 @@
 import numpy as np
 
 from python_code.channel.channels_hyperparams import N_ANT
-from python_code.plot_augmentations import AUGMENTATION_PLOTTING
 from python_code.utils.config_singleton import Config
 
 conf = Config()
+AUGMENTATION_PLOTTING = False
 
 
 class SEDChannel:

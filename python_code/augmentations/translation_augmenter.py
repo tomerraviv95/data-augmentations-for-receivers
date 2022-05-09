@@ -46,7 +46,7 @@ class TranslationAugmenter:
         for state in torch.unique(gt_states):
             state_ind = (gt_states == state)
             if conf.channel_type == ChannelModes.SISO.name:
-                diffs_from_centers[0, state_ind] = received_word[0, state_ind] - self._centers[state]
+                diffs_from_centers[state_ind] = received_word[state_ind] - self._centers[state]
             elif conf.channel_type == ChannelModes.MIMO.name:
                 diffs_from_centers[state_ind] = received_word[state_ind] - self._centers[state]
             else:
@@ -57,7 +57,7 @@ class TranslationAugmenter:
         for state in torch.unique(new_gt_states):
             state_ind = (new_gt_states == state)
             if conf.channel_type == ChannelModes.SISO.name:
-                new_received_word[0, state_ind] = self._centers[state] + diffs_from_centers[0, state_ind]
+                new_received_word[state_ind] = self._centers[state] + diffs_from_centers[state_ind]
             elif conf.channel_type == ChannelModes.MIMO.name:
                 new_received_word[state_ind] = self._centers[state] + diffs_from_centers[state_ind]
             else:
@@ -77,7 +77,7 @@ class TranslationAugmenter:
         centers = torch.empty([n_states]).to(device)
         for state in range(n_states):
             state_ind = (gt_states == state)
-            state_received = received_word[0, state_ind]
+            state_received = received_word[state_ind]
             if state_received.shape[0] > 0:
                 centers[state] = torch.mean(state_received)
             else:

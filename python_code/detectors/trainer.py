@@ -9,8 +9,11 @@ from torch.optim import RMSprop, Adam, SGD
 from python_code.augmentations.augmenter_wrapper import AugmenterWrapper
 from python_code.augmentations.plotting_utils import online_plotting
 from python_code.channel.channel_dataset import ChannelModelDataset
+from python_code.channel.channels_hyperparams import MEMORY_LENGTH
 from python_code.utils.config_singleton import Config
+from python_code.utils.constants import ChannelModes
 from python_code.utils.metrics import calculate_error_rates
+from python_code.utils.trellis_utils import break_received_siso_word_to_symbols, break_transmitted_siso_word_to_symbols
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conf = Config()
@@ -135,6 +138,9 @@ class Trainer(object):
         :return: the received and transmitted words
         """
         n_repeats = conf.online_repeats_n
+        if conf.channel_type == ChannelModes.SISO.name:
+            received_words = break_received_siso_word_to_symbols(MEMORY_LENGTH, received_words)
+            transmitted_words = break_transmitted_siso_word_to_symbols(MEMORY_LENGTH, transmitted_words)
         aug_tx = torch.empty([n_repeats, transmitted_words.shape[1]]).to(device)
         aug_rx = torch.empty([n_repeats, received_words.shape[1]]).to(device)
         augmenter = AugmenterWrapper(conf.aug_type, received_words, transmitted_words)

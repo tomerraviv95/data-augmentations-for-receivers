@@ -69,7 +69,7 @@ class GeometricAugmenter:
         stds = torch.empty([n_states]).to(device)
         for state in range(n_states):
             state_ind = (gt_states == state)
-            state_received = received_word[0, state_ind]
+            state_received = received_word[state_ind]
             stds[state] = torch.std(state_received)
             if state_received.shape[0] > 0:
                 centers[state] = torch.mean(state_received)

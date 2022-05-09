@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from python_code.utils.trellis_utils import create_transition_table, acs_block
+from python_code.utils.trellis_utils import create_transition_table, acs_block, break_received_siso_word_to_symbols
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 HIDDEN1_SIZE = 75
@@ -39,11 +39,15 @@ class VNETDetector(nn.Module):
         """
         # initialize input probabilities
         in_prob = torch.zeros([y.shape[0], self.n_states]).to(device)
+        reshaped_y = torch.cat(
+            [break_received_siso_word_to_symbols(int(self.n_states ** 0.5), single_y.reshape(1, -1)) for single_y in y],
+            dim=0)
         # compute priors
-        priors = self.net(y.reshape(-1, 1)).reshape(y.shape[0], y.shape[1], self.n_states)
+        priors = self.net(reshaped_y)
 
         if phase == 'val':
             detected_word = torch.zeros(y.shape).to(device)
+            priors = priors.T
             for i in range(y.shape[1]):
                 # get the lsb of the state
                 detected_word[:, i] = torch.argmin(in_prob, dim=1) % 2

@@ -41,13 +41,23 @@ def calculate_siso_states(memory_length: int, transmitted_words: torch.Tensor) -
     :param transmitted_words: channel transmitted words
     :return: vector of length of transmitted_words with values in the range of 0,1,...,n_states-1
     """
+    states_enumerator = (2 ** torch.arange(memory_length)).reshape(1, -1).float().to(device)
+    gt_states = torch.sum(transmitted_words * states_enumerator, dim=1).long()
+    return gt_states
+
+
+def break_transmitted_siso_word_to_symbols(memory_length: int, transmitted_words: torch.Tensor) -> torch.Tensor:
     padded = torch.cat([transmitted_words, torch.zeros([transmitted_words.shape[0], memory_length]).to(device)], dim=1)
     unsqueezed_padded = padded.unsqueeze(dim=1)
     blockwise_words = torch.cat([unsqueezed_padded[:, :, i:-memory_length + i] for i in range(memory_length)], dim=1)
-    states_enumerator = (2 ** torch.arange(memory_length)).reshape(1, -1).float().to(device)
-    gt_states = torch.sum(blockwise_words.transpose(1, 2).reshape(-1, memory_length) * states_enumerator,
-                          dim=1).long()
-    return gt_states
+    return blockwise_words.squeeze().T
+
+
+def break_received_siso_word_to_symbols(memory_length: int, received_words: torch.Tensor) -> torch.Tensor:
+    padded = torch.cat([received_words, torch.ones([received_words.shape[0], memory_length]).to(device)], dim=1)
+    unsqueezed_padded = padded.unsqueeze(dim=1)
+    blockwise_words = torch.cat([unsqueezed_padded[:, :, i:-memory_length + i] for i in range(memory_length)], dim=1)
+    return blockwise_words.squeeze().T
 
 
 def calculate_mimo_states(n_user: int, transmitted_words: torch.Tensor) -> torch.Tensor:
@@ -58,5 +68,5 @@ def calculate_mimo_states(n_user: int, transmitted_words: torch.Tensor) -> torch
 
 def calculate_mimo_states_np(n_user: int, transmitted_words: np.ndarray) -> np.ndarray:
     states_enumerator = 2 ** np.arange(n_user)
-    gt_states = np.sum(states_enumerator.reshape(-1,1) * transmitted_words, axis=0).astype(int)
+    gt_states = np.sum(states_enumerator.reshape(-1, 1) * transmitted_words, axis=0).astype(int)
     return gt_states

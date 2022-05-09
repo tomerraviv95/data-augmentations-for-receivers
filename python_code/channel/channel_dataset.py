@@ -12,7 +12,8 @@ from python_code.channel.modulator import BPSKModulator
 from python_code.channel.sed_channel import SEDChannel
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
-from python_code.utils.trellis_utils import calculate_mimo_states, calculate_siso_states
+from python_code.utils.trellis_utils import calculate_mimo_states, calculate_siso_states, \
+    break_transmitted_siso_word_to_symbols
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -61,7 +62,9 @@ class ChannelModelDataset(Dataset):
     def generate_all_classes_pilots(self):
         if conf.channel_type == ChannelModes.SISO.name:
             b_pilots = self.bits_generator.integers(0, 2, size=(1, self.pilots_length)).reshape(1, -1)
-            states = calculate_siso_states(MEMORY_LENGTH, torch.Tensor(b_pilots).to(device)).cpu().numpy()
+            b_pilots_by_symbols = break_transmitted_siso_word_to_symbols(MEMORY_LENGTH,
+                                                                         torch.Tensor(b_pilots).to(device))
+            states = calculate_siso_states(MEMORY_LENGTH, b_pilots_by_symbols).cpu().numpy()
             n_unique = 2 ** MEMORY_LENGTH
         elif conf.channel_type == ChannelModes.MIMO.name:
             b_pilots = self.bits_generator.integers(0, 2, size=(N_USER, self.pilots_length))
