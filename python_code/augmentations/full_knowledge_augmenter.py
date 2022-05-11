@@ -1,16 +1,15 @@
-import random
+from random import randint
 from typing import Tuple
 
 import torch
 
 from python_code.channel.channel_dataset import ChannelModelDataset
 from python_code.utils.config_singleton import Config
-from python_code.utils.constants import ChannelModes
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
-HALF = 0.5
+FK_KNOWLEDGE_BUFFER = int(1e5)
 
 
 class FullKnowledgeAugmenter:
@@ -19,14 +18,11 @@ class FullKnowledgeAugmenter:
     generate new random words from this channel
     """
 
-    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
-        channel_dataset = ChannelModelDataset(block_length=conf.pilot_size, pilots_length=conf.pilot_size, blocks_num=1,
-                                              seed=random.randint(0, 1e8))
-        if conf.channel_type == ChannelModes.SISO.name:
-            new_transmitted_word, new_received_word = channel_dataset.siso_transmission(h.cpu().numpy(), snr)
-        elif conf.channel_type == ChannelModes.MIMO.name:
-            new_transmitted_word, new_received_word = channel_dataset.mimo_transmission(h.cpu().numpy(), snr)
-            new_transmitted_word, new_received_word = new_transmitted_word.T, new_received_word.T
-        else:
-            raise ValueError("No such channel type!!!")
-        return torch.Tensor(new_received_word).to(device), torch.Tensor(new_transmitted_word).to(device)
+    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float) -> \
+            Tuple[torch.Tensor, torch.Tensor]:
+        channel_dataset = ChannelModelDataset(block_length=FK_KNOWLEDGE_BUFFER, pilots_length=FK_KNOWLEDGE_BUFFER,
+                                              blocks_num=1)
+        new_transmitted_word, new_received_word = channel_dataset.channel_model.transmit(h.cpu().numpy(), snr)
+        random_ind = randint(a=0, b=new_transmitted_word.shape[0] - 1)
+        return torch.Tensor(new_received_word).to(device)[random_ind], torch.Tensor(new_transmitted_word).to(device)[
+            random_ind]

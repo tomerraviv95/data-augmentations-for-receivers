@@ -39,13 +39,13 @@ class SISOChannel:
         s = BPSKModulator.modulate(padded_b)
         # transmit through noisy channel
         y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=MEMORY_LENGTH)
+        b, y = break_received_siso_word_to_symbols(MEMORY_LENGTH, b), y.T
         return b, y
 
     def get_values(self, snr, index):
         # get channel values
         h = ISIAWGNChannel.calculate_channel(MEMORY_LENGTH, fading=conf.fading_in_channel, index=index)
         b, y = self.transmit(h, snr)
-        b, y = break_received_siso_word_to_symbols(MEMORY_LENGTH, b), y.T
         return b, h, y
 
     def generate_all_classes_pilots(self):
@@ -75,13 +75,13 @@ class MIMOChannel:
         s = BPSKModulator.modulate(b)
         # pass through channel
         y = SEDChannel.transmit(s=s, h=h, snr=snr)
+        b, y = b.T, y.T
         return b, y
 
     def get_values(self, snr, index):
         # get channel values
         h = SEDChannel.calculate_channel(N_ANT, N_USER, index, conf.fading_in_channel)
         b, y = self.transmit(h, snr)
-        b, y = b.T, y.T
         return b, h, y
 
     def generate_all_classes_pilots(self):
