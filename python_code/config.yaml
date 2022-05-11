@@ -3,7 +3,7 @@ run_name: 'test' #'augmented_version'
 seed: 0 # run seed
 
 # channel
-channel_type: 'MIMO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
+channel_type: 'SISO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
 linear: True # channel linearity. Boolean value.
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
 
