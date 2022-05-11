@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from python_code.utils.trellis_utils import create_transition_table, acs_block, break_received_siso_word_to_symbols
+from python_code.utils.trellis_utils import create_transition_table, acs_block
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 HIDDEN1_SIZE = 75
@@ -38,21 +38,16 @@ class VNETDetector(nn.Module):
         if in 'val' - the detected words [n_batch,transmission_length]
         """
         # initialize input probabilities
-        in_prob = torch.zeros([y.shape[0], self.n_states]).to(device)
-        reshaped_y = torch.cat(
-            [break_received_siso_word_to_symbols(int(self.n_states ** 0.5), single_y.reshape(1, -1)) for single_y in y],
-            dim=0)
-        # compute priors
-        priors = self.net(reshaped_y)
+        in_prob = torch.zeros([1, self.n_states]).to(device)
+        priors = self.net(y)
 
         if phase == 'val':
             detected_word = torch.zeros(y.shape).to(device)
-            priors = priors.T
-            for i in range(y.shape[1]):
+            for i in range(y.shape[0]):
                 # get the lsb of the state
-                detected_word[:, i] = torch.argmin(in_prob, dim=1) % 2
+                detected_word[i] = torch.argmin(in_prob, dim=1) % 2
                 # run one Viterbi stage
-                out_prob, _ = acs_block(in_prob, -priors[:, i], self.transition_table, self.n_states)
+                out_prob = acs_block(in_prob, -priors[i], self.transition_table, self.n_states)
                 # update in-probabilities for next layer
                 in_prob = out_prob
 

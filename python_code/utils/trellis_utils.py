@@ -31,7 +31,7 @@ def acs_block(in_prob: torch.Tensor, llrs: torch.Tensor, transition_table: torch
     batches_ind = torch.arange(in_prob.size(0)).repeat_interleave(2 * n_states)
     trellis = (in_prob + llrs)[batches_ind, transition_ind]
     reshaped_trellis = trellis.reshape(-1, n_states, 2)
-    return torch.min(reshaped_trellis, dim=2)
+    return torch.min(reshaped_trellis, dim=2)[0]
 
 
 def calculate_siso_states(memory_length: int, transmitted_words: torch.Tensor) -> torch.Tensor:
@@ -46,17 +46,19 @@ def calculate_siso_states(memory_length: int, transmitted_words: torch.Tensor) -
     return gt_states
 
 
-def break_transmitted_siso_word_to_symbols(memory_length: int, transmitted_words: torch.Tensor) -> torch.Tensor:
-    padded = torch.cat([transmitted_words, torch.zeros([transmitted_words.shape[0], memory_length]).to(device)], dim=1)
-    unsqueezed_padded = padded.unsqueeze(dim=1)
-    blockwise_words = torch.cat([unsqueezed_padded[:, :, i:-memory_length + i] for i in range(memory_length)], dim=1)
+def break_transmitted_siso_word_to_symbols(memory_length: int, transmitted_words: np.ndarray) -> np.ndarray:
+    padded = np.concatenate([transmitted_words, np.ones([transmitted_words.shape[0], memory_length])], axis=1)
+    unsqueezed_padded = np.expand_dims(padded, axis=1)
+    blockwise_words = np.concatenate([unsqueezed_padded[:, :, i:-memory_length + i] for i in range(memory_length)],
+                                     axis=1)
     return blockwise_words.squeeze().T
 
 
-def break_received_siso_word_to_symbols(memory_length: int, received_words: torch.Tensor) -> torch.Tensor:
-    padded = torch.cat([received_words, torch.ones([received_words.shape[0], memory_length]).to(device)], dim=1)
-    unsqueezed_padded = padded.unsqueeze(dim=1)
-    blockwise_words = torch.cat([unsqueezed_padded[:, :, i:-memory_length + i] for i in range(memory_length)], dim=1)
+def break_received_siso_word_to_symbols(memory_length: int, received_words: np.ndarray) -> np.ndarray:
+    padded = np.concatenate([received_words, np.ones([received_words.shape[0], memory_length])], axis=1)
+    unsqueezed_padded = np.expand_dims(padded, axis=1)
+    blockwise_words = np.concatenate([unsqueezed_padded[:, :, i:-memory_length + i] for i in range(memory_length)],
+                                     axis=1)
     return blockwise_words.squeeze().T
 
 

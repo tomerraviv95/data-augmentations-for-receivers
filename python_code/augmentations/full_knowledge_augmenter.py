@@ -20,7 +20,7 @@ class FullKnowledgeAugmenter:
     """
 
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
-        channel_dataset = ChannelModelDataset(block_length=conf.pilot_size, pilots_length=conf.pilot_size, words=1,
+        channel_dataset = ChannelModelDataset(block_length=conf.pilot_size, pilots_length=conf.pilot_size, blocks_num=1,
                                               seed=random.randint(0, 1e8))
         if conf.channel_type == ChannelModes.SISO.name:
             new_transmitted_word, new_received_word = channel_dataset.siso_transmission(h.cpu().numpy(), snr)

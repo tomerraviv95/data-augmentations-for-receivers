@@ -35,7 +35,6 @@ def prob_to_symbol(p: torch.Tensor) -> torch.Tensor:
     return torch.sign(p - HALF)
 
 
-
 class DeepSICTrainer(Trainer):
     """Form the trainer class.
 
@@ -53,7 +52,7 @@ class DeepSICTrainer(Trainer):
         return 'DeepSIC'
 
     def init_priors(self):
-        self.probs_vec = HALF * torch.ones(N_ANT, conf.val_block_length - conf.pilot_size).to(device)
+        self.probs_vec = HALF * torch.ones(conf.val_block_length - conf.pilot_size, N_ANT).to(device)
 
     def initialize_detector(self):
         self.detector = [[DeepSICDetector().to(device) for _ in range(ITERATIONS)] for _ in
@@ -86,7 +85,6 @@ class DeepSICTrainer(Trainer):
     def online_training(self, b_train: torch.Tensor, y_train: torch.Tensor, h: torch.Tensor):
         if conf.from_scratch_flag:
             self.initialize_detector()
-        b_train, y_train = b_train.T, y_train.T
         y_train, b_train = self.augment_words_wrapper(h, y_train, b_train)
         initial_probs = b_train.clone()
         b_train_all, y_train_all = self.prepare_data_for_training(b_train, y_train, initial_probs)
@@ -104,13 +102,11 @@ class DeepSICTrainer(Trainer):
             self.train_models(self.detector, i, b_train_all, y_train_all)
 
     def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
-        # fit dimensions
-        y, probs_vec = y.T, probs_vec.T
         # detect and decode
         for i in range(ITERATIONS):
             probs_vec = self.calculate_posteriors(self.detector, i + 1, probs_vec, y)
         detected_word = symbol_to_prob(prob_to_symbol(probs_vec.float()))
-        return detected_word.T
+        return detected_word
 
     def prepare_data_for_training(self, b_train: torch.Tensor, y_train: torch.Tensor, probs_vec: torch.Tensor) -> [
         torch.Tensor, torch.Tensor]:

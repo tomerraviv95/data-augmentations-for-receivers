@@ -74,8 +74,10 @@ class Trainer(object):
         """
         Sets up the data loader - a generator from which we draw batches, in iterations
         """
-        self.channel_dataset = ChannelModelDataset(block_length=conf.val_block_length, pilots_length=conf.pilot_size,
-                                                   words=conf.val_frames, seed=conf.seed)
+        self.channel_dataset = ChannelModelDataset(block_length=conf.val_block_length,
+                                                   pilots_length=conf.pilot_size,
+                                                   blocks_num=conf.blocks_num,
+                                                   seed=conf.seed)
         self.dataloader = torch.utils.data.DataLoader(self.channel_dataset)
 
     def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor):
@@ -99,30 +101,28 @@ class Trainer(object):
         transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr])
         self.init_priors()
         ser_by_word = np.zeros(transmitted_words.shape[0])
-        for frame in range(conf.val_frames):
+        for block_ind in range(conf.blocks_num):
             # get current word and channel
-            start_ind = frame * self.n_ant
-            end_ind = (frame + 1) * self.n_ant
-            transmitted_word = transmitted_words[start_ind:end_ind]
-            received_word = received_words[start_ind:end_ind]
-            h = hs[start_ind:end_ind]
+            transmitted_word = transmitted_words[block_ind]
+            h = hs[block_ind]
+            received_word = received_words[block_ind]
             # split words into data and pilot part
-            x_pilot, x_data = transmitted_word[:, :conf.pilot_size], transmitted_word[:, conf.pilot_size:]
-            y_pilot, y_data = received_word[:, :conf.pilot_size], received_word[:, conf.pilot_size:]
+            x_pilot, x_data = transmitted_word[:conf.pilot_size], transmitted_word[conf.pilot_size:]
+            y_pilot, y_data = received_word[:conf.pilot_size], received_word[conf.pilot_size:]
             # if online_plotting is on - plot the augmentations
             if conf.is_online_training:
                 self.online_training(x_pilot, y_pilot, h)
             # detect data part
             detected_word = self.forward(y_data, self.probs_vec)
             # calculate accuracy
-            ser, fer, err_indices = calculate_error_rates(detected_word, x_data)
+            ser, fer, err_indices = calculate_error_rates(detected_word, x_data[:, :received_word.shape[1]])
             print('*' * 20)
-            print(f'current: {frame, ser}')
+            print(f'current: {block_ind, ser}')
             total_ser += ser
-            ser_by_word[frame] = ser
+            ser_by_word[block_ind] = ser
             self.init_priors()
 
-        total_ser /= conf.val_frames
+        total_ser /= conf.blocks_num
         print(f'Final ser: {total_ser}')
         return total_ser
 
@@ -138,14 +138,11 @@ class Trainer(object):
         :return: the received and transmitted words
         """
         n_repeats = conf.online_repeats_n
-        if conf.channel_type == ChannelModes.SISO.name:
-            received_words = break_received_siso_word_to_symbols(MEMORY_LENGTH, received_words)
-            transmitted_words = break_transmitted_siso_word_to_symbols(MEMORY_LENGTH, transmitted_words)
         aug_tx = torch.empty([n_repeats, transmitted_words.shape[1]]).to(device)
         aug_rx = torch.empty([n_repeats, received_words.shape[1]]).to(device)
         augmenter = AugmenterWrapper(conf.aug_type, received_words, transmitted_words)
         for i in range(aug_tx.shape[0]):
-            if 1 < i < transmitted_words.shape[0]:
+            if i < transmitted_words.shape[0]:
                 aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]
             else:
                 aug_rx[i], aug_tx[i] = augmenter.augment(received_words,
@@ -170,7 +167,7 @@ class Trainer(object):
     def plot_regions(self):
         # draw words of given gamma for all snrs
         transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr])
-        for frame in range(conf.val_frames):
+        for frame in range(conf.blocks_num):
             # get current word and channel
             start_ind = frame * self.n_ant
             end_ind = (frame + 1) * self.n_ant
