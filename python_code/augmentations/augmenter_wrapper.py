@@ -7,7 +7,6 @@ from python_code.augmentations.full_knowledge_augmenter import FullKnowledgeAugm
 from python_code.augmentations.geometric_augmenter import GeometricAugmenter
 from python_code.augmentations.negation_augmenter import NegationAugmenter
 from python_code.augmentations.no_augmenter import NoAugmenter
-from python_code.augmentations.partial_knowledge_augmenter import PartialKnowledgeAugmenter
 from python_code.augmentations.translation_augmenter import TranslationAugmenter
 
 
@@ -15,7 +14,6 @@ class AugmenterWrapper:
 
     def __init__(self, augmentations: List[str], received_word: torch.Tensor, transmitted_word: torch.Tensor):
         self._augmenters_dict = {'full_knowledge_augmenter': FullKnowledgeAugmenter(),
-                                 'partial_knowledge_augmenter': PartialKnowledgeAugmenter(),
                                  'geometric_augmenter': GeometricAugmenter(received_word, transmitted_word),
                                  'negation_augmenter': NegationAugmenter(),
                                  'translation_augmenter': TranslationAugmenter(received_word, transmitted_word),
