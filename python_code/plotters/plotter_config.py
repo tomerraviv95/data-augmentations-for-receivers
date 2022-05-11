@@ -15,9 +15,7 @@ mpl.rcParams['font.family'] = 'STIXGeneral'
 
 
 def get_linestyle(method_name):
-    if 'DeepSIC' in method_name:
-        return 'dashed'
-    elif 'ViterbiNet' in method_name:
+    if 'ViterbiNet' or 'DeepSIC' in method_name:
         return '-'
     else:
         raise ValueError('No such detector!!!')
@@ -28,8 +26,6 @@ def get_marker(method_name):
         return '.'
     elif 'FK Genie' in method_name:
         return 'X'
-    elif 'PK Genie' in method_name:
-        return 'x'
     elif 'Geometric' in method_name:
         return '>'
     elif 'Translation' in method_name:
@@ -49,8 +45,6 @@ def get_color(method_name):
         return 'b'
     elif 'FK Genie' in method_name:
         return 'black'
-    elif 'PK Genie' in method_name:
-        return 'brown'
     elif 'Geometric' in method_name:
         return 'orange'
     elif 'Translation' in method_name:
