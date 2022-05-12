@@ -9,11 +9,8 @@ from torch.optim import RMSprop, Adam, SGD
 from python_code.augmentations.augmenter_wrapper import AugmenterWrapper
 from python_code.augmentations.plotting_utils import online_plotting
 from python_code.channel.channel_dataset import ChannelModelDataset
-from python_code.channel.channels_hyperparams import MEMORY_LENGTH
 from python_code.utils.config_singleton import Config
-from python_code.utils.constants import ChannelModes
 from python_code.utils.metrics import calculate_error_rates
-from python_code.utils.trellis_utils import break_received_siso_word_to_symbols, break_transmitted_siso_word_to_symbols
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conf = Config()
@@ -94,7 +91,7 @@ class Trainer(object):
         data blocks for the paper.
         :return: np.ndarray
         """
-        print(conf.aug_type)
+        print(conf.sampler_type, conf.aug_type)
         total_ser = 0
         # draw words of given gamma for all snrs
         transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr])
@@ -139,14 +136,13 @@ class Trainer(object):
         n_repeats = conf.online_repeats_n
         aug_tx = torch.empty([n_repeats, transmitted_words.shape[1]]).to(device)
         aug_rx = torch.empty([n_repeats, received_words.shape[1]]).to(device)
-        augmenter = AugmenterWrapper(conf.aug_type, received_words, transmitted_words)
+        augmenter_wrapper = AugmenterWrapper(conf.aug_type, received_words, transmitted_words)
         for i in range(aug_tx.shape[0]):
             if i < transmitted_words.shape[0]:
                 aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]
             else:
-                aug_rx[i], aug_tx[i] = augmenter.augment(received_words,
-                                                         transmitted_words,
-                                                         h, conf.val_snr)
+                to_augment_state = i % augmenter_wrapper.n_states
+                aug_rx[i], aug_tx[i] = augmenter_wrapper.augment(to_augment_state, h, conf.val_snr)
         return aug_rx, aug_tx
 
     def run_train_loop(self, soft_estimation: torch.Tensor, transmitted_words: torch.Tensor) -> float:
