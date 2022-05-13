@@ -162,18 +162,14 @@ class Trainer(object):
     def plot_regions(self):
         # draw words of given gamma for all snrs
         transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr])
-        for frame in range(conf.blocks_num):
+        for block_ind in range(conf.blocks_num):
             # get current word and channel
-            start_ind = frame * self.n_ant
-            end_ind = (frame + 1) * self.n_ant
-            transmitted_word = transmitted_words[start_ind:end_ind]
-            received_word = received_words[start_ind:end_ind]
-            h = hs[start_ind:end_ind]
+            transmitted_word = transmitted_words[block_ind]
+            h = hs[block_ind]
+            received_word = received_words[block_ind]
             # split words into data and pilot part
-            x_pilot, x_data = transmitted_word[:, :conf.pilot_size], transmitted_word[:, conf.pilot_size:]
-            y_pilot, y_data = received_word[:, :conf.pilot_size], received_word[:, conf.pilot_size:]
-
-            b_train, y_train = x_pilot.T, y_pilot.T
-            y_train, b_train = self.augment_words_wrapper(h, y_train, b_train)
+            x_pilot, x_data = transmitted_word[:conf.pilot_size], transmitted_word[conf.pilot_size:]
+            y_pilot, y_data = received_word[:conf.pilot_size], received_word[conf.pilot_size:]
+            y_aug, x_aug = self.augment_words_wrapper(h, y_pilot, x_pilot)
             # if online training flag is on - train using pilots part
-            online_plotting(b_train, y_train, h)
+            online_plotting(x_aug, y_aug, h)

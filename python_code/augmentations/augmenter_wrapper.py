@@ -63,7 +63,7 @@ class AugmenterWrapper:
         }
         self._augmenters_dict = {
             'negation_augmenter': NegationAugmenter(),
-            'translation_augmenter': TranslationAugmenter(centers),
+            'translation_augmenter': TranslationAugmenter(centers, n_states),
             'no_aug': NoAugmenter()
         }
         self._augmentations = augmentations
@@ -85,8 +85,6 @@ class AugmenterWrapper:
         aug_rx, aug_tx = self._samplers_dict[conf.sampler_type].sample(to_augment_state, h, snr)
         # run through the desired augmentations
         for augmentation_name in self._augmentations:
-            if augmentation_name == 'geometric_sampler':
-                continue
             augmenter = self._augmenters_dict[augmentation_name]
-            aug_rx, aug_tx = augmenter.augment(aug_rx, aug_tx, h, snr)
+            aug_rx, aug_tx = augmenter.augment(aug_rx, aug_tx, to_augment_state)
         return aug_rx, aug_tx

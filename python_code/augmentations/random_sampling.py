@@ -23,9 +23,6 @@ class RandomSampler:
         self._states = gt_states
 
     def sample(self, to_augment_state: int, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
-        state_indices = (self._states == to_augment_state)
-        state_received_words = self._received_words[state_indices]
-        state_transmitted_words = self._transmitted_words[state_indices]
-        random_ind = randint(a=0, b=state_received_words.shape[0] - 1)
-        x, y = state_received_words[random_ind].reshape(1, -1), state_transmitted_words[random_ind].reshape(1, -1)
+        random_ind = randint(a=0, b=self._received_words.shape[0] - 1)
+        x, y = self._received_words[random_ind].reshape(1, -1), self._transmitted_words[random_ind].reshape(1, -1)
         return x, y
