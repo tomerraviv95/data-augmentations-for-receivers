@@ -3,15 +3,15 @@ run_name: 'test' #'augmented_version'
 seed: 0 # run seed
 
 # channel
-channel_type: 'SISO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
+channel_type: 'MIMO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
 linear: True # channel linearity. Boolean value.
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
 
 # sampler
-sampler_type: 'random_sampler' # 'random_sampler','geometric_sampler',  'full_knowledge_sampler'
+sampler_type: 'geometric_sampler' # 'random_sampler','geometric_sampler',  'full_knowledge_sampler'
 # geometric_sampler
 # ['no_aug','negation_augmenter','translation_augmenter']
-aug_type: ['translation_augmenter']
+aug_type: ['no_aug']
 online_repeats_n: 2000 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
 
 # validation hyperparameters

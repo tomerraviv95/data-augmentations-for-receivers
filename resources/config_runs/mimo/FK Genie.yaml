@@ -12,11 +12,11 @@ sampler_type: 'full_knowledge_sampler' # 'geometric_sampler', 'random_sampler', 
 # augmentations
 # ['no_aug','negation_augmenter','translation_augmenter']
 aug_type: ['no_aug']
-online_repeats_n: 1000 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
+online_repeats_n: 2000 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
 
 # validation hyperparameters
-val_block_length: 5500 # coherence block time, total size of pilot + data. values: int.
-pilot_size: 500 # pilot symbols
+val_block_length: 10100 # coherence block time, total size of pilot + data. values: int.
+pilot_size: 100 # pilot symbols
 blocks_num: 10 # number of validation frames. values: int.
 val_snr: 10 # start SNR value. values: float.
 eval_mode: 'by_word' # Type of evaluation per block - 'by_word'.

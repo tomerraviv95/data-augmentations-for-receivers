@@ -33,13 +33,15 @@ class TranslationAugmenter:
         else:
             raise ValueError("No such channel type!!!")
         diff = received_word - self._centers[received_word_state]
+        random_state = random.choice(
+            list(range(0, received_word_state)) + list(range(received_word_state + 1, self._n_states)))
         if conf.channel_type == ChannelModes.SISO.name:
-            transmitted_word = generate_symbols_by_state(to_augment_state, MEMORY_LENGTH)
+            transmitted_word = generate_symbols_by_state(random_state, MEMORY_LENGTH)
         elif conf.channel_type == ChannelModes.MIMO.name:
-            transmitted_word = generate_symbols_by_state(to_augment_state, N_USER)
+            transmitted_word = generate_symbols_by_state(random_state, N_USER)
         else:
             raise ValueError("No such channel type!!!")
-        received_word = self._centers[to_augment_state] + diff
+        received_word = self._centers[random_state] + diff
         return received_word, transmitted_word
 
     @property
