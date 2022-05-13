@@ -6,7 +6,7 @@ import torch
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
-from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states
+from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states, generate_symbols_by_state
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -26,20 +26,20 @@ class TranslationAugmenter:
 
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, to_augment_state: int) -> Tuple[
         torch.Tensor, torch.Tensor]:
-        diff_from_centers = received_word - self._centers[to_augment_state]
-        random_state = random.choice(
-            list(range(0, to_augment_state)) + list(range(to_augment_state + 1, self._n_states)))
-        state = -1
-        while state != random_state:
-            transmitted_word = (torch.rand([1, int(self._n_states ** 0.5)]).to(device) >= 0.5).int()
-            # calculate states of transmitted, and copy to variable that will hold the new states for the new transmitted
-            if conf.channel_type == ChannelModes.SISO.name:
-                state = calculate_siso_states(MEMORY_LENGTH, transmitted_word)
-            elif conf.channel_type == ChannelModes.MIMO.name:
-                state = calculate_mimo_states(N_USER, transmitted_word)
-            else:
-                raise ValueError("No such channel type!!!")
-        received_word = self._centers[random_state] + diff_from_centers
+        if conf.channel_type == ChannelModes.SISO.name:
+            received_word_state = calculate_siso_states(MEMORY_LENGTH, transmitted_word)
+        elif conf.channel_type == ChannelModes.MIMO.name:
+            received_word_state = calculate_mimo_states(N_USER, transmitted_word)
+        else:
+            raise ValueError("No such channel type!!!")
+        diff = received_word - self._centers[received_word_state]
+        if conf.channel_type == ChannelModes.SISO.name:
+            transmitted_word = generate_symbols_by_state(to_augment_state, MEMORY_LENGTH)
+        elif conf.channel_type == ChannelModes.MIMO.name:
+            transmitted_word = generate_symbols_by_state(to_augment_state, N_USER)
+        else:
+            raise ValueError("No such channel type!!!")
+        received_word = self._centers[to_augment_state] + diff
         return received_word, transmitted_word
 
     @property

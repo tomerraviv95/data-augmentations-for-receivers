@@ -2,6 +2,7 @@ import numpy as np
 import torch
 
 from python_code.utils.config_singleton import Config
+import itertools
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -46,6 +47,12 @@ def calculate_siso_states(memory_length: int, transmitted_words: torch.Tensor) -
     return gt_states
 
 
+def calculate_mimo_states(n_user: int, transmitted_words: torch.Tensor) -> torch.Tensor:
+    states_enumerator = (2 ** torch.arange(n_user)).to(device)
+    gt_states = torch.sum(transmitted_words * states_enumerator, dim=1).long()
+    return gt_states
+
+
 def break_transmitted_siso_word_to_symbols(memory_length: int, transmitted_words: np.ndarray) -> np.ndarray:
     padded = np.concatenate([transmitted_words, np.ones([transmitted_words.shape[0], memory_length])], axis=1)
     unsqueezed_padded = np.expand_dims(padded, axis=1)
@@ -54,21 +61,14 @@ def break_transmitted_siso_word_to_symbols(memory_length: int, transmitted_words
     return blockwise_words.squeeze().T
 
 
+def generate_symbols_by_state(state, n_state):
+    combinations = list(itertools.product([0, 1], repeat=n_state))
+    return torch.Tensor(combinations[state][::-1]).reshape(1, n_state).to(device)
+
+
 def break_received_siso_word_to_symbols(memory_length: int, received_words: np.ndarray) -> np.ndarray:
     padded = np.concatenate([received_words, np.ones([received_words.shape[0], memory_length])], axis=1)
     unsqueezed_padded = np.expand_dims(padded, axis=1)
     blockwise_words = np.concatenate([unsqueezed_padded[:, :, i:-memory_length + i] for i in range(memory_length)],
                                      axis=1)
     return blockwise_words.squeeze().T
-
-
-def calculate_mimo_states(n_user: int, transmitted_words: torch.Tensor) -> torch.Tensor:
-    states_enumerator = (2 ** torch.arange(n_user)).to(device)
-    gt_states = torch.sum(transmitted_words * states_enumerator, dim=1).long()
-    return gt_states
-
-
-def calculate_mimo_states_np(n_user: int, transmitted_words: np.ndarray) -> np.ndarray:
-    states_enumerator = 2 ** np.arange(n_user)
-    gt_states = np.sum(states_enumerator.reshape(-1, 1) * transmitted_words, axis=0).astype(int)
-    return gt_states

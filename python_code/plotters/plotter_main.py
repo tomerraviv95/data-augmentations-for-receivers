@@ -13,7 +13,7 @@ RunParams = namedtuple(
 if __name__ == '__main__':
     run_over = True  # whether to run over previous results
     plot_type = ChannelModes.SISO.name  # either SISO (ChannelModes.SISO.name) or MIMO (ChannelModes.MIMO.name)
-    trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
+    trial_num = 3  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
                                plot_type=plot_type,
                                trial_num=trial_num)
@@ -28,15 +28,15 @@ if __name__ == '__main__':
         ]
         methods_list = [
             'Regular Training',
-            'Negation',
-            'Translation',
+            # 'Negation',
+            # 'Translation',
             'Geometric',
-            'Combined',
-            'FK Genie',
-            'Extended Pilot Regular Training'
+            # 'Combined',
+            # 'FK Genie',
+            # 'Extended Pilot Regular Training'
         ]
         plot_by_field = 'val_snr'
-        ylabel = 'SER'
+        xlabel, ylabel = 'SNR', 'SER'
     elif label_name == 'SNR_non_linear':
         params_dicts = [
             {'val_snr': 9, 'linearity': False},
@@ -55,7 +55,7 @@ if __name__ == '__main__':
             'Extended Pilot Regular Training'
         ]
         plot_by_field = 'val_snr'
-        ylabel = 'SER'
+        xlabel, ylabel = 'SNR', 'SER'
     elif label_name == 'Pilots':
         params_dicts = [
             {'val_block_length': 5025, 'pilot_size': 25},
@@ -73,7 +73,7 @@ if __name__ == '__main__':
             'FK Genie'
         ]
         plot_by_field = 'pilot_size'
-        ylabel = '-log( BER(Method) / BER(Regular) )'
+        xlabel, ylabel = 'Pilots', '-log( BER(Method) / BER(Regular) )'
     else:
         raise ValueError('No such plot type!!!')
     all_curves = []
@@ -83,4 +83,4 @@ if __name__ == '__main__':
         for params_dict in params_dicts:
             print(params_dict)
             compute_ser_for_method(all_curves, method, params_dict, run_params_obj)
-    plot_by_values(all_curves, label_name, [params_dict[plot_by_field] for params_dict in params_dicts], ylabel)
+    plot_by_values(all_curves, label_name, [params_dict[plot_by_field] for params_dict in params_dicts], xlabel, ylabel)

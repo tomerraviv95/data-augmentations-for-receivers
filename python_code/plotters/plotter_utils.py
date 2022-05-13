@@ -40,7 +40,8 @@ def get_ser_plot(dec: Trainer, run_over: bool, method_name: str, trial=None):
     return ser_total
 
 
-def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_name, values: List[float], ylabel: str):
+def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_name, values: List[float], xlabel: str,
+                   ylabel: str):
     # path for the saved figure
     current_day_time = datetime.datetime.now()
     folder_name = f'{current_day_time.month}-{current_day_time.day}-{current_day_time.hour}-{current_day_time.minute}'
@@ -79,11 +80,12 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_n
                      linestyle=get_linestyle(method_name), linewidth=2.2)
 
     plt.xticks(values, values)
-    plt.xlabel(field_name)
+    plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.grid(which='both', ls='--')
     plt.legend(loc='lower left', prop={'size': 15})
     plt.yscale('log')
-    plt.savefig(os.path.join(FIGURES_DIR, folder_name, f'coded_ber_versus_snrs.png'),
+    trainer_name = cur_name.split(' ')[0]
+    plt.savefig(os.path.join(FIGURES_DIR, folder_name, f'coded_ber_versus_snrs_{trainer_name}.png'),
                 bbox_inches='tight')
     plt.show()

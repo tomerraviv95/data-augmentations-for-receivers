@@ -5,7 +5,7 @@ import torch
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
-from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states
+from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states, generate_symbols_by_state
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -26,17 +26,16 @@ class GeometricSampler:
         self._state_size = state_size
 
     def sample(self, to_augment_state: int, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
-        state = -1
-        while state != to_augment_state:
-            transmitted_word = (torch.rand([1, int(self._n_states ** 0.5)]).to(device) >= 0.5).int()
-            # calculate states of transmitted, and copy to variable that will hold the new states for the new transmitted
-            if conf.channel_type == ChannelModes.SISO.name:
-                state = calculate_siso_states(MEMORY_LENGTH, transmitted_word)
-            elif conf.channel_type == ChannelModes.MIMO.name:
-                state = calculate_mimo_states(N_USER, transmitted_word)
-            else:
-                raise ValueError("No such channel type!!!")
-        received_word = self._centers[state] + self._stds[state] * torch.randn([1, self._state_size]).to(device)
+
+        if conf.channel_type == ChannelModes.SISO.name:
+            transmitted_word = generate_symbols_by_state(to_augment_state, MEMORY_LENGTH)
+        elif conf.channel_type == ChannelModes.MIMO.name:
+            transmitted_word = generate_symbols_by_state(to_augment_state, N_USER)
+        else:
+            raise ValueError("No such channel type!!!")
+
+        received_word = self._centers[to_augment_state] + self._stds[to_augment_state] * torch.randn(
+            [1, self._state_size]).to(device)
         return received_word, transmitted_word
 
     @property
