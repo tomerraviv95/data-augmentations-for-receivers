@@ -13,7 +13,7 @@ RunParams = namedtuple(
 if __name__ == '__main__':
     run_over = True  # whether to run over previous results
     plot_type = ChannelModes.SISO.name  # either SISO (ChannelModes.SISO.name) or MIMO (ChannelModes.MIMO.name)
-    trial_num = 3  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
+    trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
                                plot_type=plot_type,
                                trial_num=trial_num)
@@ -28,12 +28,12 @@ if __name__ == '__main__':
         ]
         methods_list = [
             'Regular Training',
-            # 'Negation',
-            # 'Translation',
+            'Negation',
+            'Translation',
             'Geometric',
-            # 'Combined',
-            # 'FK Genie',
-            # 'Extended Pilot Regular Training'
+            'Combined',
+            'FK Genie',
+            'Extended Pilot Regular Training'
         ]
         plot_by_field = 'val_snr'
         xlabel, ylabel = 'SNR', 'SER'

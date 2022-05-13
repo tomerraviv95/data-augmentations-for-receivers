@@ -24,7 +24,6 @@ class ISIAWGNChannel:
     @staticmethod
     def add_fading(h: np.ndarray, memory_length: int, index: int) -> np.ndarray:
         fading_taps = np.array([51, 39, 33, 21])
-
         h *= (0.8 + 0.2 * np.cos(2 * np.pi * index / fading_taps)).reshape(1, memory_length)
         return h
 
