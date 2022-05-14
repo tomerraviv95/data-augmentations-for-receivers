@@ -8,10 +8,10 @@ linear: True # channel linearity. Boolean value.
 fading_in_channel: True # If the channel is fading/non-fading. values: [True, False]
 
 # sampler
-sampler_type: 'geometric_sampler' # 'random_sampler','geometric_sampler',  'full_knowledge_sampler'
+sampler_type: 'random_sampler' # 'random_sampler','geometric_sampler',  'full_knowledge_sampler'
 # geometric_sampler
 # ['no_aug','negation_augmenter','translation_augmenter']
-aug_type: ['negation_augmenter']
+aug_type: ['no_aug']
 online_repeats_n: 2000 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
 
 # validation hyperparameters

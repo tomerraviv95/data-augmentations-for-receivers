@@ -51,29 +51,63 @@ def estimate_params(received_words: torch.Tensor, transmitted_words: torch.Tenso
     return centers, stds, gt_states, n_states, state_size
 
 
+ALPHA1 = 0.3
+ALPHA2 = 0.3
+
+
 class AugmenterWrapper:
 
-    def __init__(self, augmentations: List[str], received_words: torch.Tensor,
-                 transmitted_words: torch.Tensor):
+    def __init__(self, augmentations: List[str], fading_in_channel: bool):
+        self._augmentations = augmentations
+        self._fading_in_channel = fading_in_channel
+        self._centers = None
+        self._stds = None
+
+    def update_hyperparams(self, received_words: torch.Tensor, transmitted_words: torch.Tensor):
         centers, stds, gt_states, n_states, state_size = estimate_params(received_words, transmitted_words)
+        if self._fading_in_channel:
+            self._centers, self._stds = self.smooth_parameters(centers, stds)
+        else:
+            self._centers, self._stds = centers, stds
+
         self._samplers_dict = {
-            'geometric_sampler': GeometricSampler(centers, stds, n_states, state_size),
+            'geometric_sampler': GeometricSampler(self._centers, self._stds, n_states, state_size),
             'random_sampler': RandomSampler(received_words, transmitted_words, gt_states),
             'full_knowledge_sampler': FullKnowledgeSampler(),
         }
         self._augmenters_dict = {
             'negation_augmenter': NegationAugmenter(),
-            'translation_augmenter': TranslationAugmenter(centers, n_states),
+            'translation_augmenter': TranslationAugmenter(self._centers, n_states),
             'no_aug': NoAugmenter()
         }
-        self._augmentations = augmentations
         self._n_states = n_states
+
+    def smooth_parameters(self, cur_centers: torch.Tensor, cur_stds: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Update the parameters via temporal smoothing over a window with parameter alpha
+        :param cur_centers: jth step estimated centers
+        :param cur_stds:  jth step estimated stds
+        :return: smoothed centers and stds vectors
+        """
+
+        # self._centers = cur_centers
+        if self._centers is not None:
+            centers = ALPHA1 * cur_centers + (1 - ALPHA1) * self._centers
+        else:
+            centers = cur_centers
+
+        if self._stds is not None:
+            stds = ALPHA2 * cur_stds + (1 - ALPHA2) * self._stds
+        else:
+            stds = cur_stds
+
+        return centers, stds
 
     @property
     def n_states(self) -> int:
         return self._n_states
 
-    def augment(self, to_augment_state: int, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
+    def augment_single(self, to_augment_state: int, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Augment the received word using one of the given augmentations methods.
         :param received_word: Tensor of float values
@@ -87,4 +121,25 @@ class AugmenterWrapper:
         for augmentation_name in self._augmentations:
             augmenter = self._augmenters_dict[augmentation_name]
             aug_rx, aug_tx = augmenter.augment(aug_rx, aug_tx, to_augment_state)
+        return aug_rx, aug_tx
+
+    def augment_batch(self, h: torch.Tensor, received_words: torch.Tensor, transmitted_words: torch.Tensor):
+        """
+        The main augmentation function, used to augment each pilot in the evaluation phase.
+        :param h: channel coefficients
+        :param received_words: float channel values
+        :param transmitted_words: binary transmitted word
+        :param total_size: total number of examples to augment
+        :param n_repeats: the number of repeats per augmentation
+        :param phase: validation phase
+        :return: the received and transmitted words
+        """
+        aug_tx = torch.empty([conf.online_repeats_n, transmitted_words.shape[1]]).to(device)
+        aug_rx = torch.empty([conf.online_repeats_n, received_words.shape[1]]).to(device)
+        for i in range(aug_tx.shape[0]):
+            if i < transmitted_words.shape[0]:
+                aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]
+            else:
+                to_augment_state = i % self.n_states
+                aug_rx[i], aug_tx[i] = self.augment_single(to_augment_state, h, conf.val_snr)
         return aug_rx, aug_tx

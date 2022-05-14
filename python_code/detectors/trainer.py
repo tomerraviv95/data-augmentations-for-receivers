@@ -97,6 +97,7 @@ class Trainer(object):
         transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr])
         self.init_priors()
         ser_by_word = np.zeros(transmitted_words.shape[0])
+        augmenter_wrapper = AugmenterWrapper(conf.aug_type,conf.fading_in_channel)
         for block_ind in range(conf.blocks_num):
             # get current word and channel
             transmitted_word = transmitted_words[block_ind]
@@ -105,9 +106,12 @@ class Trainer(object):
             # split words into data and pilot part
             x_pilot, x_data = transmitted_word[:conf.pilot_size], transmitted_word[conf.pilot_size:]
             y_pilot, y_data = received_word[:conf.pilot_size], received_word[conf.pilot_size:]
-            # if online_plotting is on - plot the augmentations
             if conf.is_online_training:
-                self.online_training(x_pilot, y_pilot, h)
+                # augment received words by the number of desired repeats
+                augmenter_wrapper.update_hyperparams(y_pilot, x_pilot)
+                y_aug, x_aug = augmenter_wrapper.augment_batch(h, y_pilot, x_pilot)
+                # train
+                self.online_training(x_aug, y_aug, h)
             # detect data part
             detected_word = self.forward(y_data, self.probs_vec)
             # calculate accuracy
@@ -121,29 +125,6 @@ class Trainer(object):
         total_ser /= conf.blocks_num
         print(f'Final ser: {total_ser}')
         return total_ser
-
-    def augment_words_wrapper(self, h: torch.Tensor, received_words: torch.Tensor, transmitted_words: torch.Tensor):
-        """
-        The main augmentation function, used to augment each pilot in the evaluation phase.
-        :param h: channel coefficients
-        :param received_words: float channel values
-        :param transmitted_words: binary transmitted word
-        :param total_size: total number of examples to augment
-        :param n_repeats: the number of repeats per augmentation
-        :param phase: validation phase
-        :return: the received and transmitted words
-        """
-        n_repeats = conf.online_repeats_n
-        aug_tx = torch.empty([n_repeats, transmitted_words.shape[1]]).to(device)
-        aug_rx = torch.empty([n_repeats, received_words.shape[1]]).to(device)
-        augmenter_wrapper = AugmenterWrapper(conf.aug_type, received_words, transmitted_words)
-        for i in range(aug_tx.shape[0]):
-            if i < transmitted_words.shape[0]:
-                aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]
-            else:
-                to_augment_state = i % augmenter_wrapper.n_states
-                aug_rx[i], aug_tx[i] = augmenter_wrapper.augment(to_augment_state, h, conf.val_snr)
-        return aug_rx, aug_tx
 
     def run_train_loop(self, soft_estimation: torch.Tensor, transmitted_words: torch.Tensor) -> float:
         # calculate loss

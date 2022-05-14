@@ -58,9 +58,6 @@ class VNETTrainer(Trainer):
         :param rx: received word
         :param h: channel coefficients
         """
-        # augment received words by the number of desired repeats
-        aug_rx, aug_tx = self.augment_words_wrapper(h, rx, tx)
-
         if conf.from_scratch_flag:
             self.initialize_detector()
         self.deep_learning_setup()
@@ -69,6 +66,6 @@ class VNETTrainer(Trainer):
         loss = 0
         for i in range(EPOCHS):
             # pass through detector
-            soft_estimation = self.detector(aug_rx, phase='train')
-            current_loss = self.run_train_loop(soft_estimation=soft_estimation, transmitted_words=aug_tx)
+            soft_estimation = self.detector(rx, phase='train')
+            current_loss = self.run_train_loop(soft_estimation=soft_estimation, transmitted_words=tx)
             loss += current_loss

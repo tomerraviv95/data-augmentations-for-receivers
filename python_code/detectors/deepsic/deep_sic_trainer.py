@@ -85,7 +85,6 @@ class DeepSICTrainer(Trainer):
     def online_training(self, b_train: torch.Tensor, y_train: torch.Tensor, h: torch.Tensor):
         if conf.from_scratch_flag:
             self.initialize_detector()
-        y_train, b_train = self.augment_words_wrapper(h, y_train, b_train)
         initial_probs = b_train.clone()
         b_train_all, y_train_all = self.prepare_data_for_training(b_train, y_train, initial_probs)
         # Training the DeepSIC network for each user for iteration=1
