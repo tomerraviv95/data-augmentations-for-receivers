@@ -1,12 +1,12 @@
 # data-augmentations-receivers
 
-*"“Would you tell me, please, which way I ought to go from here?” “That depends a good deal on where you want to get to,” said the Cat. “I don't much care where—” said Alice. “Then it doesn't matter which way you go,” said the Cat."* 
+*"Consistency is the playground of dull minds."* 
 
---Alice in Wonderland.
+--Yuval Noah Harari, Sapiens: A Brief History of Humankind.
 
 # Data Augmentation for Deep Receivers
 
-Python repository for the paper "Data Augmentation for Deep Receivers".
+Python repository for the extended paper "Data Augmentation for Deep Receivers".
 
 Please cite our [paper](https://arxiv.org/abs/2103.13483), if the code is used for publishing research.
 
