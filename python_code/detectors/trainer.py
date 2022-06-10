@@ -97,7 +97,7 @@ class Trainer(object):
         transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr])
         self.init_priors()
         ser_by_word = np.zeros(transmitted_words.shape[0])
-        augmenter_wrapper = AugmenterWrapper(conf.aug_type,conf.fading_in_channel)
+        augmenter_wrapper = AugmenterWrapper(conf.aug_type, conf.fading_in_channel)
         for block_ind in range(conf.blocks_num):
             # get current word and channel
             transmitted_word = transmitted_words[block_ind]

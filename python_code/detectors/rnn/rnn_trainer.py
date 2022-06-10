@@ -41,8 +41,7 @@ class RNNTrainer(Trainer):
         :param transmitted_words: [1, transmission_length]
         :return: loss value
         """
-        gt_states = calculate_siso_states(self.memory_length, transmitted_words)
-        loss = self.criterion(input=soft_estimation.reshape(-1, self.n_states), target=gt_states)
+        loss = self.criterion(input=soft_estimation, target=transmitted_words[:, 0].long())
         return loss
 
     def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
@@ -58,7 +57,7 @@ class RNNTrainer(Trainer):
         :param rx: received word
         :param h: channel coefficients
         """
-        if conf.from_scratch_flag:
+        if not conf.fading_in_channel:
             self.initialize_detector()
         self.deep_learning_setup()
 
@@ -68,5 +67,4 @@ class RNNTrainer(Trainer):
             # pass through detector
             soft_estimation = self.detector(rx, phase='train')
             current_loss = self.run_train_loop(soft_estimation=soft_estimation, transmitted_words=tx)
-            print(i,current_loss)
             loss += current_loss

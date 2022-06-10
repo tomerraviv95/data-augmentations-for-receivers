@@ -42,7 +42,7 @@ class VNETTrainer(Trainer):
         :return: loss value
         """
         gt_states = calculate_siso_states(self.memory_length, transmitted_words)
-        loss = self.criterion(input=soft_estimation.reshape(-1, self.n_states), target=gt_states)
+        loss = self.criterion(input=soft_estimation, target=gt_states)
         return loss
 
     def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
@@ -58,7 +58,7 @@ class VNETTrainer(Trainer):
         :param rx: received word
         :param h: channel coefficients
         """
-        if conf.from_scratch_flag:
+        if not conf.fading_in_channel:
             self.initialize_detector()
         self.deep_learning_setup()
 
