@@ -4,7 +4,7 @@ from python_code.channel.channels_hyperparams import N_ANT
 from python_code.utils.config_singleton import Config
 
 conf = Config()
-AUGMENTATION_PLOTTING = False
+AUGMENTATION_PLOTTING = True
 
 
 class SEDChannel:

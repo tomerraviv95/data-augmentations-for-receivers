@@ -77,7 +77,8 @@ class AugmenterWrapper:
         }
         self._augmenters_dict = {
             'negation_augmenter': NegationAugmenter(),
-            'translation_augmenter': TranslationAugmenter(self._centers, n_states),
+            'translation_augmenter': TranslationAugmenter(self._centers, n_states, received_words,
+                                                          transmitted_words),
             'no_aug': NoAugmenter()
         }
         self._n_states = n_states

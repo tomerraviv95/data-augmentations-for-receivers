@@ -143,6 +143,7 @@ class Trainer(object):
     def plot_regions(self):
         # draw words of given gamma for all snrs
         transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr])
+        augmenter_wrapper = AugmenterWrapper(conf.aug_type, conf.fading_in_channel)
         for block_ind in range(conf.blocks_num):
             # get current word and channel
             transmitted_word = transmitted_words[block_ind]
@@ -151,6 +152,8 @@ class Trainer(object):
             # split words into data and pilot part
             x_pilot, x_data = transmitted_word[:conf.pilot_size], transmitted_word[conf.pilot_size:]
             y_pilot, y_data = received_word[:conf.pilot_size], received_word[conf.pilot_size:]
-            y_aug, x_aug = self.augment_words_wrapper(h, y_pilot, x_pilot)
+            # augment received words by the number of desired repeats
+            augmenter_wrapper.update_hyperparams(y_pilot, x_pilot)
+            y_aug, x_aug = augmenter_wrapper.augment_batch(h, y_pilot, x_pilot)
             # if online training flag is on - train using pilots part
             online_plotting(x_aug, y_aug, h)

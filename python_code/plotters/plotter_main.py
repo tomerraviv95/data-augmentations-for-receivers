@@ -11,14 +11,14 @@ RunParams = namedtuple(
 )
 
 if __name__ == '__main__':
-    run_over = True  # whether to run over previous results
+    run_over = False  # whether to run over previous results
     plot_type = ChannelModes.SISO.name  # either SISO (ChannelModes.SISO.name) or MIMO (ChannelModes.MIMO.name)
     trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
                                plot_type=plot_type,
                                trial_num=trial_num)
-    label_name = 'SNR_linear'
-    if label_name == 'SNR_linear':
+    label_name = 'SNR_non_linear'
+    if label_name == 'SNR_static':
         params_dicts = [
             {'val_snr': 9},
             {'val_snr': 10},
@@ -37,13 +37,13 @@ if __name__ == '__main__':
         ]
         plot_by_field = 'val_snr'
         xlabel, ylabel = 'SNR', 'SER'
-    elif label_name == 'SNR_non_linear':
+    elif label_name == 'SNR_linear':
         params_dicts = [
-            {'val_snr': 9, 'linearity': False},
-            {'val_snr': 10, 'linearity': False},
-            {'val_snr': 11, 'linearity': False},
-            {'val_snr': 12, 'linearity': False},
-            {'val_snr': 13, 'linearity': False}
+            {'val_snr': 9, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100},
+            {'val_snr': 10, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100},
+            {'val_snr': 11, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100},
+            {'val_snr': 12, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100},
+            {'val_snr': 13, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100}
         ]
         methods_list = [
             'Regular Training',
@@ -53,6 +53,30 @@ if __name__ == '__main__':
             'Combined',
             'FK Genie',
             'Extended Pilot Regular Training'
+        ]
+        plot_by_field = 'val_snr'
+        xlabel, ylabel = 'SNR', 'SER'
+    elif label_name == 'SNR_non_linear':
+        params_dicts = [
+            {'val_snr': 9, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100,
+             'linearity': False},
+            {'val_snr': 10, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100,
+             'linearity': False},
+            {'val_snr': 11, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100,
+             'linearity': False},
+            {'val_snr': 12, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100,
+             'linearity': False},
+            {'val_snr': 13, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100,
+             'linearity': False}
+        ]
+        methods_list = [
+            'Regular Training',
+            'Negation',
+            'Translation',
+            'Geometric',
+            'Combined',
+            'FK Genie',
+            # 'Extended Pilot Regular Training'
         ]
         plot_by_field = 'val_snr'
         xlabel, ylabel = 'SNR', 'SER'
