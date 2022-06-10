@@ -67,8 +67,9 @@ def generate_symbols_by_state(state, n_state):
 
 
 def break_received_siso_word_to_symbols(memory_length: int, received_words: np.ndarray) -> np.ndarray:
-    padded = np.concatenate([received_words, np.ones([received_words.shape[0], memory_length])], axis=1)
+    padded = np.concatenate([np.ones([received_words.shape[0], memory_length - 1]), received_words,
+                             np.ones([received_words.shape[0], memory_length])], axis=1)
     unsqueezed_padded = np.expand_dims(padded, axis=1)
     blockwise_words = np.concatenate([unsqueezed_padded[:, :, i:-memory_length + i] for i in range(memory_length)],
                                      axis=1)
-    return blockwise_words.squeeze().T
+    return blockwise_words.squeeze().T[:-memory_length+1]

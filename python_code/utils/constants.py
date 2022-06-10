@@ -11,3 +11,7 @@ class Phase(Enum):
 class ChannelModes(Enum):
     SISO = 'SISO'
     MIMO = 'MIMO'
+
+class DetectorType(Enum):
+    black_box = 'black_box'
+    model = 'model'
