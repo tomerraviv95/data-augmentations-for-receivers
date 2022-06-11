@@ -9,7 +9,7 @@ from python_code.utils.trellis_utils import calculate_siso_states
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
-EPOCHS = 50
+EPOCHS = 100
 
 
 class RNNTrainer(Trainer):
@@ -41,7 +41,7 @@ class RNNTrainer(Trainer):
         :param transmitted_words: [1, transmission_length]
         :return: loss value
         """
-        labels = transmitted_words[:, 0].long()
+        labels = transmitted_words[:, -1].long()
         loss = self.criterion(input=soft_estimation, target=labels)
         return loss
 

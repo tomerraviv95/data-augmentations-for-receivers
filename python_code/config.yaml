@@ -4,7 +4,7 @@ seed: 0 # run seed
 
 # channel
 channel_type: 'SISO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
-detector_type: 'black_box' # 'model' or 'black_box'
+detector_type: 'model' # 'model' or 'black_box'
 linear: True # channel linearity. Boolean value.
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
 
@@ -25,6 +25,6 @@ eval_mode: 'by_word' # Type of evaluation per block - 'by_word'.
 # online training hyperparameters
 is_online_training: True # Whether to run the online training (as in ViterbiNet). values: [True, False].
 train_minibatch_size: 32 # the size of a given minibatch. values: int.
-lr: 0.1 # learning rate. values: float.
+lr: 0.01 # learning rate. values: float.
 loss_type: 'CrossEntropy' # Loss type. values: 'BCE','CrossEntropy','MSE'.
 optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
