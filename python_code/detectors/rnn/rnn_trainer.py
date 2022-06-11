@@ -30,7 +30,7 @@ class RNNTrainer(Trainer):
 
     def initialize_detector(self):
         """
-        Loads the ViterbiNet detector
+        Loads the RNN detector
         """
         self.detector = RNNDetector(n_states=self.n_states)
 
@@ -41,7 +41,8 @@ class RNNTrainer(Trainer):
         :param transmitted_words: [1, transmission_length]
         :return: loss value
         """
-        loss = self.criterion(input=soft_estimation, target=transmitted_words[:, 0].long())
+        labels = transmitted_words[:, 0].long()
+        loss = self.criterion(input=soft_estimation, target=labels)
         return loss
 
     def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
