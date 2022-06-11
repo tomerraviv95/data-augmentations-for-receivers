@@ -4,7 +4,7 @@ from python_code.channel.channels_hyperparams import MEMORY_LENGTH
 from python_code.detectors.trainer import Trainer
 from python_code.detectors.rnn.rnn_detector import RNNDetector
 from python_code.utils.config_singleton import Config
-from python_code.utils.trellis_utils import calculate_siso_states
+from sklearn.preprocessing import StandardScaler
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -24,6 +24,7 @@ class RNNTrainer(Trainer):
         self.n_ant = 1
         self.lr = 1e-2
         self.probs_vec = None
+        self.scaler = StandardScaler()
         super().__init__()
 
     def __str__(self):
@@ -43,11 +44,13 @@ class RNNTrainer(Trainer):
         :return: loss value
         """
         labels = transmitted_words[:, -1].long()
+        # print(labels, torch.argmax(soft_estimation, dim=1), torch.sum(labels== torch.argmax(soft_estimation, dim=1)))
         loss = self.criterion(input=soft_estimation, target=labels)
         return loss
 
     def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
         # detect and decode
+        y = torch.Tensor(self.scaler.fit_transform(y.cpu().numpy())).to(device)
         detected_word = self.detector(y, phase='val')
         return detected_word
 
@@ -62,6 +65,7 @@ class RNNTrainer(Trainer):
         if not conf.fading_in_channel:
             self.initialize_detector()
         self.deep_learning_setup()
+        rx = torch.Tensor(self.scaler.fit_transform(rx.cpu().numpy())).to(device)
 
         # run training loops
         loss = 0

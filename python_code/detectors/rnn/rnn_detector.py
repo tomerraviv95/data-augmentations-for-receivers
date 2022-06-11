@@ -17,7 +17,7 @@ class RNNDetector(nn.Module):
     def __init__(self):
         super(RNNDetector, self).__init__()
         self.output_size = CLASSES_NUM
-        self.lstm = nn.LSTM(INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS).to(device)
+        self.lstm = nn.RNN(INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS).to(device)
         self.linear = nn.Linear(HIDDEN_SIZE, self.output_size).to(device)
 
     def forward(self, y: torch.Tensor, phase: str, snr: float = None, gamma: float = None,
@@ -34,15 +34,15 @@ class RNNDetector(nn.Module):
 
         # Set initial states
         h_n = torch.zeros(NUM_LAYERS, 1, HIDDEN_SIZE).to(device)
-        c_n = torch.zeros(NUM_LAYERS, 1, HIDDEN_SIZE).to(device)
 
         # Forward propagate LSTM - lstm_out: tensor of shape (seq_length, batch_size, input_size)
-        lstm_out, _ = self.lstm(y.unsqueeze(1), (h_n.contiguous(), c_n.contiguous()))
+        # lstm_out, _ = self.lstm(y.unsqueeze(1), (h_n.contiguous(), c_n.contiguous()))
+        lstm_out, _ = self.lstm(y.unsqueeze(1), h_n.contiguous())
 
         # Linear layer output
         out = self.linear(lstm_out.squeeze(1))
         if phase == 'val':
             # Decode the output
-            return torch.argmax(out, dim=1).reshape(-1, 1).float()
+            return torch.argmax(out, dim=1).reshape(-1, 1)
         else:
             return out
