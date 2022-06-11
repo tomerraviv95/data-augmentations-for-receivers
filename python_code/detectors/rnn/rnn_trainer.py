@@ -22,6 +22,7 @@ class RNNTrainer(Trainer):
         self.n_states = 2 ** self.memory_length
         self.n_user = 1
         self.n_ant = 1
+        self.lr = 1e-2
         self.probs_vec = None
         super().__init__()
 
@@ -32,7 +33,7 @@ class RNNTrainer(Trainer):
         """
         Loads the RNN detector
         """
-        self.detector = RNNDetector(n_states=self.n_states)
+        self.detector = RNNDetector()
 
     def calc_loss(self, soft_estimation: torch.Tensor, transmitted_words: torch.IntTensor) -> torch.Tensor:
         """

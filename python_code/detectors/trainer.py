@@ -51,13 +51,13 @@ class Trainer(object):
         """
         if conf.optimizer_type == 'Adam':
             self.optimizer = Adam(filter(lambda p: p.requires_grad, self.detector.parameters()),
-                                  lr=conf.lr)
+                                  lr=self.lr)
         elif conf.optimizer_type == 'RMSprop':
             self.optimizer = RMSprop(filter(lambda p: p.requires_grad, self.detector.parameters()),
-                                     lr=conf.lr)
+                                     lr=self.lr)
         elif conf.optimizer_type == 'SGD':
             self.optimizer = SGD(filter(lambda p: p.requires_grad, self.detector.parameters()),
-                                 lr=conf.lr)
+                                 lr=self.lr)
         else:
             raise NotImplementedError("No such optimizer implemented!!!")
         if conf.loss_type == 'CrossEntropy':
@@ -116,7 +116,7 @@ class Trainer(object):
             detected_word = self.forward(y_data, self.probs_vec)
             # calculate accuracy
             # ser, fer, err_indices = calculate_error_rates(detected_word, x_data[:, :received_word.shape[1]])
-            ser, fer, err_indices = calculate_error_rates(detected_word, x_data[:, -1:])
+            ser, fer, err_indices = calculate_error_rates(detected_word, x_data[:, -received_word.shape[1]:])
             print('*' * 20)
             print(f'current: {block_ind, ser}')
             total_ser += ser

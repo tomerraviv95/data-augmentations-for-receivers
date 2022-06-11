@@ -1,3 +1,5 @@
+from math import log2
+
 import torch
 import torch.nn as nn
 
@@ -17,6 +19,7 @@ class VNETDetector(nn.Module):
 
         super(VNETDetector, self).__init__()
         self.n_states = n_states
+        self.memory_length = int(log2(self.n_states))
         self.transition_table_array = create_transition_table(n_states)
         self.transition_table = torch.Tensor(self.transition_table_array).to(device)
         self.initialize_dnn()
@@ -39,9 +42,10 @@ class VNETDetector(nn.Module):
         """
         # initialize input probabilities
         in_prob = torch.zeros([1, self.n_states]).to(device)
-        priors = self.net(y)
 
         if phase == 'val':
+            padded_y = torch.cat([y, torch.ones(self.memory_length - 1).reshape(-1, 1).to(device)])
+            priors = self.net(padded_y[self.memory_length - 1:])
             detected_word = torch.zeros(y.shape).to(device)
             for i in range(y.shape[0]):
                 # get the lsb of the state
@@ -53,4 +57,5 @@ class VNETDetector(nn.Module):
 
             return detected_word
         else:
+            priors = self.net(y)
             return priors

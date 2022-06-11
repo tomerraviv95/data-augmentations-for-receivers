@@ -22,6 +22,7 @@ class VNETTrainer(Trainer):
         self.n_states = 2 ** self.memory_length
         self.n_user = 1
         self.n_ant = 1
+        self.lr = 1e-3
         self.probs_vec = None
         super().__init__()
 
