@@ -40,8 +40,8 @@ class SISOChannel:
         s = BPSKModulator.modulate(padded_b)
         # transmit through noisy channel
         y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=MEMORY_LENGTH)
-        b, y = break_received_siso_word_to_symbols(MEMORY_LENGTH, b), y.T
-        return b, y
+        symbols, y = break_transmitted_siso_word_to_symbols(MEMORY_LENGTH, b), y.T
+        return symbols[:-MEMORY_LENGTH + 1], y[:-MEMORY_LENGTH + 1]
 
     def get_values(self, snr, index):
         # get channel values

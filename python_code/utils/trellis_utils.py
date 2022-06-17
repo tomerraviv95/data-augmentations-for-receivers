@@ -59,8 +59,8 @@ def calculate_symbols_from_siso_states(memory_length: int, gt_states: torch.Tens
 
 
 def break_transmitted_siso_word_to_symbols(memory_length: int, transmitted_words: np.ndarray) -> np.ndarray:
-    padded = np.concatenate([np.ones([transmitted_words.shape[0], memory_length - 1]), transmitted_words,
-                             np.ones([transmitted_words.shape[0], memory_length])], axis=1)
+    padded = np.concatenate([np.zeros([transmitted_words.shape[0], memory_length - 1]), transmitted_words,
+                             np.zeros([transmitted_words.shape[0], memory_length])], axis=1)
     unsqueezed_padded = np.expand_dims(padded, axis=1)
     blockwise_words = np.concatenate([unsqueezed_padded[:, :, i:-memory_length + i] for i in range(memory_length)],
                                      axis=1)

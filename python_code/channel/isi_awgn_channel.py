@@ -40,10 +40,10 @@ class ISIAWGNChannel:
         conv = ISIAWGNChannel.compute_channel_signal_convolution(h, memory_length, s)
         [row, col] = conv.shape
         w = ISIAWGNChannel.sample_noise_vector(row, col, snr)
-        y = conv + w
+        y = conv # + w
         if not conf.linear:
             y = np.tanh(0.5 * y)
-        return y[:, :-memory_length + 1]
+        return y
 
     @staticmethod
     def compute_channel_signal_convolution(h, memory_length, s):
