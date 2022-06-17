@@ -145,11 +145,6 @@ class AugmenterWrapper:
             if i < transmitted_words.shape[0]:
                 aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]
             else:
-                if conf.channel_type == ChannelModes.SISO.name:
-                    to_augment_state = calculate_siso_states(MEMORY_LENGTH, transmitted_words[i % transmitted_words.shape[0]])
-                elif conf.channel_type == ChannelModes.MIMO.name:
-                    to_augment_state = calculate_mimo_states(N_USER, transmitted_words[i % transmitted_words.shape[0]])
-                else:
-                    raise ValueError("No such channel type!!!")
+                to_augment_state = (i - transmitted_words.shape[0]) % self._n_states
                 aug_rx[i], aug_tx[i] = self.augment_single(to_augment_state, h, conf.val_snr)
         return aug_rx, aug_tx

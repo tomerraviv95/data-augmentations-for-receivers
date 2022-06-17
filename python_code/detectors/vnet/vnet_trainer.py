@@ -9,7 +9,7 @@ from python_code.utils.trellis_utils import calculate_siso_states
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
-EPOCHS = 750
+EPOCHS = 500
 
 
 class VNETTrainer(Trainer):

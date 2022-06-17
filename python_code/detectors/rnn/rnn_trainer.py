@@ -10,8 +10,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 EPOCHS = 200
-BATCH_SIZE = 128
-
 
 class RNNTrainer(Trainer):
     """
@@ -46,11 +44,6 @@ class RNNTrainer(Trainer):
         # labels = transmitted_words[:, -1].long()
         gt_states = calculate_siso_states(self.memory_length, transmitted_words)
         loss = self.criterion(input=soft_estimation, target=gt_states)
-        # equal_ind = torch.where(torch.argmax(soft_estimation, dim=1) != gt_states)
-        # not_equal_gt_values = torch.unique(gt_states[equal_ind],return_counts=True)
-        # not_equal_values = torch.unique(self.cur_rx[equal_ind],return_counts=True)
-        # # print(torch.sum(torch.argmax(soft_estimation, dim=1) == gt_states))
-        # print(not_equal_gt_values,not_equal_values)
         return loss
 
     def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
@@ -73,10 +66,7 @@ class RNNTrainer(Trainer):
         # run training loops
         loss = 0
         for i in range(EPOCHS):
-            random_ind = 0 # torch.randperm(rx.size(0) - BATCH_SIZE)[:1]
-            cur_rx, cur_tx = rx[random_ind:random_ind + BATCH_SIZE], tx[random_ind:random_ind + BATCH_SIZE]
-            self.cur_rx = cur_rx
             # pass through detector
-            soft_estimation = self.detector(cur_rx, phase='train')
-            current_loss = self.run_train_loop(soft_estimation=soft_estimation, transmitted_words=cur_tx)
+            soft_estimation = self.detector(rx, phase='train')
+            current_loss = self.run_train_loop(soft_estimation=soft_estimation, transmitted_words=tx)
             loss += current_loss
