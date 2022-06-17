@@ -52,7 +52,8 @@ class SISOChannel:
     def generate_all_classes_pilots(self):
         b_pilots = self.bits_generator.integers(0, 2, size=(1, self.pilots_length)).reshape(1, -1)
         b_pilots_by_symbols = break_transmitted_siso_word_to_symbols(MEMORY_LENGTH, b_pilots)
-        states = calculate_siso_states(MEMORY_LENGTH, torch.Tensor(b_pilots_by_symbols).to(device)).cpu().numpy()
+        states = calculate_siso_states(MEMORY_LENGTH,
+                                       torch.Tensor(b_pilots_by_symbols[:-MEMORY_LENGTH + 1]).to(device)).cpu().numpy()
         n_unique = 2 ** MEMORY_LENGTH
         if len(np.unique(states)) < n_unique:
             return self.generate_all_classes_pilots()
