@@ -53,8 +53,14 @@ def calculate_mimo_states(n_user: int, transmitted_words: torch.Tensor) -> torch
     return gt_states
 
 
+def calculate_symbols_from_siso_states(memory_length: int, gt_states: torch.Tensor) -> torch.Tensor:
+    mask = 2 ** torch.arange(memory_length).to(gt_states.device, gt_states.dtype)
+    return gt_states.unsqueeze(-1).bitwise_and(mask).ne(0).long()
+
+
 def break_transmitted_siso_word_to_symbols(memory_length: int, transmitted_words: np.ndarray) -> np.ndarray:
-    padded = np.concatenate([transmitted_words, np.ones([transmitted_words.shape[0], memory_length])], axis=1)
+    padded = np.concatenate([np.ones([transmitted_words.shape[0], memory_length - 1]), transmitted_words,
+                             np.ones([transmitted_words.shape[0], memory_length])], axis=1)
     unsqueezed_padded = np.expand_dims(padded, axis=1)
     blockwise_words = np.concatenate([unsqueezed_padded[:, :, i:-memory_length + i] for i in range(memory_length)],
                                      axis=1)
@@ -72,4 +78,4 @@ def break_received_siso_word_to_symbols(memory_length: int, received_words: np.n
     unsqueezed_padded = np.expand_dims(padded, axis=1)
     blockwise_words = np.concatenate([unsqueezed_padded[:, :, i:-memory_length + i] for i in range(memory_length)],
                                      axis=1)
-    return blockwise_words.squeeze().T[:-memory_length+1]
+    return blockwise_words.squeeze().T[:-memory_length + 1]

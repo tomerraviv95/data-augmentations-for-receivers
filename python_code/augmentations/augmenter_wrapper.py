@@ -136,12 +136,20 @@ class AugmenterWrapper:
         :param phase: validation phase
         :return: the received and transmitted words
         """
+        # return received_words,transmitted_words
+        # return torch.cat([received_words, received_words,received_words,received_words]), \
+        #        torch.cat([transmitted_words, transmitted_words,transmitted_words, transmitted_words])
         aug_tx = torch.empty([conf.online_repeats_n, transmitted_words.shape[1]]).to(device)
         aug_rx = torch.empty([conf.online_repeats_n, received_words.shape[1]]).to(device)
         for i in range(aug_tx.shape[0]):
             if i < transmitted_words.shape[0]:
                 aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]
             else:
-                to_augment_state = i % self.n_states
+                if conf.channel_type == ChannelModes.SISO.name:
+                    to_augment_state = calculate_siso_states(MEMORY_LENGTH, transmitted_words[i % transmitted_words.shape[0]])
+                elif conf.channel_type == ChannelModes.MIMO.name:
+                    to_augment_state = calculate_mimo_states(N_USER, transmitted_words[i % transmitted_words.shape[0]])
+                else:
+                    raise ValueError("No such channel type!!!")
                 aug_rx[i], aug_tx[i] = self.augment_single(to_augment_state, h, conf.val_snr)
         return aug_rx, aug_tx

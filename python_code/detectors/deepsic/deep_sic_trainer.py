@@ -84,7 +84,7 @@ class DeepSICTrainer(Trainer):
             self.train_model(model[user][i], b_train_all[user], y_train_all[user])
 
     def online_training(self, b_train: torch.Tensor, y_train: torch.Tensor, h: torch.Tensor):
-        if not conf.fading_in_channel:
+        if conf.from_scratch:
             self.initialize_detector()
         initial_probs = b_train.clone()
         b_train_all, y_train_all = self.prepare_data_for_training(b_train, y_train, initial_probs)

@@ -2,22 +2,24 @@ from collections import namedtuple
 
 from python_code.plotters.plotter_methods import compute_ser_for_method
 from python_code.plotters.plotter_utils import plot_by_values
-from python_code.utils.constants import ChannelModes
+from python_code.utils.constants import ChannelModes, DetectorType
 
 RunParams = namedtuple(
     "RunParams",
-    "run_over plot_type trial_num",
-    defaults=[False, 'SISO', 1]
+    "run_over plot_type detector_type trial_num",
+    defaults=[False, 'SISO', 'model', 1]
 )
 
 if __name__ == '__main__':
-    run_over = False  # whether to run over previous results
+    run_over = True  # whether to run over previous results
     plot_type = ChannelModes.SISO.name  # either SISO (ChannelModes.SISO.name) or MIMO (ChannelModes.MIMO.name)
+    detector_type = DetectorType.black_box.name  # either model or black_box
     trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
                                plot_type=plot_type,
+                               detector_type=detector_type,
                                trial_num=trial_num)
-    label_name = 'SNR_non_linear'
+    label_name = 'SNR_static'
     if label_name == 'SNR_static':
         params_dicts = [
             {'val_snr': 9},

@@ -11,6 +11,7 @@ from python_code.augmentations.plotting_utils import online_plotting
 from python_code.channel.channel_dataset import ChannelModelDataset
 from python_code.utils.config_singleton import Config
 from python_code.utils.metrics import calculate_error_rates
+from python_code.utils.trellis_utils import calculate_siso_states
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conf = Config()
@@ -114,6 +115,13 @@ class Trainer(object):
                 self.online_training(x_aug, y_aug, h)
             # detect data part
             detected_word = self.forward(y_data, self.probs_vec)
+            # wrong_values= y_data[torch.where(torch.abs(x_data[:, -received_word.shape[1]:] - detected_word) != 0)[0]]
+            # print(torch.min(y_data),torch.max(y_data))
+            # print(torch.min(wrong_values),torch.max(wrong_values))
+            # states = calculate_siso_states(4, x_data)
+            # wrong_states = calculate_siso_states(4, x_data[torch.where(torch.abs(x_data[:, -received_word.shape[1]:] - detected_word) != 0)[0]])
+            # print(torch.unique(states,return_counts=True))
+            # print(torch.unique(wrong_states,return_counts=True))
             # calculate accuracy
             ser, fer, err_indices = calculate_error_rates(detected_word, x_data[:, -received_word.shape[1]:])
             # print(detected_word, x_data[:, -received_word.shape[1]:],torch.sum(x_data[:, -received_word.shape[1]:] == detected_word))

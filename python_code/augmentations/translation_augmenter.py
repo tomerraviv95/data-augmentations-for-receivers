@@ -44,15 +44,15 @@ class TranslationAugmenter:
         torch.Tensor, torch.Tensor]:
         random_ind = randint(a=0, b=len(self._diffs_list) - 1)
         diff = self._diffs_list[random_ind]
-        random_state = random.choice(
-            list(range(0, to_augment_state)) + list(range(to_augment_state + 1, self._n_states)))
-        if conf.channel_type == ChannelModes.SISO.name:
-            transmitted_word = generate_symbols_by_state(random_state, MEMORY_LENGTH)
-        elif conf.channel_type == ChannelModes.MIMO.name:
-            transmitted_word = generate_symbols_by_state(random_state, N_USER)
-        else:
-            raise ValueError("No such channel type!!!")
-        received_word = self._centers[random_state] + diff
+        # random_state = random.choice(
+        #     list(range(0, to_augment_state)) + list(range(to_augment_state + 1, self._n_states)))
+        # if conf.channel_type == ChannelModes.SISO.name:
+        #     transmitted_word = generate_symbols_by_state(random_state, MEMORY_LENGTH)
+        # elif conf.channel_type == ChannelModes.MIMO.name:
+        #     transmitted_word = generate_symbols_by_state(random_state, N_USER)
+        # else:
+        #     raise ValueError("No such channel type!!!")
+        received_word -= diff
         return received_word, transmitted_word
 
     @property
