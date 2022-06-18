@@ -5,7 +5,7 @@ import torch
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
-from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states, generate_symbols_by_state
+from python_code.utils.trellis_utils import generate_symbols_by_state
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -18,14 +18,18 @@ class GeometricSampler:
     then smooths the estimate via a window running mean with alpha = 0.3
     """
 
-    def __init__(self, centers: torch.Tensor, stds: torch.Tensor, n_states: int, state_size: int):
+    def __init__(self, centers: torch.Tensor, stds: torch.Tensor, n_states: int, state_size: int,
+                 gt_states: torch.Tensor):
         super().__init__()
         self._centers = centers
         self._stds = stds
         self._n_states = n_states
         self._state_size = state_size
+        self._gt_states = gt_states
 
-    def sample(self, to_augment_state: int, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
+    def sample(self, i: int, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
+
+        to_augment_state = self._gt_states[i % self._gt_states.shape[0]]
 
         if conf.channel_type == ChannelModes.SISO.name:
             transmitted_word = generate_symbols_by_state(to_augment_state, MEMORY_LENGTH)

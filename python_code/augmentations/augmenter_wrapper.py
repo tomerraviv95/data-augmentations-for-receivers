@@ -70,8 +70,8 @@ class AugmenterWrapper:
             self._centers, self._stds = centers, stds
 
         self._samplers_dict = {
-            'geometric_sampler': GeometricSampler(self._centers, self._stds, n_states, state_size),
-            'random_sampler': RandomSampler(received_words, transmitted_words, gt_states),
+            'geometric_sampler': GeometricSampler(self._centers, self._stds, n_states, state_size, gt_states),
+            'random_sampler': RandomSampler(received_words, transmitted_words),
             'full_knowledge_sampler': FullKnowledgeSampler(),
         }
         self._augmenters_dict = {
@@ -106,7 +106,7 @@ class AugmenterWrapper:
     def n_states(self) -> int:
         return self._n_states
 
-    def augment_single(self, to_augment_state: int, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
+    def augment_single(self, i: int, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Augment the received word using one of the given augmentations methods.
         :param received_word: Tensor of float values
@@ -115,11 +115,11 @@ class AugmenterWrapper:
         :param snr: signal to noise ratio value
         :return: the augmented received and transmitted pairs
         """
-        aug_rx, aug_tx = self._samplers_dict[conf.sampler_type].sample(to_augment_state, h, snr)
+        aug_rx, aug_tx = self._samplers_dict[conf.sampler_type].sample(i, h, snr)
         # run through the desired augmentations
         for augmentation_name in self._augmentations:
             augmenter = self._augmenters_dict[augmentation_name]
-            aug_rx, aug_tx = augmenter.augment(aug_rx, aug_tx, to_augment_state)
+            aug_rx, aug_tx = augmenter.augment(aug_rx, aug_tx)
         return aug_rx, aug_tx
 
     def augment_batch(self, h: torch.Tensor, received_words: torch.Tensor, transmitted_words: torch.Tensor):
@@ -135,15 +135,9 @@ class AugmenterWrapper:
         """
         aug_tx = torch.empty([conf.online_repeats_n, transmitted_words.shape[1]]).to(device)
         aug_rx = torch.empty([conf.online_repeats_n, received_words.shape[1]]).to(device)
-        debug = True
         for i in range(aug_tx.shape[0]):
             if i < transmitted_words.shape[0]:
                 aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]
             else:
-                if debug:
-                    to_augment_state = calculate_siso_states(MEMORY_LENGTH,
-                                                             transmitted_words[i % transmitted_words.shape[0]]).item()
-                else:
-                    to_augment_state = i % self.n_states
-                aug_rx[i], aug_tx[i] = self.augment_single(to_augment_state, h, conf.val_snr)
+                aug_rx[i], aug_tx[i] = self.augment_single(i, h, conf.val_snr)
         return aug_rx, aug_tx

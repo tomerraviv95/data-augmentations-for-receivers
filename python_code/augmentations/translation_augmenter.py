@@ -1,4 +1,4 @@
-import random
+from random import randint
 from typing import Tuple
 
 import torch
@@ -6,8 +6,7 @@ import torch
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
-from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states, generate_symbols_by_state
-from random import randint
+from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -40,8 +39,7 @@ class TranslationAugmenter:
             current_diff = received_words[i] - self._centers[current_state]
             self._diffs_list.append(current_diff)
 
-    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor, to_augment_state: int) -> Tuple[
-        torch.Tensor, torch.Tensor]:
+    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         random_ind = randint(a=0, b=len(self._diffs_list) - 1)
         sampled_diff = self._diffs_list[random_ind]
         if conf.channel_type == ChannelModes.SISO.name:

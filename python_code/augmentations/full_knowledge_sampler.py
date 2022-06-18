@@ -18,7 +18,7 @@ class FullKnowledgeSampler:
     generate new random words from this channel
     """
 
-    def sample(self, to_augment_state: int, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
+    def sample(self, i: int, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
         channel_dataset = ChannelModelDataset(block_length=FK_KNOWLEDGE_BUFFER,
                                               pilots_length=FK_KNOWLEDGE_BUFFER,
                                               blocks_num=1)

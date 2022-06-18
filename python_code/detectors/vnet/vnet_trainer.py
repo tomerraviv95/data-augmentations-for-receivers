@@ -1,3 +1,5 @@
+from random import randint
+
 import torch
 
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH
@@ -10,6 +12,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 EPOCHS = 500
+BATCH_SIZE = 64
 
 
 class VNETTrainer(Trainer):
@@ -66,7 +69,11 @@ class VNETTrainer(Trainer):
         # run training loops
         loss = 0
         for i in range(EPOCHS):
+            word_ind = randint(a=0, b=conf.online_repeats_n // conf.pilot_size - 1)
+            subword_ind = randint(a=0, b=conf.pilot_size - BATCH_SIZE)
+            ind = word_ind * conf.pilot_size + subword_ind
             # pass through detector
-            soft_estimation = self.detector(rx, phase='train')
-            current_loss = self.run_train_loop(soft_estimation=soft_estimation, transmitted_words=tx)
+            soft_estimation = self.detector(rx[ind: ind + BATCH_SIZE], phase='train')
+            current_loss = self.run_train_loop(soft_estimation=soft_estimation,
+                                               transmitted_words=tx[ind:ind + BATCH_SIZE])
             loss += current_loss
