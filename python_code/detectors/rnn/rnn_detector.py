@@ -7,8 +7,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 CLASSES_NUM = 16
 NUM_LAYERS = 2
 INPUT_SIZE = 1
-HIDDEN_SIZE = 8
-MEMORY_LENGTH = 4
+HIDDEN_SIZE = 64
+MEMORY_LENGTH = 16
 
 
 class RNNDetector(nn.Module):
@@ -19,15 +19,8 @@ class RNNDetector(nn.Module):
     def __init__(self):
         super(RNNDetector, self).__init__()
         self.output_size = CLASSES_NUM
-        self.initialize_dnn()
-
-    def initialize_dnn(self):
-        layers = [nn.Linear(1, HIDDEN_SIZE),
-                  nn.ReLU(),
-                  nn.Linear(HIDDEN_SIZE, HIDDEN_SIZE),
-                  nn.ReLU(),
-                  nn.Linear(HIDDEN_SIZE, self.output_size)]
-        self.net = nn.Sequential(*layers).to(device)
+        self.lstm = nn.LSTM(INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS).to(device)
+        self.linear = nn.Linear(HIDDEN_SIZE, self.output_size).to(device)
 
     def forward(self, y: torch.Tensor, phase: str, snr: float = None, gamma: float = None,
                 count: int = None) -> torch.Tensor:
@@ -40,11 +33,20 @@ class RNNDetector(nn.Module):
         :return: if in 'train' - the estimated bitwise prob [batch_size,transmission_length,N_CLASSES]
         if in 'val' - the detected words [n_batch,transmission_length]
         """
-        out = self.net(y)
+
+        # Set initial states
+        h_n = torch.zeros(NUM_LAYERS, 1, HIDDEN_SIZE).to(device)
+        c_n = torch.zeros(NUM_LAYERS, 1, HIDDEN_SIZE).to(device)
+
+        # Forward propagate LSTM - lstm_out: tensor of shape (seq_length, batch_size, input_size)
+        lstm_out, _ = self.lstm(y.unsqueeze(1), (h_n.contiguous(), c_n.contiguous()))
+
+        # Linear layer output
+        out = self.linear(lstm_out.squeeze(1))
         if phase == 'val':
             # Decode the output
             estimated_states = torch.argmax(out, dim=1)
             estimated_words = calculate_symbols_from_siso_states(MEMORY_LENGTH, estimated_states)
-            return estimated_words# [:, 0].reshape(-1, 1).long()
+            return estimated_words[:, 0].reshape(-1, 1).long()
         else:
             return out
