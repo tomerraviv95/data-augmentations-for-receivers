@@ -29,7 +29,8 @@ class GeometricSampler:
 
     def sample(self, i: int, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
 
-        to_augment_state = self._gt_states[i % self._gt_states.shape[0]]
+        # to_augment_state = self._gt_states[i % self._gt_states.shape[0]]
+        to_augment_state = i % self._n_states
 
         if conf.channel_type == ChannelModes.SISO.name:
             transmitted_word = generate_symbols_by_state(to_augment_state, MEMORY_LENGTH)
