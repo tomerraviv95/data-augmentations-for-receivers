@@ -43,12 +43,11 @@ class ISIAWGNChannel:
         y = conv + w
         if not conf.linear:
             y = np.tanh(0.5 * y)
-        return y[:, :-memory_length + 1]
+        return y
 
     @staticmethod
     def compute_channel_signal_convolution(h, memory_length, s):
-        blockwise_s = np.concatenate([s[:, i:-memory_length + i] for i in range(memory_length)],
-                                     axis=0)
+        blockwise_s = np.concatenate([s[:, i:-memory_length + i] for i in range(memory_length)], axis=0)
         conv = np.dot(h[:, ::-1], blockwise_s)
         return conv
 

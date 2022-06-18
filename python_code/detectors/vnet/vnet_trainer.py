@@ -9,7 +9,7 @@ from python_code.utils.trellis_utils import calculate_siso_states
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
-EPOCHS = 750
+EPOCHS = 500
 
 
 class VNETTrainer(Trainer):
@@ -22,6 +22,7 @@ class VNETTrainer(Trainer):
         self.n_states = 2 ** self.memory_length
         self.n_user = 1
         self.n_ant = 1
+        self.lr = 1e-3
         self.probs_vec = None
         super().__init__()
 
@@ -58,7 +59,7 @@ class VNETTrainer(Trainer):
         :param rx: received word
         :param h: channel coefficients
         """
-        if not conf.fading_in_channel:
+        if conf.from_scratch:
             self.initialize_detector()
         self.deep_learning_setup()
 
