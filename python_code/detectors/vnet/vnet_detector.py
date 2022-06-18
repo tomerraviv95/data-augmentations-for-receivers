@@ -42,10 +42,9 @@ class VNETDetector(nn.Module):
         """
         # initialize input probabilities
         in_prob = torch.zeros([1, self.n_states]).to(device)
+        priors = self.net(y)
 
         if phase == 'val':
-            padded_y = torch.cat([y, torch.ones(self.memory_length - 1).reshape(-1, 1).to(device)])
-            priors = self.net(padded_y[self.memory_length - 1:])
             detected_word = torch.zeros(y.shape).to(device)
             for i in range(y.shape[0]):
                 # get the lsb of the state
@@ -57,5 +56,4 @@ class VNETDetector(nn.Module):
 
             return detected_word
         else:
-            priors = self.net(y)
             return priors

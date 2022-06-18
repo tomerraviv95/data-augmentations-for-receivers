@@ -1,4 +1,3 @@
-from random import randint
 from typing import Tuple
 
 import torch
@@ -10,20 +9,14 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conf = Config()
 
 
-class RandomSampler:
+class NoAugSampler:
     """
     The proposed augmentations scheme. Calculates centers and variances for each class as specified in the paper,
     then smooths the estimate via a window running mean with alpha = 0.3
     """
 
-    def __init__(self, received_words: torch.Tensor, transmitted_words: torch.Tensor, gt_states: torch.Tensor):
+    def __init__(self):
         super().__init__()
-        self._received_words = received_words
-        self._transmitted_words = transmitted_words
-        self._states = gt_states
 
-    def sample(self, to_augment_state: int, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
-        cur_state_indices = torch.where(self._states == to_augment_state)[0]
-        random_ind = cur_state_indices[torch.randperm(cur_state_indices.size(0))[:1]]
-        x, y = self._received_words[random_ind].reshape(1, -1), self._transmitted_words[random_ind].reshape(1, -1)
-        return x, y
+    def sample(self, rx, tx, i, h, snr) -> Tuple[torch.Tensor, torch.Tensor]:
+        return rx, tx

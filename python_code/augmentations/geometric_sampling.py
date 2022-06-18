@@ -25,11 +25,13 @@ class GeometricSampler:
         self._n_states = n_states
         self._state_size = state_size
 
-    def sample(self, to_augment_state: int, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
+    def sample(self, rx, tx, i, h, snr) -> Tuple[torch.Tensor, torch.Tensor]:
 
         if conf.channel_type == ChannelModes.SISO.name:
+            to_augment_state = calculate_siso_states(MEMORY_LENGTH, tx)
             transmitted_word = generate_symbols_by_state(to_augment_state, MEMORY_LENGTH)
         elif conf.channel_type == ChannelModes.MIMO.name:
+            to_augment_state = calculate_mimo_states(N_USER, tx)
             transmitted_word = generate_symbols_by_state(to_augment_state, N_USER)
         else:
             raise ValueError("No such channel type!!!")

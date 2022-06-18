@@ -116,8 +116,7 @@ class Trainer(object):
             # detect data part
             detected_word = self.forward(y_data, self.probs_vec)
             # calculate accuracy
-            ser, fer, err_indices = calculate_error_rates(detected_word, x_data[:, -received_word.shape[1]:])
-            # print(detected_word, x_data[:, -received_word.shape[1]:],torch.sum(x_data[:, -received_word.shape[1]:] == detected_word))
+            ser, fer, err_indices = calculate_error_rates(detected_word, x_data[:, :received_word.shape[1]])
             print('*' * 20)
             print(f'current: {block_ind, ser}')
             total_ser += ser
