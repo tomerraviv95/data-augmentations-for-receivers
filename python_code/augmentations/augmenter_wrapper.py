@@ -135,10 +135,15 @@ class AugmenterWrapper:
         """
         aug_tx = torch.empty([conf.online_repeats_n, transmitted_words.shape[1]]).to(device)
         aug_rx = torch.empty([conf.online_repeats_n, received_words.shape[1]]).to(device)
+        debug = True
         for i in range(aug_tx.shape[0]):
             if i < transmitted_words.shape[0]:
                 aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]
             else:
-                to_augment_state = i % self.n_states
+                if debug:
+                    to_augment_state = calculate_siso_states(MEMORY_LENGTH,
+                                                             transmitted_words[i % transmitted_words.shape[0]]).item()
+                else:
+                    to_augment_state = i % self.n_states
                 aug_rx[i], aug_tx[i] = self.augment_single(to_augment_state, h, conf.val_snr)
         return aug_rx, aug_tx
