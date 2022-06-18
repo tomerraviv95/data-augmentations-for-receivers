@@ -5,7 +5,6 @@ import torch
 from python_code.augmentations.full_knowledge_sampler import FullKnowledgeSampler
 from python_code.augmentations.geometric_sampling import GeometricSampler
 from python_code.augmentations.negation_augmenter import NegationAugmenter
-from python_code.augmentations.no_augmenter import NoAugmenter
 from python_code.augmentations.random_sampling import RandomSampler
 from python_code.augmentations.translation_augmenter import TranslationAugmenter
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER, N_ANT
@@ -79,7 +78,6 @@ class AugmenterWrapper:
             'negation_augmenter': NegationAugmenter(),
             'translation_augmenter': TranslationAugmenter(self._centers, n_states, received_words,
                                                           transmitted_words),
-            'no_aug': NoAugmenter()
         }
         self._n_states = n_states
 
