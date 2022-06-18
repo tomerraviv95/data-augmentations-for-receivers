@@ -4,15 +4,10 @@ from typing import Tuple, List, Dict, Union
 import numpy as np
 
 from dir_definitions import CONFIG_RUNS_DIR
-from python_code.detectors.deepsic.deep_sic_trainer import DeepSICTrainer
 from python_code.detectors.trainer import Trainer
-from python_code.detectors.vnet.vnet_trainer import VNETTrainer
+from python_code.evaluate import CHANNEL_TYPE_TO_TRAINER_DICT
 from python_code.plotters.plotter_utils import get_ser_plot
 from python_code.utils.config_singleton import Config
-from python_code.utils.constants import ChannelModes
-
-CHANNEL_TYPE_TO_TRAINER_DICT = {ChannelModes.SISO.name: VNETTrainer,
-                                ChannelModes.MIMO.name: DeepSICTrainer}
 
 
 def set_method_name(conf: Config, method_name: str, params_dict: Dict[str, Union[int, str]]) -> str:
@@ -50,10 +45,10 @@ def add_avg_ser(all_curves: List[Tuple[float, str]], conf: Config, method_name: 
 
 
 def compute_ser_for_method(all_curves: List[Tuple[float, str]], method: str, params_dict, run_params_obj):
-    trainer = CHANNEL_TYPE_TO_TRAINER_DICT[run_params_obj.plot_type]()
+    trainer = CHANNEL_TYPE_TO_TRAINER_DICT[params_dict['channel_type']][params_dict['detector_type']]()
     full_method_name = f'{trainer.__str__()} - {method}'
     print(full_method_name)
     conf = Config()
-    conf.load_config(os.path.join(CONFIG_RUNS_DIR, run_params_obj.plot_type, f'{method}.yaml'))
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, f'{method}.yaml'))
     name = set_method_name(conf, full_method_name, params_dict)
     add_avg_ser(all_curves, conf, full_method_name, name, run_params_obj.run_over, run_params_obj.trial_num, trainer)

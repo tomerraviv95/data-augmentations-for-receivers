@@ -2,29 +2,32 @@ from collections import namedtuple
 
 from python_code.plotters.plotter_methods import compute_ser_for_method
 from python_code.plotters.plotter_utils import plot_by_values
-from python_code.utils.constants import ChannelModes
+from python_code.utils.constants import ChannelModes, DetectorType
 
 RunParams = namedtuple(
     "RunParams",
-    "run_over plot_type trial_num",
-    defaults=[False, 'SISO', 1]
+    "run_over trial_num",
+    defaults=[False, 1]
 )
 
 if __name__ == '__main__':
     run_over = False  # whether to run over previous results
-    plot_type = ChannelModes.SISO.name  # either SISO (ChannelModes.SISO.name) or MIMO (ChannelModes.MIMO.name)
     trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
-                               plot_type=plot_type,
                                trial_num=trial_num)
-    label_name = 'SNR_non_linear'
-    if label_name == 'SNR_static':
+    label_name = 'SNR_linear_static'
+    if label_name == 'SNR_linear_static':
         params_dicts = [
-            {'val_snr': 9},
-            {'val_snr': 10},
-            {'val_snr': 11},
-            {'val_snr': 12},
-            {'val_snr': 13}
+            {'val_snr': 9, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name},
+            {'val_snr': 10, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name},
+            {'val_snr': 11, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name},
+            {'val_snr': 12, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name},
+            {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name},
+            {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name},
+            {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name},
+            {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name},
+            {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name},
+            {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name},
         ]
         methods_list = [
             'Regular Training',
@@ -32,7 +35,7 @@ if __name__ == '__main__':
             'Translation',
             'Geometric',
             'Combined',
-            'FK Genie',
+            # 'FK Genie',
             'Extended Pilot Regular Training'
         ]
         plot_by_field = 'val_snr'

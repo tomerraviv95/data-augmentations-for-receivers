@@ -4,27 +4,24 @@ seed: 0 # run seed
 
 # channel
 channel_type: 'SISO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
+detector_type: 'model' # 'model' or 'black_box'
 linear: True # channel linearity. Boolean value.
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
 
 # sampler
-sampler_type: 'geometric_sampler' # 'geometric_sampler', 'random_sampler', 'full_knowledge_sampler'
-# augmentations
-# ['no_aug','negation_augmenter','translation_augmenter']
-aug_type: ['no_aug']
-online_repeats_n: 2000 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
+sampler_type: 'no_sampler' # 'no_sampler','geometric_sampler',  'full_knowledge_sampler'
+aug_type: ['translation_augmenter'] # ['translation_augmenter','negation_augmenter']
+online_repeats_n: 1000 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
 
 # validation hyperparameters
-val_block_length: 10100 # coherence block time, total size of pilot + data. values: int.
-pilot_size: 100 # pilot symbols
+val_block_length: 10200 # coherence block time, total size of pilot + data. values: int.
+pilot_size: 200 # pilot symbols
 blocks_num: 10 # number of validation frames. values: int.
-val_snr: 10 # start SNR value. values: float.
+val_snr: 12 # start SNR value. values: float.
 eval_mode: 'by_word' # Type of evaluation per block - 'by_word'.
 
 # online training hyperparameters
 is_online_training: True # Whether to run the online training (as in ViterbiNet). values: [True, False].
-train_minibatch_size: 32 # the size of a given minibatch. values: int.
-lr: 0.001 # learning rate. values: float.
 loss_type: 'CrossEntropy' # Loss type. values: 'BCE','CrossEntropy','MSE'.
 optimizer_type: 'Adam' # Optimizer type. values: 'Adam','RMSprop','SGD'.
-from_scratch_flag: True # whether to initialize the detector at each new channel instance (True) or continue from previous weights (False)
+from_scratch: True
