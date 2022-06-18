@@ -1,4 +1,5 @@
 from python_code.detectors.deepsic.deep_sic_trainer import DeepSICTrainer
+from python_code.detectors.dnn.dnn_trainer import DNNTrainer
 from python_code.detectors.rnn.rnn_trainer import RNNTrainer
 from python_code.detectors.vnet.vnet_trainer import VNETTrainer
 from python_code.utils.config_singleton import Config
@@ -11,7 +12,7 @@ CHANNEL_TYPE_TO_TRAINER_DICT = {ChannelModes.SISO.name:
                                      DetectorType.black_box.name: RNNTrainer},
                                 ChannelModes.MIMO.name:
                                     {DetectorType.model.name: DeepSICTrainer,
-                                     DetectorType.black_box.name: RNNTrainer},
+                                     DetectorType.black_box.name: DNNTrainer},
                                 }
 
 if __name__ == '__main__':

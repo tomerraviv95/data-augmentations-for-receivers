@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH
-from python_code.utils.trellis_utils import calculate_symbols_from_siso_states
+from python_code.utils.trellis_utils import calculate_symbols_from_states
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 INPUT_SIZE = 1
@@ -45,7 +45,7 @@ class RNNDetector(nn.Module):
         if phase == 'val':
             # Decode the output
             estimated_states = torch.argmax(out, dim=1)
-            estimated_words = calculate_symbols_from_siso_states(self.output_size, estimated_states)
+            estimated_words = calculate_symbols_from_states(self.output_size, estimated_states)
             return estimated_words[:, 0].reshape(-1, 1).long()
         else:
             return out

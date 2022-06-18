@@ -1,0 +1,40 @@
+import torch
+from torch import nn
+
+from python_code.utils.config_singleton import Config
+from python_code.utils.trellis_utils import calculate_symbols_from_states
+
+conf = Config()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+HIDDEN_SIZE = 60
+
+
+class DNNDetector(nn.Module):
+    """
+    The DNNDetector Network Architecture
+    """
+
+    def __init__(self, n_user):
+        super(DNNDetector, self).__init__()
+        self.n_user = n_user
+        self.n_states = 2 ** n_user
+        self.initialize_dnn()
+
+    def initialize_dnn(self):
+        layers = [nn.Linear(self.n_user, HIDDEN_SIZE),
+                  nn.ReLU(),
+                  nn.Linear(HIDDEN_SIZE, HIDDEN_SIZE),
+                  nn.ReLU(),
+                  nn.Linear(HIDDEN_SIZE, self.n_states)]
+        self.net = nn.Sequential(*layers).to(device)
+
+    def forward(self, y: torch.Tensor, phase: str) -> torch.Tensor:
+        out = self.net(y)
+        if phase == 'val':
+            # Decode the output
+            estimated_states = torch.argmax(out, dim=1)
+            estimated_words = calculate_symbols_from_states(self.n_user, estimated_states)
+            return estimated_words.long()
+        else:
+            return out

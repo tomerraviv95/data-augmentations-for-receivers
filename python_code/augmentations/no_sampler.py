@@ -4,6 +4,7 @@ from typing import Tuple
 import torch
 
 from python_code.utils.config_singleton import Config
+from python_code.utils.constants import ChannelModes
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -22,5 +23,10 @@ class NoSampler:
         self._transmitted_words = transmitted_words
 
     def sample(self, i: int, h: torch.Tensor, snr: float) -> Tuple[torch.Tensor, torch.Tensor]:
-        ind = i % self._received_words.shape[0]
+        if conf.channel_type == ChannelModes.SISO.name:
+            ind = i % self._received_words.shape[0]
+        elif conf.channel_type == ChannelModes.MIMO.name:
+            ind = randint(a=0, b=self._received_words.shape[0] - 1)
+        else:
+            raise ValueError("No such channel type!!!")
         return self._received_words[ind].reshape(1, -1), self._transmitted_words[ind].reshape(1, -1)

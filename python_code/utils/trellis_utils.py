@@ -53,8 +53,8 @@ def calculate_mimo_states(n_user: int, transmitted_words: torch.Tensor) -> torch
     return gt_states
 
 
-def calculate_symbols_from_siso_states(memory_length: int, gt_states: torch.Tensor) -> torch.Tensor:
-    mask = 2 ** torch.arange(memory_length).to(gt_states.device, gt_states.dtype)
+def calculate_symbols_from_states(state_size: int, gt_states: torch.Tensor) -> torch.Tensor:
+    mask = 2 ** torch.arange(state_size).to(gt_states.device, gt_states.dtype)
     return gt_states.unsqueeze(-1).bitwise_and(mask).ne(0).long()
 
 
