@@ -5,7 +5,7 @@ import torch
 from python_code.augmentations.full_knowledge_sampler import FullKnowledgeSampler
 from python_code.augmentations.geometric_sampling import GeometricSampler
 from python_code.augmentations.negation_augmenter import NegationAugmenter
-from python_code.augmentations.random_sampling import RandomSampler
+from python_code.augmentations.no_sampler import NoSampler
 from python_code.augmentations.translation_augmenter import TranslationAugmenter
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER, N_ANT
 from python_code.utils.config_singleton import Config
@@ -71,7 +71,7 @@ class AugmenterWrapper:
 
         self._samplers_dict = {
             'geometric_sampler': GeometricSampler(self._centers, self._stds, n_states, state_size, gt_states),
-            'random_sampler': RandomSampler(received_words, transmitted_words),
+            'no_sampler': NoSampler(received_words, transmitted_words),
             'full_knowledge_sampler': FullKnowledgeSampler(),
         }
         self._augmenters_dict = {

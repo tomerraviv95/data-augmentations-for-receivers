@@ -2,5 +2,5 @@
 MEMORY_LENGTH = 4
 
 # MIMO
-N_USER = 2
-N_ANT = 2
+N_USER = 4
+N_ANT = 4

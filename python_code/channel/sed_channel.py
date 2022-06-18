@@ -4,7 +4,6 @@ from python_code.channel.channels_hyperparams import N_ANT
 from python_code.utils.config_singleton import Config
 
 conf = Config()
-AUGMENTATION_PLOTTING = True
 
 
 class SEDChannel:
@@ -17,8 +16,6 @@ class SEDChannel:
         H = np.exp(-np.abs(H_row - H_column))
         if fading:
             H = SEDChannel.add_fading(H, n_ant, frame_ind)
-        if AUGMENTATION_PLOTTING:
-            H = np.eye(2)
         return H
 
     @staticmethod

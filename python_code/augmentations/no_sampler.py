@@ -1,4 +1,3 @@
-from random import randint
 from typing import Tuple
 
 import torch
@@ -10,7 +9,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conf = Config()
 
 
-class RandomSampler:
+class NoSampler:
     """
     The proposed augmentations scheme. Calculates centers and variances for each class as specified in the paper,
     then smooths the estimate via a window running mean with alpha = 0.3

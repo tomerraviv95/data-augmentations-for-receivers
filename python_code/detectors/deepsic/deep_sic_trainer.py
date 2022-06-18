@@ -46,6 +46,7 @@ class DeepSICTrainer(Trainer):
         self.memory_length = 1
         self.n_user = N_USER
         self.n_ant = N_ANT
+        self.lr = 1e-3
         super().__init__()
 
     def __str__(self):
@@ -68,7 +69,7 @@ class DeepSICTrainer(Trainer):
         """
         Trains a DeepSIC Network
         """
-        self.optimizer = torch.optim.Adam(single_model.parameters(), lr=conf.lr)
+        self.optimizer = torch.optim.Adam(single_model.parameters(), lr=self.lr)
         self.criterion = torch.nn.CrossEntropyLoss()
         single_model = single_model.to(device)
         loss = 0
