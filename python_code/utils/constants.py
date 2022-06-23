@@ -12,6 +12,10 @@ class ChannelModes(Enum):
     SISO = 'SISO'
     MIMO = 'MIMO'
 
+class ChannelModels(Enum):
+    Synthetic = 'Synthetic'
+    Cost2100 = 'Cost2100'
+
 class DetectorType(Enum):
     black_box = 'black_box'
     model = 'model'

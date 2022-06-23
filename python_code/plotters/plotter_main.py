@@ -210,30 +210,6 @@ if __name__ == '__main__':
         plot_by_field = 'val_snr'
         values = list(range(9, 14))
         xlabel, ylabel = 'SNR', 'SER'
-    elif label_name == 'SNR_non_linear':
-        params_dicts = [
-            {'val_snr': 9, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100,
-             'linearity': False},
-            {'val_snr': 10, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100,
-             'linearity': False},
-            {'val_snr': 11, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100,
-             'linearity': False},
-            {'val_snr': 12, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100,
-             'linearity': False},
-            {'val_snr': 13, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100,
-             'linearity': False}
-        ]
-        methods_list = [
-            'Regular Training',
-            'Negation',
-            'Translation',
-            'Geometric',
-            'Combined',
-            'FK Genie',
-            # 'Extended Pilot Regular Training'
-        ]
-        plot_by_field = 'val_snr'
-        xlabel, ylabel = 'SNR', 'SER'
     elif label_name == 'Pilots':
         params_dicts = [
             {'val_block_length': 5025, 'pilot_size': 25},

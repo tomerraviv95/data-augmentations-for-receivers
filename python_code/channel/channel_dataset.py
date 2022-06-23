@@ -7,13 +7,15 @@ from numpy.random import default_rng
 from torch.utils.data import Dataset
 
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_ANT, N_USER
+from python_code.channel.cost_mimo_channel import Cost2100MIMOChannel
+from python_code.channel.cost_siso_channel import Cost2100SISOChannel
 from python_code.channel.isi_awgn_channel import ISIAWGNChannel
 from python_code.channel.modulator import BPSKModulator
 from python_code.channel.sed_channel import SEDChannel
 from python_code.utils.config_singleton import Config
-from python_code.utils.constants import ChannelModes
+from python_code.utils.constants import ChannelModes, ChannelModels
 from python_code.utils.trellis_utils import calculate_mimo_states, calculate_siso_states, \
-    break_transmitted_siso_word_to_symbols, break_received_siso_word_to_symbols
+    break_transmitted_siso_word_to_symbols
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -39,13 +41,24 @@ class SISOChannel:
         # modulation
         s = BPSKModulator.modulate(padded_b)
         # transmit through noisy channel
-        y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=MEMORY_LENGTH)
+        if conf.channel_model == ChannelModels.Synthetic.name:
+            y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=MEMORY_LENGTH)
+        elif conf.channel_model == ChannelModels.Cost2100.name:
+            y = Cost2100SISOChannel.transmit(s=s, h=h, snr=snr, memory_length=MEMORY_LENGTH)
+        else:
+            raise ValueError("No such channel model!!!")
         symbols, y = break_transmitted_siso_word_to_symbols(MEMORY_LENGTH, b), y.T
         return symbols[:-MEMORY_LENGTH + 1], y[:-MEMORY_LENGTH + 1]
 
     def get_values(self, snr, index):
         # get channel values
-        h = ISIAWGNChannel.calculate_channel(MEMORY_LENGTH, fading=conf.fading_in_channel, index=index)
+        # transmit through noisy channel
+        if conf.channel_model == ChannelModels.Synthetic.name:
+            h = ISIAWGNChannel.calculate_channel(MEMORY_LENGTH, fading=conf.fading_in_channel, index=index)
+        elif conf.channel_model == ChannelModels.Cost2100.name:
+            h = Cost2100SISOChannel.calculate_channel(MEMORY_LENGTH, fading=conf.fading_in_channel, index=index)
+        else:
+            raise ValueError("No such channel model!!!")
         b, y = self.transmit(h, snr)
         return b, h, y
 
@@ -76,13 +89,23 @@ class MIMOChannel:
         # modulation
         s = BPSKModulator.modulate(b)
         # pass through channel
-        y = SEDChannel.transmit(s=s, h=h, snr=snr)
+        if conf.channel_model == ChannelModels.Synthetic.name:
+            y = SEDChannel.transmit(s=s, h=h, snr=snr)
+        elif conf.channel_model == ChannelModels.Cost2100.name:
+            y = Cost2100MIMOChannel.transmit(s=s, h=h, snr=snr)
+        else:
+            raise ValueError("No such channel model!!!")
         b, y = b.T, y.T
         return b, y
 
     def get_values(self, snr, index):
         # get channel values
-        h = SEDChannel.calculate_channel(N_ANT, N_USER, index, conf.fading_in_channel)
+        if conf.channel_model == ChannelModels.Synthetic.name:
+            h = SEDChannel.calculate_channel(N_ANT, N_USER, index, conf.fading_in_channel)
+        elif conf.channel_model == ChannelModels.Cost2100.name:
+            h = Cost2100MIMOChannel.calculate_channel(N_ANT, N_USER, index, conf.fading_in_channel)
+        else:
+            raise ValueError("No such channel model!!!")
         b, y = self.transmit(h, snr)
         return b, h, y
 
@@ -104,21 +127,21 @@ class ChannelModelDataset(Dataset):
         self.blocks_num = blocks_num  # if conf.channel_type == ChannelModes.SISO.name else N_ANT * blocks_num
         self.block_length = block_length
         if conf.channel_type == ChannelModes.SISO.name:
-            self.channel_model = SISOChannel(block_length, pilots_length)
+            self.channel_type = SISOChannel(block_length, pilots_length)
         elif conf.channel_type == ChannelModes.MIMO.name:
-            self.channel_model = MIMOChannel(block_length, pilots_length)
+            self.channel_type = MIMOChannel(block_length, pilots_length)
         else:
             raise ValueError("No such channel value!")
 
     def get_snr_data(self, snr: float, database: list):
         if database is None:
             database = []
-        b_full = np.empty((self.blocks_num, self.block_length, self.channel_model.b_length))
-        h_full = np.empty((self.blocks_num, *self.channel_model.h_shape))
-        y_full = np.empty((self.blocks_num, self.block_length, self.channel_model.y_length))
+        b_full = np.empty((self.blocks_num, self.block_length, self.channel_type.b_length))
+        h_full = np.empty((self.blocks_num, *self.channel_type.h_shape))
+        y_full = np.empty((self.blocks_num, self.block_length, self.channel_type.y_length))
         # accumulate words until reaches desired number
         for index in range(self.blocks_num):
-            b, h, y = self.channel_model.get_values(snr, index)
+            b, h, y = self.channel_type.get_values(snr, index)
             # accumulate
             b_full[index] = b
             y_full[index] = y

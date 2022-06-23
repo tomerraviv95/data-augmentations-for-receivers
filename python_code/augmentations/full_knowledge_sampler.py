@@ -22,6 +22,6 @@ class FullKnowledgeSampler:
         channel_dataset = ChannelModelDataset(block_length=FK_KNOWLEDGE_BUFFER,
                                               pilots_length=FK_KNOWLEDGE_BUFFER,
                                               blocks_num=1)
-        transmitted_word, received_word = channel_dataset.channel_model.transmit(h.cpu().numpy(), snr)
+        transmitted_word, received_word = channel_dataset.channel_type.transmit(h.cpu().numpy(), snr)
         random_ind = randint(a=0, b=transmitted_word.shape[0] - 1)
         return torch.Tensor(received_word).to(device)[random_ind], torch.Tensor(transmitted_word).to(device)[random_ind]
