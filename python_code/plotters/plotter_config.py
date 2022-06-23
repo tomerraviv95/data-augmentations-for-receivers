@@ -36,7 +36,7 @@ def get_marker(method_name):
         return 'v'
     elif 'Combined' in method_name:
         return 'D'
-    elif 'Extended Pilot Regular Training' in method_name:
+    elif 'Extended Pilot Training' in method_name:
         return 'o'
     else:
         raise ValueError('No such method!!!')
@@ -55,7 +55,7 @@ def get_color(method_name):
         return 'green'
     elif 'Combined' in method_name:
         return 'red'
-    elif 'Extended Pilot Regular Training' in method_name:
+    elif 'Extended Pilot Training' in method_name:
         return 'royalblue'
     else:
         raise ValueError('No such method!!!')
