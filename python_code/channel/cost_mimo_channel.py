@@ -9,7 +9,6 @@ from python_code.utils.config_singleton import Config
 
 conf = Config()
 
-SCALING_COEF = 0.5
 MAX_FRAMES = 25
 
 
@@ -21,7 +20,7 @@ class Cost2100MIMOChannel:
         for i in range(1, n_user + 1):
             path_to_mat = os.path.join(MIMO_COST2100_DIR, f'{main_folder}', f'h_{i}.mat')
             h_user = scipy.io.loadmat(path_to_mat)['norm_channel'][frame_ind % MAX_FRAMES, :N_USER]
-            total_h[i - 1] = SCALING_COEF * h_user
+            total_h[i - 1] = h_user
 
         total_h[np.arange(n_user), np.arange(n_user)] = 1
         return total_h
