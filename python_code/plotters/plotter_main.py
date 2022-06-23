@@ -12,22 +12,48 @@ RunParams = namedtuple(
 
 if __name__ == '__main__':
     run_over = False  # whether to run over previous results
-    trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
+    trial_num = 10  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
                                trial_num=trial_num)
-    label_name = 'SNR_linear_static'
-    if label_name == 'SNR_linear_static':
+    label_name = 'SNR_linear_SISO'
+    if label_name == 'SNR_linear_SISO':
+        trial_num = 10
         params_dicts = [
             {'val_snr': 9, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name},
             {'val_snr': 10, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name},
             {'val_snr': 11, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name},
             {'val_snr': 12, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name},
             {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name},
+            {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name},
+            {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name},
+            {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name},
+            {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name},
+            {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name},
+        ]
+        methods_list = [
+            'Regular Training',
+            'Negation',
+            'Translation',
+            'Geometric',
+            'Combined',
+            'Extended Pilot Training'
+        ]
+        plot_by_field = 'val_snr'
+        values = list(range(9, 14))
+        xlabel, ylabel = 'SNR', 'SER'
+    elif label_name == 'SNR_linear_MIMO':
+        trial_num = 10
+        params_dicts = [
+            {'val_snr': 9, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name},
+            {'val_snr': 10, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name},
+            {'val_snr': 11, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name},
+            {'val_snr': 12, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name},
+            {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name},
             {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name},
             {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name},
             {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name},
             {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name},
-            {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name},
+            {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name}
         ]
         methods_list = [
             'Regular Training',
@@ -35,18 +61,33 @@ if __name__ == '__main__':
             'Translation',
             'Geometric',
             'Combined',
-            # 'FK Genie',
-            'Extended Pilot Regular Training'
+            'Extended Pilot Training'
         ]
         plot_by_field = 'val_snr'
+        values = list(range(9, 14))
         xlabel, ylabel = 'SNR', 'SER'
-    elif label_name == 'SNR_linear':
+    elif label_name == 'fading_SISO_linear':
         params_dicts = [
-            {'val_snr': 9, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100},
-            {'val_snr': 10, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100},
-            {'val_snr': 11, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100},
-            {'val_snr': 12, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100},
-            {'val_snr': 13, 'fading': True, 'blocks_num': 100, 'val_block_length': 2100, 'pilot_size': 100}
+            {'val_snr': 9, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 10, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 11, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 12, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
         ]
         methods_list = [
             'Regular Training',
@@ -54,10 +95,45 @@ if __name__ == '__main__':
             'Translation',
             'Geometric',
             'Combined',
-            'FK Genie',
-            'Extended Pilot Regular Training'
+            'Extended Pilot Training'
         ]
         plot_by_field = 'val_snr'
+        values = list(range(9, 14))
+        xlabel, ylabel = 'SNR', 'SER'
+    elif label_name == 'fading_MIMO_linear':
+        params_dicts = [
+            {'val_snr': 9, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 10, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 11, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 12, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+        ]
+
+        methods_list = [
+            'Regular Training',
+            'Negation',
+            'Translation',
+            'Geometric',
+            'Combined',
+            'Extended Pilot Training'
+        ]
+        plot_by_field = 'val_snr'
+        values = list(range(9, 14))
         xlabel, ylabel = 'SNR', 'SER'
     elif label_name == 'SNR_non_linear':
         params_dicts = [
@@ -110,4 +186,4 @@ if __name__ == '__main__':
         for params_dict in params_dicts:
             print(params_dict)
             compute_ser_for_method(all_curves, method, params_dict, run_params_obj)
-    plot_by_values(all_curves, label_name, [params_dict[plot_by_field] for params_dict in params_dicts], xlabel, ylabel)
+    plot_by_values(all_curves, label_name, values, xlabel, ylabel)

@@ -15,8 +15,10 @@ mpl.rcParams['font.family'] = 'STIXGeneral'
 
 
 def get_linestyle(method_name):
-    if 'ViterbiNet' or 'DeepSIC' in method_name:
-        return '-'
+    if 'ViterbiNet' in method_name or 'DeepSIC' in method_name:
+        return 'solid'
+    elif 'RNN' in method_name or 'DNN' in method_name:
+        return 'dashed'
     else:
         raise ValueError('No such detector!!!')
 
