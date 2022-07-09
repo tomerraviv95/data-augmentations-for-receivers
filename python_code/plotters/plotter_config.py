@@ -46,7 +46,7 @@ def get_color(method_name):
     if 'Regular Training' in method_name:
         return 'b'
     elif 'FK Genie' in method_name:
-        return 'black'
+        return 'royalblue'
     elif 'Geometric' in method_name:
         return 'orange'
     elif 'Translation' in method_name:
@@ -56,6 +56,6 @@ def get_color(method_name):
     elif 'Combined' in method_name:
         return 'red'
     elif 'Extended Pilot Training' in method_name:
-        return 'royalblue'
+        return 'black'
     else:
         raise ValueError('No such method!!!')

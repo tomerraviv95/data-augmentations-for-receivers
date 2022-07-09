@@ -37,7 +37,7 @@ class DNNTrainer(Trainer):
         """
             Loads the DNN detector
         """
-        self.detector = DNNDetector(self.n_user)
+        self.detector = DNNDetector(self.n_ant, self.n_user)
 
     def calc_loss(self, soft_estimation: torch.Tensor, transmitted_words: torch.IntTensor) -> torch.Tensor:
         """

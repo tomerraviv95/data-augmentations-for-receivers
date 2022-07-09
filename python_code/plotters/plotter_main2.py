@@ -15,7 +15,7 @@ if __name__ == '__main__':
     trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
                                trial_num=trial_num)
-    label_name = 'SNR_linear_cost_SISO_fading'
+    label_name = 'SNR_non_linear_synth_SISO_fading'
     # figure 1a
     if label_name == 'SNR_linear_SISO':
         trial_num = 10
@@ -181,9 +181,9 @@ if __name__ == '__main__':
         ]
         methods_list = [
             'Regular Training',
-            'Negation',
-            'Translation',
-            'Geometric',
+            # 'Negation',
+            # 'Translation',
+            # 'Geometric',
             'Combined',
             'Extended Pilot Training'
         ]
@@ -244,9 +244,6 @@ if __name__ == '__main__':
             {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
              'channel_model': 'Cost2100', 'linear': True, 'fading_in_channel': False, 'from_scratch': False,
              'blocks_num': 300},
-            {'val_snr': 14, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
-             'channel_model': 'Cost2100', 'linear': True, 'fading_in_channel': False, 'from_scratch': False,
-             'blocks_num': 300},
             {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
              'channel_model': 'Cost2100', 'linear': True, 'fading_in_channel': False, 'from_scratch': False,
              'blocks_num': 300},
@@ -262,9 +259,6 @@ if __name__ == '__main__':
             {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
              'channel_model': 'Cost2100', 'linear': True, 'fading_in_channel': False, 'from_scratch': False,
              'blocks_num': 300},
-            {'val_snr': 14, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
-             'channel_model': 'Cost2100', 'linear': True, 'fading_in_channel': False, 'from_scratch': False,
-             'blocks_num': 300},
         ]
         methods_list = [
             'Regular Training',
@@ -275,7 +269,7 @@ if __name__ == '__main__':
             'Extended Pilot Training'
         ]
         plot_by_field = 'val_snr'
-        values = list(range(9, 15))
+        values = list(range(9, 14))
         xlabel, ylabel = 'SNR', 'SER'
     # figure 4b
     elif label_name == 'SNR_linear_cost_MIMO_fading':
