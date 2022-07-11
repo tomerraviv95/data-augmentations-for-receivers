@@ -4,7 +4,7 @@ seed: 0 # run seed
 
 # channel
 channel_type: 'MIMO' # Channel type values: ['SISO','MIMO'].
-channel_model: 'Cost2100' # Physical channel models: ['Cost2100','Synthetic']
+channel_model: 'Synthetic' # Physical channel models: ['Cost2100','Synthetic']
 detector_type: 'model' # 'model' or 'black_box'
 linear: True # channel linearity. Boolean value.
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
@@ -15,10 +15,10 @@ aug_type: [] # ['translation_augmenter','negation_augmenter']
 online_repeats_n: 3000 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
 
 # validation hyperparameters
-val_block_length: 11000 # coherence block time, total size of pilot + data. values: int.
-pilot_size: 1000 # pilot symbols
+val_block_length: 10100 # coherence block time, total size of pilot + data. values: int.
+pilot_size: 100 # pilot symbols
 blocks_num: 100 # number of validation frames. values: int.
-val_snr: 13 # start SNR value. values: float.
+val_snr: 12 # start SNR value. values: float.
 eval_mode: 'by_word' # Type of evaluation per block - 'by_word'.
 
 # online training hyperparameters

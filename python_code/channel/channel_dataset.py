@@ -21,6 +21,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 
+DEBUG = True
 
 class SISOChannel:
     def __init__(self, block_length, pilots_length):
@@ -113,7 +114,7 @@ class MIMOChannel:
         b_pilots = self.bits_generator.integers(0, 2, size=(N_USER, self.pilots_length))
         states = calculate_mimo_states(N_USER, torch.Tensor(b_pilots).T.to(device)).cpu().numpy()
         n_unique = 2 ** N_USER
-        if len(np.unique(states)) < n_unique:
+        if not DEBUG and len(np.unique(states)) < n_unique:
             return self.generate_all_classes_pilots()
         return b_pilots
 
