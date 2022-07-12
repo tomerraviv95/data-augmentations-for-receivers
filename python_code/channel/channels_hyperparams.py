@@ -4,3 +4,8 @@ MEMORY_LENGTH = 4
 # MIMO
 N_USER = 6
 N_ANT = 6
+
+MODULATION_NUM_MAPPING = {
+    'BPSK': 2,
+    'QPSK': 4
+}

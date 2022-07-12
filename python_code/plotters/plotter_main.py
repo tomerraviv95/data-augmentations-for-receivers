@@ -15,7 +15,7 @@ if __name__ == '__main__':
     trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
                                trial_num=trial_num)
-    label_name = 'SNR_linear_SISO'
+    label_name = 'SNR_non_linear_synth_SISO_fading'
     # figure 1a
     if label_name == 'SNR_linear_SISO':
         params_dicts = [

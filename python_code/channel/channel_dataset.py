@@ -6,14 +6,15 @@ import torch
 from numpy.random import default_rng
 from torch.utils.data import Dataset
 
-from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_ANT, N_USER
+from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_ANT, N_USER, MODULATION_NUM_MAPPING
 from python_code.channel.cost_mimo_channel import Cost2100MIMOChannel
 from python_code.channel.cost_siso_channel import Cost2100SISOChannel
 from python_code.channel.isi_awgn_channel import ISIAWGNChannel
-from python_code.channel.modulator import BPSKModulator
+from python_code.channel.modulator import BPSKModulator, MODULATION_DICT
 from python_code.channel.sed_channel import SEDChannel
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes, ChannelModels
+from python_code.utils.python_utils import normalize_for_modulation
 from python_code.utils.trellis_utils import calculate_mimo_states, calculate_siso_states, \
     break_transmitted_siso_word_to_symbols
 
@@ -22,6 +23,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conf = Config()
 
 DEBUG = True
+
 
 class SISOChannel:
     def __init__(self, block_length, pilots_length):
@@ -39,8 +41,10 @@ class SISOChannel:
         # add zero bits
         padded_b = np.concatenate(
             [np.zeros([b.shape[0], MEMORY_LENGTH - 1]), b, np.zeros([b.shape[0], MEMORY_LENGTH])], axis=1)
+        if conf.modulation_type == 'QPSK':
+            raise ValueError("Did not implement the QPSK constellation for the SISO case, only MIMO!")
         # modulation
-        s = BPSKModulator.modulate(padded_b)
+        s = MODULATION_DICT[conf.modulation_type].modulate(padded_b)
         # transmit through noisy channel
         if conf.channel_model == ChannelModels.Synthetic.name:
             y = ISIAWGNChannel.transmit(s=s, h=h, snr=snr, memory_length=MEMORY_LENGTH)
@@ -88,7 +92,7 @@ class MIMOChannel:
         b_data = self.bits_generator.integers(0, 2, size=(N_USER, self.block_length - self.pilots_length))
         b = np.concatenate([b_pilots, b_data], axis=1)
         # modulation
-        s = BPSKModulator.modulate(b)
+        s = MODULATION_DICT[conf.modulation_type].modulate(b)
         # pass through channel
         if conf.channel_model == ChannelModels.Synthetic.name:
             y = SEDChannel.transmit(s=s, h=h, snr=snr)
@@ -139,7 +143,8 @@ class ChannelModelDataset(Dataset):
             database = []
         b_full = np.empty((self.blocks_num, self.block_length, self.channel_type.b_length))
         h_full = np.empty((self.blocks_num, *self.channel_type.h_shape))
-        y_full = np.empty((self.blocks_num, self.block_length, self.channel_type.y_length))
+        y_full = np.empty((self.blocks_num, normalize_for_modulation(self.block_length), self.channel_type.y_length),
+                          dtype=complex if conf.modulation_type == 'QPSK' else float)
         # accumulate words until reaches desired number
         for index in range(self.blocks_num):
             b, h, y = self.channel_type.get_values(snr, index)
@@ -156,8 +161,8 @@ class ChannelModelDataset(Dataset):
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             [executor.submit(self.get_snr_data, snr, database) for snr in snr_list]
         b, y, h = (np.concatenate(arrays) for arrays in zip(*database))
-        b, y, h = torch.Tensor(b).to(device=device), torch.Tensor(y).to(device=device), torch.Tensor(h).to(
-            device=device)
+        b, y, h = torch.Tensor(b).to(device=device), torch.from_numpy(y).to(device=device), torch.Tensor(
+            h).to(device=device)
         return b, y, h
 
     def __len__(self):

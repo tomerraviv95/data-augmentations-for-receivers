@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 
+from python_code.channel.channels_hyperparams import MODULATION_NUM_MAPPING
 from python_code.utils.config_singleton import Config
 import itertools
 
@@ -48,7 +49,9 @@ def calculate_siso_states(memory_length: int, transmitted_words: torch.Tensor) -
 
 
 def calculate_mimo_states(n_user: int, transmitted_words: torch.Tensor) -> torch.Tensor:
-    states_enumerator = (2 ** torch.arange(n_user)).to(device)
+    states_enumerator = (MODULATION_NUM_MAPPING[conf.modulation_type] ** torch.arange(n_user)).to(device)
+    if conf.modulation_type == 'QPSK':
+        transmitted_words = transmitted_words[::2] + 2 * transmitted_words[1::2]
     gt_states = torch.sum(transmitted_words * states_enumerator, dim=1).long()
     return gt_states
 

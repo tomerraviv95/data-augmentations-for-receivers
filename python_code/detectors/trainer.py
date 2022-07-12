@@ -9,6 +9,7 @@ from torch.optim import RMSprop, Adam, SGD
 from python_code.augmentations.augmenter_wrapper import AugmenterWrapper
 from python_code.augmentations.plotting_utils import online_plotting
 from python_code.channel.channel_dataset import ChannelModelDataset
+from python_code.channel.channels_hyperparams import MODULATION_NUM_MAPPING
 from python_code.utils.config_singleton import Config
 from python_code.utils.metrics import calculate_error_rates
 
@@ -105,7 +106,8 @@ class Trainer(object):
             received_word = received_words[block_ind]
             # split words into data and pilot part
             x_pilot, x_data = transmitted_word[:conf.pilot_size], transmitted_word[conf.pilot_size:]
-            y_pilot, y_data = received_word[:conf.pilot_size], received_word[conf.pilot_size:]
+            y_pilot, y_data = received_word[:2 * conf.pilot_size // MODULATION_NUM_MAPPING[conf.modulation_type]], \
+                              received_word[2 * conf.pilot_size // MODULATION_NUM_MAPPING[conf.modulation_type]:]
             if conf.is_online_training:
                 # augment received words by the number of desired repeats
                 augmenter_wrapper.update_hyperparams(y_pilot, x_pilot)

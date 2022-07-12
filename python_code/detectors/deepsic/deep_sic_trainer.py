@@ -3,7 +3,7 @@ from typing import List
 import torch
 from torch import nn
 
-from python_code.channel.channels_hyperparams import N_ANT, N_USER
+from python_code.channel.channels_hyperparams import N_ANT, N_USER, MODULATION_NUM_MAPPING
 from python_code.detectors.deepsic.deep_sic_detector import DeepSICDetector
 from python_code.detectors.trainer import Trainer
 from python_code.utils.config_singleton import Config
@@ -53,7 +53,9 @@ class DeepSICTrainer(Trainer):
         return 'DeepSIC'
 
     def init_priors(self):
-        self.probs_vec = HALF * torch.ones(conf.val_block_length - conf.pilot_size, N_ANT).to(device)
+        val_size = conf.val_block_length - conf.pilot_size
+        self.probs_vec = HALF * torch.ones(2 * val_size // MODULATION_NUM_MAPPING[conf.modulation_type], N_ANT).to(
+            device)
 
     def initialize_detector(self):
         self.detector = [[DeepSICDetector().to(device) for _ in range(ITERATIONS)] for _ in
@@ -65,6 +67,14 @@ class DeepSICTrainer(Trainer):
         """
         return self.criterion(input=soft_estimation, target=transmitted_words.squeeze(-1).long())
 
+    @staticmethod
+    def feed_to_model(single_model, y):
+        if conf.modulation_type == 'BPSK':
+            soft_estimation = single_model(y)
+        elif conf.modulation_type == 'QPSK':
+            soft_estimation = single_model(torch.view_as_real(y).reshape(-1, 2 * (N_USER + N_ANT - 1)))
+        return soft_estimation
+
     def train_model(self, single_model: nn.Module, b_train: torch.Tensor, y_train: torch.Tensor):
         """
         Trains a DeepSIC Network
@@ -74,7 +84,7 @@ class DeepSICTrainer(Trainer):
         single_model = single_model.to(device)
         loss = 0
         for _ in range(EPOCHS):
-            soft_estimation = single_model(y_train)
+            soft_estimation = self.feed_to_model(single_model, y_train)
             current_loss = self.run_train_loop(soft_estimation, b_train)
             loss += current_loss
 
@@ -86,6 +96,8 @@ class DeepSICTrainer(Trainer):
     def online_training(self, b_train: torch.Tensor, y_train: torch.Tensor, h: torch.Tensor):
         if not conf.fading_in_channel:
             self.initialize_detector()
+        if conf.modulation_type == 'QPSK':
+            b_train = b_train[::2] + 2 * b_train[1::2]
         initial_probs = b_train.clone()
         b_train_all, y_train_all = self.prepare_data_for_training(b_train, y_train, initial_probs)
         # Training the DeepSIC network for each user for iteration=1
@@ -129,6 +141,6 @@ class DeepSICTrainer(Trainer):
             idx = [i for i in range(self.n_user) if i != user]
             input = torch.cat((y_train, probs_vec[:, idx]), dim=1)
             with torch.no_grad():
-                output = self.softmax(model[user][i - 1](input))
+                output = self.softmax(self.feed_to_model(model[user][i - 1], input.float()))
             next_probs_vec[:, user] = output[:, 1]
         return next_probs_vec
