@@ -31,8 +31,9 @@ class DeepSICDetector(nn.Module):
 
     def __init__(self):
         super(DeepSICDetector, self).__init__()
-        linear_input = N_USER + N_ANT - 1
-        self.fc0 = nn.Linear(MODULATION_NUM_MAPPING[conf.modulation_type] * linear_input // 2, HIDDEN_SIZE)
+        linear_input = (MODULATION_NUM_MAPPING[conf.modulation_type] // 2) * N_ANT + (
+                    MODULATION_NUM_MAPPING[conf.modulation_type] - 1) * (N_USER - 1)
+        self.fc0 = nn.Linear(linear_input, HIDDEN_SIZE)
         self.sigmoid = nn.Sigmoid()
         self.fc1 = nn.Linear(HIDDEN_SIZE, int(HIDDEN_SIZE / 2))
         self.relu = nn.ReLU()

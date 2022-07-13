@@ -1,4 +1,7 @@
 import numpy as np
+import torch
+
+from python_code.utils.constants import HALF
 
 
 class BPSKModulator:
@@ -12,6 +15,16 @@ class BPSKModulator:
         x = 1 - 2 * c
         return x
 
+    @staticmethod
+    def demodulate(s: torch.Tensor) -> torch.Tensor:
+        """
+        symbol_to_prob(x:PyTorch/Numpy Tensor/Array)
+        Converts BPSK Symbols to Probabilities: '-1' -> 0, '+1' -> '1.'
+        :param s: symbols vector
+        :return: probabilities vector
+        """
+        return HALF * (s + 1)
+
 
 class QPSKModulator:
     @staticmethod
@@ -23,6 +36,10 @@ class QPSKModulator:
         """
         x = (-1) ** c[:, ::2] / np.sqrt(2) + (-1) ** c[:, 1::2] / np.sqrt(2) * 1j
         return x
+
+    @staticmethod
+    def demodulate(s: torch.Tensor) -> torch.Tensor:
+        return HALF * (torch.view_as_real(s) + 1).reshape(-1, s.shape[1])
 
 
 MODULATION_DICT = {
