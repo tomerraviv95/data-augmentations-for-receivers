@@ -44,7 +44,7 @@ class TranslationAugmenter:
         if conf.channel_type == ChannelModes.SISO.name:
             received_word_state = calculate_siso_states(MEMORY_LENGTH, transmitted_word)
         elif conf.channel_type == ChannelModes.MIMO.name:
-            received_word_state = calculate_mimo_states(N_USER, transmitted_word)
+            received_word_state = calculate_mimo_states(N_USER, transmitted_word.reshape(1,-1))
         else:
             raise ValueError("No such channel type!!!")
         current_diff = received_word - self._centers[received_word_state]
