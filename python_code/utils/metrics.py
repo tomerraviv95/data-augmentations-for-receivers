@@ -17,7 +17,7 @@ def calculate_error_rates(prediction: torch.Tensor, target: torch.Tensor) -> Tup
     target = target.long()
     if conf.modulation_type == ModulationType.QPSK.name:
         first_bit = target % 2
-        second_bit = target // 2
+        second_bit = torch.floor(target / 2)
         target = torch.cat([first_bit.unsqueeze(-1), second_bit.unsqueeze(-1)], dim=2).transpose(1, 2).reshape(
             2 * first_bit.shape[0], -1)
     bits_acc = torch.mean(torch.eq(prediction, target).float()).item()

@@ -7,7 +7,7 @@ from numpy.random import default_rng
 from torch.utils.data import Dataset
 
 from python_code import DEVICE
-from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_ANT, N_USER
+from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_ANT, N_USER, MODULATION_NUM_MAPPING
 from python_code.channel.cost_mimo_channel import Cost2100MIMOChannel
 from python_code.channel.cost_siso_channel import Cost2100SISOChannel
 from python_code.channel.isi_awgn_channel import ISIAWGNChannel
@@ -16,12 +16,12 @@ from python_code.channel.sed_channel import SEDChannel
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes, ChannelModels, ModulationType
 from python_code.utils.python_utils import normalize_for_modulation
-from python_code.utils.trellis_utils import calculate_mimo_states, calculate_siso_states, \
-    break_transmitted_siso_word_to_symbols
+from python_code.utils.trellis_utils import calculate_siso_states, \
+    break_transmitted_siso_word_to_symbols, get_qpsk_classes_from_bits, generate_symbols_by_state
 
 conf = Config()
 
-DEBUG = True
+DATA_GENERATION_SIZE = 1000
 
 
 class SISOChannel:
@@ -71,7 +71,7 @@ class SISOChannel:
         b_pilots_by_symbols = break_transmitted_siso_word_to_symbols(MEMORY_LENGTH, b_pilots)
         states = calculate_siso_states(MEMORY_LENGTH,
                                        torch.Tensor(b_pilots_by_symbols[:-MEMORY_LENGTH + 1]).to(DEVICE)).cpu().numpy()
-        n_unique = 2 ** MEMORY_LENGTH
+        n_unique = MODULATION_NUM_MAPPING[conf.modulation_type] ** MEMORY_LENGTH
         if len(np.unique(states)) < n_unique:
             return self.generate_all_classes_pilots()
         return b_pilots
@@ -88,10 +88,10 @@ class MIMOChannel:
 
     def transmit(self, h: np.ndarray, snr: float) -> Tuple[np.ndarray, np.ndarray]:
         b_pilots = self.generate_all_classes_pilots()
-        b_data = self.bits_generator.integers(0, 2, size=(N_USER, self.block_length - self.pilots_length))
-        b = np.concatenate([b_pilots, b_data], axis=1)
+        b_data = self.bits_generator.integers(0, 2, size=(self.block_length - self.pilots_length, N_USER))
+        b = np.concatenate([b_pilots, b_data])
         # modulation
-        s = MODULATION_DICT[conf.modulation_type].modulate(b)
+        s = MODULATION_DICT[conf.modulation_type].modulate(b.T)
         # pass through channel
         if conf.channel_model == ChannelModels.Synthetic.name:
             y = SEDChannel.transmit(s=s, h=h, snr=snr)
@@ -99,11 +99,9 @@ class MIMOChannel:
             y = Cost2100MIMOChannel.transmit(s=s, h=h, snr=snr)
         else:
             raise ValueError("No such channel model!!!")
-        b, y = b.T, y.T
-
         if conf.modulation_type == ModulationType.QPSK.name:
-            b = b[::2] + 2 * b[1::2]
-        return b, y
+            b = get_qpsk_classes_from_bits(b)
+        return b, y.T
 
     def get_values(self, snr, index):
         # get channel values
@@ -117,11 +115,22 @@ class MIMOChannel:
         return b, h, y
 
     def generate_all_classes_pilots(self):
-        b_pilots = self.bits_generator.integers(0, 2, size=(N_USER, self.pilots_length))
-        states = calculate_mimo_states(N_USER, torch.Tensor(b_pilots).T.to(DEVICE)).cpu().numpy()
-        n_unique = 2 ** N_USER
-        if not DEBUG and len(np.unique(states)) < n_unique:
-            return self.generate_all_classes_pilots()
+        # generate random pilots block of bits
+        b_pilots = self.bits_generator.integers(0, 2, size=(self.pilots_length, N_USER))
+        if conf.modulation_type == ModulationType.QPSK.name:
+            b_pilots = get_qpsk_classes_from_bits(b_pilots)
+
+        # ensure that you have each state
+        unique_states_num = MODULATION_NUM_MAPPING[conf.modulation_type] ** N_USER
+        for unique_state in range(min(unique_states_num, b_pilots.shape[0])):
+            b_pilots[unique_state] = generate_symbols_by_state(unique_state, N_USER).cpu().numpy().reshape(-1)
+
+        if conf.modulation_type == ModulationType.QPSK.name:
+            first_bit = b_pilots % 2
+            second_bit = np.floor(b_pilots / 2)
+            concat_array = np.concatenate([np.expand_dims(first_bit, -1), np.expand_dims(second_bit, -1)], axis=2)
+            transposed_array = np.transpose(concat_array, [0, 2, 1])
+            b_pilots = transposed_array.reshape(2 * first_bit.shape[0], -1)
         return b_pilots
 
 

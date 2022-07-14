@@ -68,7 +68,7 @@ def break_transmitted_siso_word_to_symbols(memory_length: int, transmitted_words
 
 
 def generate_symbols_by_state(state, n_state):
-    combinations = list(itertools.product([0, 1], repeat=n_state))
+    combinations = list(itertools.product(range(MODULATION_NUM_MAPPING[conf.modulation_type]), repeat=n_state))
     return torch.Tensor(combinations[state][::-1]).reshape(1, n_state).to(DEVICE)
 
 
@@ -79,3 +79,6 @@ def break_received_siso_word_to_symbols(memory_length: int, received_words: np.n
     blockwise_words = np.concatenate([unsqueezed_padded[:, :, i:-memory_length + i] for i in range(memory_length)],
                                      axis=1)
     return blockwise_words.squeeze().T[:-memory_length + 1]
+
+def get_qpsk_classes_from_bits(b):
+    return b[::2] + 2 * b[1::2]

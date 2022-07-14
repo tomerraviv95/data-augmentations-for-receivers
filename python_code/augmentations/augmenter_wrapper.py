@@ -10,7 +10,7 @@ from python_code.augmentations.no_sampler import NoSampler
 from python_code.augmentations.translation_augmenter import TranslationAugmenter
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER, N_ANT, MODULATION_NUM_MAPPING
 from python_code.utils.config_singleton import Config
-from python_code.utils.constants import ChannelModes
+from python_code.utils.constants import ChannelModes, ModulationType
 from python_code.utils.python_utils import normalize_for_modulation
 from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states
 
@@ -36,13 +36,14 @@ def estimate_params(received_words: torch.Tensor, transmitted_words: torch.Tenso
     else:
         raise ValueError("No such channel type!!!")
 
-    centers = torch.empty([n_states, state_size]).to(DEVICE)
-    stds = torch.empty([n_states, state_size]).to(DEVICE)
+    centers = torch.empty([n_states, *received_words.shape[1:]]).to(DEVICE)
+    stds = torch.empty([n_states, *received_words.shape[1:]]).to(DEVICE)
+
     for state in range(n_states):
         state_ind = (gt_states == state)
         state_received = received_words[state_ind]
-        stds[state] = torch.std(state_received, dim=0)
         if state_received.shape[0] > 0:
+            stds[state] = torch.std(state_received, dim=0)
             centers[state] = torch.mean(state_received.real, dim=0)
         else:
             centers[state] = 0
@@ -63,6 +64,8 @@ class AugmenterWrapper:
         self._stds = None
 
     def update_hyperparams(self, received_words: torch.Tensor, transmitted_words: torch.Tensor):
+        if conf.modulation_type == ModulationType.QPSK.name:
+            received_words = torch.view_as_real(received_words)
         centers, stds, gt_states, n_states, state_size = estimate_params(received_words, transmitted_words)
         if self._fading_in_channel:
             self._centers, self._stds = self.smooth_parameters(centers, stds)
@@ -134,14 +137,12 @@ class AugmenterWrapper:
         :return: the received and transmitted words
         """
         aug_tx = torch.empty([conf.online_repeats_n, transmitted_words.shape[1]]).to(DEVICE)
-        aug_rx = torch.empty([normalize_for_modulation(conf.online_repeats_n), received_words.shape[1]],
-                             dtype=torch.cfloat if conf.modulation_type == 'QPSK' else torch.float).to(DEVICE)
+        if conf.modulation_type == ModulationType.QPSK.name:
+            received_words = torch.view_as_real(received_words)
+        aug_rx = torch.empty([conf.online_repeats_n, *received_words.shape[1:]], dtype=received_words.dtype).to(DEVICE)
         for i in range(aug_rx.shape[0]):
             if i < received_words.shape[0]:
-                if conf.modulation_type == 'BSPK':
-                    aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]
-                elif conf.modulation_type == 'QPSK':
-                    aug_rx[i], aug_tx[2 * i:2 * i + 2] = received_words[i], transmitted_words[2 * i:2 * i + 2]
+                aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]
             else:
                 aug_rx[i], aug_tx[i] = self.augment_single(i, h, conf.val_snr)
-        return aug_rx, aug_tx
+        return torch.view_as_complex(aug_rx), aug_tx

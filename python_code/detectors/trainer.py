@@ -108,11 +108,10 @@ class Trainer(object):
             y_pilot, y_data = received_word[:conf.pilot_size], received_word[conf.pilot_size:]
             if conf.is_online_training:
                 # augment received words by the number of desired repeats
-                # augmenter_wrapper.update_hyperparams(y_pilot, x_pilot)
-                # y_aug, x_aug = augmenter_wrapper.augment_batch(h, y_pilot, x_pilot)
+                augmenter_wrapper.update_hyperparams(y_pilot, x_pilot)
+                y_aug, x_aug = augmenter_wrapper.augment_batch(h, y_pilot, x_pilot)
                 # train
-                # self.online_training(x_aug, y_aug)
-                self.online_training(x_pilot, y_pilot)
+                self.online_training(x_aug, y_aug)
             # detect data part
             detected_word = self.forward(y_data, self.probs_vec)
             # calculate accuracy

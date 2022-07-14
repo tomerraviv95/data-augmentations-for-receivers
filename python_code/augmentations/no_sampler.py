@@ -27,4 +27,4 @@ class NoSampler:
             ind = randint(a=0, b=self._received_words.shape[0] - 1)
         else:
             raise ValueError("No such channel type!!!")
-        return self._received_words[ind].reshape(1, -1), self._transmitted_words[ind].reshape(1, -1)
+        return self._received_words[ind], self._transmitted_words[ind]
