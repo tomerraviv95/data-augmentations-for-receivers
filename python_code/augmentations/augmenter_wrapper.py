@@ -122,7 +122,6 @@ class AugmenterWrapper:
         for augmentation_name in self._augmentations:
             augmenter = self._augmenters_dict[augmentation_name]
             aug_rx, aug_tx = augmenter.augment(aug_rx, aug_tx)
-        print(aug_rx.shape,aug_tx.shape)
         return aug_rx, aug_tx
 
     def augment_batch(self, h: torch.Tensor, received_words: torch.Tensor, transmitted_words: torch.Tensor):

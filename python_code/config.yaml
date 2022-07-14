@@ -3,15 +3,15 @@ run_name: 'test' #'augmented_version'
 seed: 0 # run seed
 
 # channel
-channel_type: 'SISO' # Channel type values: ['SISO','MIMO'].
+channel_type: 'MIMO' # Channel type values: ['SISO','MIMO'].
 channel_model: 'Synthetic' # Physical channel models: ['Cost2100','Synthetic']
 detector_type: 'model' # 'model' or 'black_box'
 linear: True # channel linearity. Boolean value.
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
-modulation_type: 'BPSK' # ['BPSK','QPSK']
+modulation_type: 'QPSK' # ['BPSK','QPSK']
 
 # sampler
-sampler_type: 'geometric_sampler' # 'no_sampler','geometric_sampler',  'full_knowledge_sampler'
+sampler_type: 'no_sampler' # 'no_sampler','geometric_sampler',  'full_knowledge_sampler'
 aug_type: [ ] # ['translation_augmenter','negation_augmenter']
 online_repeats_n: 2000 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
 
