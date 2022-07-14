@@ -7,7 +7,7 @@ from python_code.utils.config_singleton import Config
 conf = Config()
 
 CLASSES_NUM = MODULATION_NUM_MAPPING[conf.modulation_type]
-HIDDEN_SIZE = 60
+HIDDEN_SIZE = 64 * CLASSES_NUM
 
 
 class DeepSICDetector(nn.Module):
@@ -32,15 +32,15 @@ class DeepSICDetector(nn.Module):
     def __init__(self):
         super(DeepSICDetector, self).__init__()
         linear_input = (MODULATION_NUM_MAPPING[conf.modulation_type] // 2) * N_ANT + (
-                    MODULATION_NUM_MAPPING[conf.modulation_type] - 1) * (N_USER - 1)
+                MODULATION_NUM_MAPPING[conf.modulation_type] - 1) * (N_USER - 1)
         self.fc0 = nn.Linear(linear_input, HIDDEN_SIZE)
-        self.sigmoid = nn.Sigmoid()
+        self.relu1 = nn.ReLU()
         self.fc1 = nn.Linear(HIDDEN_SIZE, int(HIDDEN_SIZE / 2))
-        self.relu = nn.ReLU()
+        self.relu2 = nn.ReLU()
         self.fc2 = nn.Linear(int(HIDDEN_SIZE / 2), CLASSES_NUM)
 
     def forward(self, y: torch.Tensor) -> torch.Tensor:
-        out0 = self.sigmoid(self.fc0(y.squeeze(-1)))
-        fc1_out = self.relu(self.fc1(out0))
+        out0 = self.relu1(self.fc0(y.squeeze(-1)))
+        fc1_out = self.relu2(self.fc1(out0))
         out = self.fc2(fc1_out)
         return out

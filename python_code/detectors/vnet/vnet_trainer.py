@@ -8,8 +8,6 @@ from python_code.detectors.vnet.vnet_detector import VNETDetector
 from python_code.utils.config_singleton import Config
 from python_code.utils.trellis_utils import calculate_siso_states
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 conf = Config()
 EPOCHS = 500
 BATCH_SIZE = 64

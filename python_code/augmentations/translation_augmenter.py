@@ -3,12 +3,11 @@ from typing import Tuple
 
 import torch
 
+from python_code import DEVICE
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
 from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 
@@ -49,7 +48,7 @@ class TranslationAugmenter:
         else:
             raise ValueError("No such channel type!!!")
         current_diff = received_word - self._centers[received_word_state]
-        alpha = torch.rand(1).to(device)
+        alpha = torch.rand(1).to(DEVICE)
         new_received_word = self._centers[received_word_state] + alpha * current_diff + (1 - alpha) * sampled_diff
         return new_received_word, transmitted_word
 

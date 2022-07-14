@@ -3,6 +3,7 @@ from typing import List
 import torch
 from torch import nn
 
+from python_code import DEVICE
 from python_code.channel.channels_hyperparams import N_ANT, N_USER, MODULATION_NUM_MAPPING
 from python_code.channel.modulator import BPSKModulator, QPSKModulator
 from python_code.detectors.deepsic.deep_sic_detector import DeepSICDetector
@@ -10,7 +11,6 @@ from python_code.detectors.trainer import Trainer
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import HALF, ModulationType, QUARTER
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conf = Config()
 ITERATIONS = 5
 EPOCHS = 250
@@ -61,14 +61,14 @@ class DeepSICTrainer(Trainer):
     def init_priors(self):
         val_size = 2 * (conf.val_block_length - conf.pilot_size) // MODULATION_NUM_MAPPING[conf.modulation_type]
         if conf.modulation_type == ModulationType.BPSK.name:
-            self.probs_vec = HALF * torch.ones(val_size, N_ANT).to(device).float()
+            self.probs_vec = HALF * torch.ones(val_size, N_ANT).to(DEVICE).float()
         elif conf.modulation_type == ModulationType.QPSK.name:
-            self.probs_vec = QUARTER * torch.ones(val_size, N_ANT).to(device).unsqueeze(-1).repeat([1, 1, 3]).float()
+            self.probs_vec = QUARTER * torch.ones(val_size, N_ANT).to(DEVICE).unsqueeze(-1).repeat([1, 1, 3]).float()
         else:
             raise ValueError("No such constellation!")
 
     def initialize_detector(self):
-        self.detector = [[DeepSICDetector().to(device) for _ in range(ITERATIONS)] for _ in
+        self.detector = [[DeepSICDetector().to(DEVICE) for _ in range(ITERATIONS)] for _ in
                          range(self.n_user)]  # 2D list for Storing the DeepSIC Networks
 
     def calc_loss(self, soft_estimation: torch.Tensor, transmitted_words: torch.IntTensor) -> torch.Tensor:
@@ -78,14 +78,12 @@ class DeepSICTrainer(Trainer):
         return self.criterion(input=soft_estimation, target=transmitted_words.squeeze(-1).long())
 
     @staticmethod
-    def feed_to_model(single_model, y):
+    def preprocess(y):
         if conf.modulation_type == ModulationType.BPSK.name:
-            soft_estimation = single_model(y.float())
+            return y.float()
         elif conf.modulation_type == ModulationType.QPSK.name:
             y_input = torch.view_as_real(y[:, :N_ANT]).float().reshape(y.shape[0], -1)
-            y_total = torch.cat([y_input, y[:, N_ANT:].float()], dim=1)
-            soft_estimation = single_model(y_total)
-        return soft_estimation
+            return torch.cat([y_input, y[:, N_ANT:].float()], dim=1)
 
     def train_model(self, single_model: nn.Module, b_train: torch.Tensor, y_train: torch.Tensor):
         """
@@ -93,12 +91,14 @@ class DeepSICTrainer(Trainer):
         """
         self.optimizer = torch.optim.Adam(single_model.parameters(), lr=self.lr)
         self.criterion = torch.nn.CrossEntropyLoss()
-        single_model = single_model.to(device)
+        single_model = single_model.to(DEVICE)
         loss = 0
+        y_total = self.preprocess(y_train)
         for _ in range(EPOCHS):
-            soft_estimation = self.feed_to_model(single_model, y_train)
+            soft_estimation = single_model(y_total)
             current_loss = self.run_train_loop(soft_estimation, b_train)
             loss += current_loss
+        print(torch.sum(torch.argmax(soft_estimation, dim=1) == b_train))
 
     def train_models(self, model: List[List[DeepSICDetector]], i: int, b_train_all: List[torch.Tensor],
                      y_train_all: List[torch.Tensor]):
@@ -114,7 +114,8 @@ class DeepSICTrainer(Trainer):
         if conf.modulation_type == ModulationType.BPSK.name:
             initial_probs = b_train.clone()
         elif conf.modulation_type == ModulationType.QPSK.name:
-            initial_probs = torch.zeros(b_train.shape).to(device).unsqueeze(-1).repeat([1, 1, 3])
+            initial_probs = torch.zeros(b_train.shape).to(DEVICE).unsqueeze(-1).repeat(
+                [1, 1, MODULATION_NUM_MAPPING[conf.modulation_type] - 1])
             relevant_inds = []
             for i in range(MODULATION_NUM_MAPPING[conf.modulation_type] - 1):
                 relevant_ind = (b_train == i + 1)
@@ -128,9 +129,10 @@ class DeepSICTrainer(Trainer):
         self.train_models(self.detector, 0, b_train_all, y_train_all)
         # Initializing the probabilities
         if conf.modulation_type == ModulationType.BPSK.name:
-            probs_vec = HALF * torch.ones(b_train.shape).to(device)
+            probs_vec = HALF * torch.ones(b_train.shape).to(DEVICE)
         elif conf.modulation_type == ModulationType.QPSK.name:
-            probs_vec = QUARTER * torch.ones(b_train.shape).to(device).unsqueeze(-1).repeat([1, 1, 3])
+            probs_vec = QUARTER * torch.ones(b_train.shape).to(DEVICE).unsqueeze(-1).repeat(
+                [1, 1, MODULATION_NUM_MAPPING[conf.modulation_type] - 1])
         else:
             raise ValueError("No such constellation!")
         # Training the DeepSICNet for each user-symbol/iteration
@@ -162,7 +164,7 @@ class DeepSICTrainer(Trainer):
         b_train_all = []
         y_train_all = []
         for k in range(self.n_user):
-            idx = [i for i in range(self.n_user) if i != k]
+            idx = [user_i for user_i in range(self.n_user) if user_i != k]
             current_y_train = torch.cat((y_train, probs_vec[:, idx].reshape(y_train.shape[0], -1)), dim=1)
             b_train_all.append(b_train[:, k])
             y_train_all.append(current_y_train)
@@ -170,11 +172,12 @@ class DeepSICTrainer(Trainer):
 
     def calculate_posteriors(self, model: List[List[nn.Module]], i: int, probs_vec: torch.Tensor,
                              y_train: torch.Tensor) -> torch.Tensor:
-        next_probs_vec = torch.zeros(probs_vec.shape).to(device)
+        next_probs_vec = torch.zeros(probs_vec.shape).to(DEVICE)
         for user in range(self.n_user):
-            idx = [i for i in range(self.n_user) if i != user]
+            idx = [user_i for user_i in range(self.n_user) if user_i != user]
             input = torch.cat((y_train, probs_vec[:, idx].reshape(y_train.shape[0], -1)), dim=1)
+            preprocessed_input = self.preprocess(input)
             with torch.no_grad():
-                output = self.softmax(self.feed_to_model(model[user][i - 1], input))
+                output = self.softmax(model[user][i - 1](preprocessed_input))
             next_probs_vec[:, user] = output[:, 1:].reshape(next_probs_vec[:, user].shape)
         return next_probs_vec

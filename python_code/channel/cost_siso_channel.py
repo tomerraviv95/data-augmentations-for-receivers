@@ -2,15 +2,12 @@ import os
 
 import numpy as np
 import scipy.io
-import torch
 from numpy.random import default_rng
 
 from dir_definitions import SISO_COST2100_DIR
 from python_code.utils.config_singleton import Config
 
 conf = Config()
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 COST_LENGTH = 300
 

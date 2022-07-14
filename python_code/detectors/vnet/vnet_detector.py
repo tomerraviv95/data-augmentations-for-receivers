@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
 
+from python_code import DEVICE
 from python_code.utils.trellis_utils import create_transition_table, acs_block
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 HIDDEN1_SIZE = 75
 HIDDEN2_SIZE = 16
 
@@ -18,14 +18,14 @@ class VNETDetector(nn.Module):
         super(VNETDetector, self).__init__()
         self.n_states = n_states
         self.transition_table_array = create_transition_table(n_states)
-        self.transition_table = torch.Tensor(self.transition_table_array).to(device)
+        self.transition_table = torch.Tensor(self.transition_table_array).to(DEVICE)
         self.initialize_dnn()
 
     def initialize_dnn(self):
         layers = [nn.Linear(1, HIDDEN1_SIZE),
                   nn.ReLU(),
                   nn.Linear(HIDDEN1_SIZE, self.n_states)]
-        self.net = nn.Sequential(*layers).to(device)
+        self.net = nn.Sequential(*layers).to(DEVICE)
 
     def forward(self, y: torch.Tensor, phase: str) -> torch.Tensor:
         """
@@ -38,11 +38,11 @@ class VNETDetector(nn.Module):
         if in 'val' - the detected words [n_batch,transmission_length]
         """
         # initialize input probabilities
-        in_prob = torch.zeros([1, self.n_states]).to(device)
+        in_prob = torch.zeros([1, self.n_states]).to(DEVICE)
         priors = self.net(y)
 
         if phase == 'val':
-            detected_word = torch.zeros(y.shape).to(device)
+            detected_word = torch.zeros(y.shape).to(DEVICE)
             for i in range(y.shape[0]):
                 # get the lsb of the state
                 detected_word[i] = torch.argmin(in_prob, dim=1) % 2

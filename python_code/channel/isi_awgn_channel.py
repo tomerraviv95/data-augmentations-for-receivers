@@ -1,12 +1,9 @@
 import numpy as np
-import torch
 from numpy.random import default_rng
 
 from python_code.utils.config_singleton import Config
 
 conf = Config()
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 GAMMA = 0.5  # gamma value for time decay SISO fading
 

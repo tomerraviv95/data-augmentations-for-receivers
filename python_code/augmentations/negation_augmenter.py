@@ -1,11 +1,8 @@
-from random import randint
 from typing import Tuple
 
 import torch
 
 from python_code.utils.config_singleton import Config
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 

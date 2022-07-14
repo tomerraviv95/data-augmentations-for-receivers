@@ -1,11 +1,11 @@
 import torch
 from torch import nn
 
+from python_code import DEVICE
 from python_code.utils.config_singleton import Config
 from python_code.utils.trellis_utils import calculate_symbols_from_states
 
 conf = Config()
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 HIDDEN_SIZE = 60
 
@@ -27,7 +27,7 @@ class DNNDetector(nn.Module):
                   nn.Linear(HIDDEN_SIZE, HIDDEN_SIZE),
                   nn.ReLU(),
                   nn.Linear(HIDDEN_SIZE, self.n_states)]
-        self.net = nn.Sequential(*layers).to(device)
+        self.net = nn.Sequential(*layers).to(DEVICE)
 
     def forward(self, y: torch.Tensor, phase: str) -> torch.Tensor:
         out = self.net(y)

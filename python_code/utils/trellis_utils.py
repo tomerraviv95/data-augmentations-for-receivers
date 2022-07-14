@@ -1,11 +1,10 @@
 import numpy as np
 import torch
 
+from python_code import DEVICE
 from python_code.channel.channels_hyperparams import MODULATION_NUM_MAPPING
 from python_code.utils.config_singleton import Config
 import itertools
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 
@@ -43,13 +42,13 @@ def calculate_siso_states(memory_length: int, transmitted_words: torch.Tensor) -
     :param transmitted_words: channel transmitted words
     :return: vector of length of transmitted_words with values in the range of 0,1,...,n_states-1
     """
-    states_enumerator = (2 ** torch.arange(memory_length)).reshape(1, -1).float().to(device)
+    states_enumerator = (2 ** torch.arange(memory_length)).reshape(1, -1).float().to(DEVICE)
     gt_states = torch.sum(transmitted_words * states_enumerator, dim=1).long()
     return gt_states
 
 
 def calculate_mimo_states(n_user: int, transmitted_words: torch.Tensor) -> torch.Tensor:
-    states_enumerator = (MODULATION_NUM_MAPPING[conf.modulation_type] ** torch.arange(n_user)).to(device)
+    states_enumerator = (MODULATION_NUM_MAPPING[conf.modulation_type] ** torch.arange(n_user)).to(DEVICE)
     if conf.modulation_type == 'QPSK':
         transmitted_words = transmitted_words[::2] + 2 * transmitted_words[1::2]
     gt_states = torch.sum(transmitted_words * states_enumerator, dim=1).long()
@@ -72,7 +71,7 @@ def break_transmitted_siso_word_to_symbols(memory_length: int, transmitted_words
 
 def generate_symbols_by_state(state, n_state):
     combinations = list(itertools.product([0, 1], repeat=n_state))
-    return torch.Tensor(combinations[state][::-1]).reshape(1, n_state).to(device)
+    return torch.Tensor(combinations[state][::-1]).reshape(1, n_state).to(DEVICE)
 
 
 def break_received_siso_word_to_symbols(memory_length: int, received_words: np.ndarray) -> np.ndarray:

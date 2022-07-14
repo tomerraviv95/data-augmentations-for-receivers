@@ -2,6 +2,7 @@ from typing import Tuple, List
 
 import torch
 
+from python_code import DEVICE
 from python_code.augmentations.full_knowledge_sampler import FullKnowledgeSampler
 from python_code.augmentations.geometric_sampling import GeometricSampler
 from python_code.augmentations.negation_augmenter import NegationAugmenter
@@ -12,8 +13,6 @@ from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
 from python_code.utils.python_utils import normalize_for_modulation
 from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 
@@ -37,8 +36,8 @@ def estimate_params(received_words: torch.Tensor, transmitted_words: torch.Tenso
     else:
         raise ValueError("No such channel type!!!")
 
-    centers = torch.empty([n_states, state_size]).to(device)
-    stds = torch.empty([n_states, state_size]).to(device)
+    centers = torch.empty([n_states, state_size]).to(DEVICE)
+    stds = torch.empty([n_states, state_size]).to(DEVICE)
     for state in range(n_states):
         state_ind = (gt_states == state)
         state_received = received_words[state_ind]
@@ -134,9 +133,9 @@ class AugmenterWrapper:
         :param phase: validation phase
         :return: the received and transmitted words
         """
-        aug_tx = torch.empty([conf.online_repeats_n, transmitted_words.shape[1]]).to(device)
+        aug_tx = torch.empty([conf.online_repeats_n, transmitted_words.shape[1]]).to(DEVICE)
         aug_rx = torch.empty([normalize_for_modulation(conf.online_repeats_n), received_words.shape[1]],
-                             dtype=torch.cfloat if conf.modulation_type == 'QPSK' else torch.float).to(device)
+                             dtype=torch.cfloat if conf.modulation_type == 'QPSK' else torch.float).to(DEVICE)
         for i in range(aug_rx.shape[0]):
             if i < received_words.shape[0]:
                 if conf.modulation_type == 'BSPK':

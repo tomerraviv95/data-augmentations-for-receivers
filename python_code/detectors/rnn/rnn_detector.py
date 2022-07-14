@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 
+from python_code import DEVICE
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH
 from python_code.utils.trellis_utils import calculate_symbols_from_states
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 INPUT_SIZE = 1
 NUM_LAYERS = 2
 HIDDEN_SIZE = 64
@@ -18,8 +18,8 @@ class RNNDetector(nn.Module):
     def __init__(self):
         super(RNNDetector, self).__init__()
         self.output_size = 2 ** MEMORY_LENGTH
-        self.lstm = nn.LSTM(INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS).to(device)
-        self.linear = nn.Linear(HIDDEN_SIZE, self.output_size).to(device)
+        self.lstm = nn.LSTM(INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS).to(DEVICE)
+        self.linear = nn.Linear(HIDDEN_SIZE, self.output_size).to(DEVICE)
 
     def forward(self, y: torch.Tensor, phase: str, snr: float = None, gamma: float = None,
                 count: int = None) -> torch.Tensor:
@@ -34,8 +34,8 @@ class RNNDetector(nn.Module):
         """
 
         # Set initial states
-        h_n = torch.zeros(NUM_LAYERS, 1, HIDDEN_SIZE).to(device)
-        c_n = torch.zeros(NUM_LAYERS, 1, HIDDEN_SIZE).to(device)
+        h_n = torch.zeros(NUM_LAYERS, 1, HIDDEN_SIZE).to(DEVICE)
+        c_n = torch.zeros(NUM_LAYERS, 1, HIDDEN_SIZE).to(DEVICE)
 
         # Forward propagate LSTM - lstm_out: tensor of shape (seq_length, batch_size, input_size)
         lstm_out, _ = self.lstm(y.unsqueeze(1), (h_n.contiguous(), c_n.contiguous()))

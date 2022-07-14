@@ -6,8 +6,6 @@ import torch
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 conf = Config()
 
 

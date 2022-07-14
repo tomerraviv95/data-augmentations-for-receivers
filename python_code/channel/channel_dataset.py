@@ -6,6 +6,7 @@ import torch
 from numpy.random import default_rng
 from torch.utils.data import Dataset
 
+from python_code import DEVICE
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_ANT, N_USER
 from python_code.channel.cost_mimo_channel import Cost2100MIMOChannel
 from python_code.channel.cost_siso_channel import Cost2100SISOChannel
@@ -17,8 +18,6 @@ from python_code.utils.constants import ChannelModes, ChannelModels, ModulationT
 from python_code.utils.python_utils import normalize_for_modulation
 from python_code.utils.trellis_utils import calculate_mimo_states, calculate_siso_states, \
     break_transmitted_siso_word_to_symbols
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 
@@ -71,7 +70,7 @@ class SISOChannel:
         b_pilots = self.bits_generator.integers(0, 2, size=(1, self.pilots_length)).reshape(1, -1)
         b_pilots_by_symbols = break_transmitted_siso_word_to_symbols(MEMORY_LENGTH, b_pilots)
         states = calculate_siso_states(MEMORY_LENGTH,
-                                       torch.Tensor(b_pilots_by_symbols[:-MEMORY_LENGTH + 1]).to(device)).cpu().numpy()
+                                       torch.Tensor(b_pilots_by_symbols[:-MEMORY_LENGTH + 1]).to(DEVICE)).cpu().numpy()
         n_unique = 2 ** MEMORY_LENGTH
         if len(np.unique(states)) < n_unique:
             return self.generate_all_classes_pilots()
@@ -116,7 +115,7 @@ class MIMOChannel:
 
     def generate_all_classes_pilots(self):
         b_pilots = self.bits_generator.integers(0, 2, size=(N_USER, self.pilots_length))
-        states = calculate_mimo_states(N_USER, torch.Tensor(b_pilots).T.to(device)).cpu().numpy()
+        states = calculate_mimo_states(N_USER, torch.Tensor(b_pilots).T.to(DEVICE)).cpu().numpy()
         n_unique = 2 ** N_USER
         if not DEBUG and len(np.unique(states)) < n_unique:
             return self.generate_all_classes_pilots()
@@ -161,8 +160,8 @@ class ChannelModelDataset(Dataset):
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             [executor.submit(self.get_snr_data, snr, database) for snr in snr_list]
         b, y, h = (np.concatenate(arrays) for arrays in zip(*database))
-        b, y, h = torch.Tensor(b).to(device=device), torch.from_numpy(y).to(device=device), torch.Tensor(
-            h).to(device=device)
+        b, y, h = torch.Tensor(b).to(device=DEVICE), torch.from_numpy(y).to(device=DEVICE), torch.Tensor(
+            h).to(device=DEVICE)
         return b, y, h
 
     def __len__(self):

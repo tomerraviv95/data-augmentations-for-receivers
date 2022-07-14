@@ -6,6 +6,7 @@ import torch
 from torch.nn import CrossEntropyLoss, MSELoss
 from torch.optim import RMSprop, Adam, SGD
 
+from python_code import DEVICE
 from python_code.augmentations.augmenter_wrapper import AugmenterWrapper
 from python_code.augmentations.plotting_utils import online_plotting
 from python_code.channel.channel_dataset import ChannelModelDataset
@@ -13,7 +14,6 @@ from python_code.channel.channels_hyperparams import MODULATION_NUM_MAPPING
 from python_code.utils.config_singleton import Config
 from python_code.utils.metrics import calculate_error_rates
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 conf = Config()
 
 random.seed(conf.seed)
@@ -62,9 +62,9 @@ class Trainer(object):
         else:
             raise NotImplementedError("No such optimizer implemented!!!")
         if conf.loss_type == 'CrossEntropy':
-            self.criterion = CrossEntropyLoss().to(device)
+            self.criterion = CrossEntropyLoss().to(DEVICE)
         elif conf.loss_type == 'MSE':
-            self.criterion = MSELoss().to(device)
+            self.criterion = MSELoss().to(DEVICE)
         else:
             raise NotImplementedError("No such loss function implemented!!!")
 

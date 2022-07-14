@@ -2,12 +2,11 @@ from typing import Tuple
 
 import torch
 
+from python_code import DEVICE
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
 from python_code.utils.trellis_utils import generate_symbols_by_state
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 conf = Config()
 
@@ -39,7 +38,7 @@ class GeometricSampler:
             raise ValueError("No such channel type!!!")
 
         received_word = self._centers[to_augment_state] + self._stds[to_augment_state] * torch.randn(
-            [1, self._state_size]).to(device)
+            [1, self._state_size]).to(DEVICE)
         return received_word, transmitted_word
 
     @property
