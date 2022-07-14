@@ -6,12 +6,13 @@ from python_code.channel.channels_hyperparams import N_ANT, N_USER
 from python_code.detectors.dnn.dnn_detector import DNNDetector
 from python_code.detectors.trainer import Trainer
 from python_code.utils.config_singleton import Config
+from python_code.utils.constants import ModulationType
 from python_code.utils.trellis_utils import calculate_mimo_states
 
 conf = Config()
 
 EPOCHS = 500
-BATCH_SIZE = 128
+BATCH_SIZE = 32
 
 
 class DNNTrainer(Trainer):
@@ -51,27 +52,29 @@ class DNNTrainer(Trainer):
 
     def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
         # detect and decode
-        detected_word = self.detector(y, phase='val')
+        detected_word = self.detector(y.float(), phase='val')
         return detected_word
 
-    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor):
+    def online_training(self, tx: torch.Tensor, rx: torch.Tensor):
         """
         Online training module - trains on the detected word.
         Start from the saved meta-trained weights.
         :param tx: transmitted word
         :param rx: received word
-        :param h: channel coefficients
         """
         if conf.from_scratch:
             self.initialize_detector()
         self.deep_learning_setup()
+
+        if conf.modulation_type == ModulationType.QPSK.name:
+            raise ValueError("Not implemented DNN for this case!!")
 
         # run training loops
         loss = 0
         for i in range(EPOCHS):
             ind = randint(a=0, b=tx.shape[0] - BATCH_SIZE)
             # pass through detector
-            soft_estimation = self.detector(rx[ind: ind + BATCH_SIZE], phase='train')
+            soft_estimation = self.detector(rx[ind: ind + BATCH_SIZE].float(), phase='train')
             current_loss = self.run_train_loop(soft_estimation=soft_estimation,
                                                transmitted_words=tx[ind:ind + BATCH_SIZE])
             loss += current_loss

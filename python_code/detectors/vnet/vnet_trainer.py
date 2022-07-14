@@ -52,7 +52,7 @@ class VNETTrainer(Trainer):
         detected_word = self.detector(y, phase='val')
         return detected_word
 
-    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor):
+    def online_training(self, tx: torch.Tensor, rx: torch.Tensor):
         """
         Online training module - trains on the detected word.
         Start from the saved meta-trained weights.

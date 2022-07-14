@@ -100,6 +100,9 @@ class MIMOChannel:
         else:
             raise ValueError("No such channel model!!!")
         b, y = b.T, y.T
+
+        if conf.modulation_type == ModulationType.QPSK.name:
+            b = b[::2] + 2 * b[1::2]
         return b, y
 
     def get_values(self, snr, index):
@@ -140,7 +143,7 @@ class ChannelModelDataset(Dataset):
     def get_snr_data(self, snr: float, database: list):
         if database is None:
             database = []
-        b_full = np.empty((self.blocks_num, self.block_length, self.channel_type.b_length))
+        b_full = np.empty((self.blocks_num, normalize_for_modulation(self.block_length), self.channel_type.b_length))
         h_full = np.empty((self.blocks_num, *self.channel_type.h_shape))
         y_full = np.empty((self.blocks_num, normalize_for_modulation(self.block_length), self.channel_type.y_length),
                           dtype=complex if conf.modulation_type == ModulationType.QPSK.name else float)

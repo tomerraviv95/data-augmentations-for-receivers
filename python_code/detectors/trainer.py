@@ -10,7 +10,6 @@ from python_code import DEVICE
 from python_code.augmentations.augmenter_wrapper import AugmenterWrapper
 from python_code.augmentations.plotting_utils import online_plotting
 from python_code.channel.channel_dataset import ChannelModelDataset
-from python_code.channel.channels_hyperparams import MODULATION_NUM_MAPPING
 from python_code.utils.config_singleton import Config
 from python_code.utils.metrics import calculate_error_rates
 
@@ -77,7 +76,7 @@ class Trainer(object):
                                                    blocks_num=conf.blocks_num)
         self.dataloader = torch.utils.data.DataLoader(self.channel_dataset)
 
-    def online_training(self, tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor):
+    def online_training(self, tx: torch.Tensor, rx: torch.Tensor):
         pass
 
     def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
@@ -106,14 +105,14 @@ class Trainer(object):
             received_word = received_words[block_ind]
             # split words into data and pilot part
             x_pilot, x_data = transmitted_word[:conf.pilot_size], transmitted_word[conf.pilot_size:]
-            y_pilot, y_data = received_word[:2 * conf.pilot_size // MODULATION_NUM_MAPPING[conf.modulation_type]], \
-                              received_word[2 * conf.pilot_size // MODULATION_NUM_MAPPING[conf.modulation_type]:]
+            y_pilot, y_data = received_word[:conf.pilot_size], received_word[conf.pilot_size:]
             if conf.is_online_training:
                 # augment received words by the number of desired repeats
-                augmenter_wrapper.update_hyperparams(y_pilot, x_pilot)
-                y_aug, x_aug = augmenter_wrapper.augment_batch(h, y_pilot, x_pilot)
+                # augmenter_wrapper.update_hyperparams(y_pilot, x_pilot)
+                # y_aug, x_aug = augmenter_wrapper.augment_batch(h, y_pilot, x_pilot)
                 # train
-                self.online_training(x_aug, y_aug, h)
+                # self.online_training(x_aug, y_aug)
+                self.online_training(x_pilot, y_pilot)
             # detect data part
             detected_word = self.forward(y_data, self.probs_vec)
             # calculate accuracy

@@ -39,7 +39,7 @@ class QPSKModulator:
 
     @staticmethod
     def demodulate(s: torch.Tensor) -> torch.Tensor:
-        return HALF * (torch.view_as_real(s) + 1).reshape(-1, s.shape[1])
+        return ((-1) * HALF * (torch.view_as_real(s) - 1)).transpose(1, 2).reshape(-1, s.shape[1])
 
 
 MODULATION_DICT = {

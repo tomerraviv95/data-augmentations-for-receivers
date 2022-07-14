@@ -49,14 +49,12 @@ def calculate_siso_states(memory_length: int, transmitted_words: torch.Tensor) -
 
 def calculate_mimo_states(n_user: int, transmitted_words: torch.Tensor) -> torch.Tensor:
     states_enumerator = (MODULATION_NUM_MAPPING[conf.modulation_type] ** torch.arange(n_user)).to(DEVICE)
-    if conf.modulation_type == 'QPSK':
-        transmitted_words = transmitted_words[::2] + 2 * transmitted_words[1::2]
     gt_states = torch.sum(transmitted_words * states_enumerator, dim=1).long()
     return gt_states
 
 
 def calculate_symbols_from_states(state_size: int, gt_states: torch.Tensor) -> torch.Tensor:
-    mask = 2 ** torch.arange(state_size).to(gt_states.device, gt_states.dtype)
+    mask = 2 ** torch.arange(state_size).to(DEVICE, gt_states.dtype)
     return gt_states.unsqueeze(-1).bitwise_and(mask).ne(0).long()
 
 

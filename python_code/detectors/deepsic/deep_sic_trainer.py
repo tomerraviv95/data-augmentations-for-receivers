@@ -34,9 +34,9 @@ def prob_to_QPSK_symbol(p: torch.Tensor) -> torch.Tensor:
     :return: symbols vector
     """
     p_real_neg = p[:, :, 0] + p[:, :, 2]
-    first_symbol = torch.sign(p_real_neg - HALF)
+    first_symbol = (-1) * torch.sign(p_real_neg - HALF)
     p_img_neg = p[:, :, 1] + p[:, :, 2]
-    second_symbol = torch.sign(p_img_neg - HALF)
+    second_symbol = (-1) * torch.sign(p_img_neg - HALF)
     s = torch.cat([first_symbol.unsqueeze(-1), second_symbol.unsqueeze(-1)], dim=-1)
     return torch.view_as_complex(s)
 
@@ -59,11 +59,11 @@ class DeepSICTrainer(Trainer):
         return 'DeepSIC'
 
     def init_priors(self):
-        val_size = 2 * (conf.val_block_length - conf.pilot_size) // MODULATION_NUM_MAPPING[conf.modulation_type]
         if conf.modulation_type == ModulationType.BPSK.name:
-            self.probs_vec = HALF * torch.ones(val_size, N_ANT).to(DEVICE).float()
+            self.probs_vec = HALF * torch.ones(conf.val_block_length - conf.pilot_size, N_ANT).to(DEVICE).float()
         elif conf.modulation_type == ModulationType.QPSK.name:
-            self.probs_vec = QUARTER * torch.ones(val_size, N_ANT).to(DEVICE).unsqueeze(-1).repeat([1, 1, 3]).float()
+            self.probs_vec = QUARTER * torch.ones((conf.val_block_length - 2 * conf.pilot_size) // 2, N_ANT).to(
+                DEVICE).unsqueeze(-1).repeat([1, 1, MODULATION_NUM_MAPPING[conf.modulation_type] - 1]).float()
         else:
             raise ValueError("No such constellation!")
 
@@ -75,7 +75,7 @@ class DeepSICTrainer(Trainer):
         """
         Cross Entropy loss - distribution over states versus the gt state label
         """
-        return self.criterion(input=soft_estimation, target=transmitted_words.squeeze(-1).long())
+        return self.criterion(input=soft_estimation, target=transmitted_words.long())
 
     @staticmethod
     def preprocess(y):
@@ -98,18 +98,15 @@ class DeepSICTrainer(Trainer):
             soft_estimation = single_model(y_total)
             current_loss = self.run_train_loop(soft_estimation, b_train)
             loss += current_loss
-        print(torch.sum(torch.argmax(soft_estimation, dim=1) == b_train))
 
     def train_models(self, model: List[List[DeepSICDetector]], i: int, b_train_all: List[torch.Tensor],
                      y_train_all: List[torch.Tensor]):
         for user in range(self.n_user):
             self.train_model(model[user][i], b_train_all[user], y_train_all[user])
 
-    def online_training(self, b_train: torch.Tensor, y_train: torch.Tensor, h: torch.Tensor):
+    def online_training(self, b_train: torch.Tensor, y_train: torch.Tensor):
         if not conf.fading_in_channel:
             self.initialize_detector()
-        if conf.modulation_type == ModulationType.QPSK.name:
-            b_train = b_train[::2] + 2 * b_train[1::2]
 
         if conf.modulation_type == ModulationType.BPSK.name:
             initial_probs = b_train.clone()

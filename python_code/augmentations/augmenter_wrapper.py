@@ -43,7 +43,7 @@ def estimate_params(received_words: torch.Tensor, transmitted_words: torch.Tenso
         state_received = received_words[state_ind]
         stds[state] = torch.std(state_received, dim=0)
         if state_received.shape[0] > 0:
-            centers[state] = torch.mean(state_received, dim=0)
+            centers[state] = torch.mean(state_received.real, dim=0)
         else:
             centers[state] = 0
     stds[torch.isnan(stds)] = torch.mean(stds[~torch.isnan(stds)])
