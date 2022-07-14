@@ -50,7 +50,7 @@ class RNNTrainer(Trainer):
 
     def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
         # detect and decode
-        detected_word = self.detector(y, phase='val')
+        detected_word = self.detector(y.float(), phase='val')
         return detected_word
 
     def online_training(self, tx: torch.Tensor, rx: torch.Tensor):
@@ -72,7 +72,7 @@ class RNNTrainer(Trainer):
             subword_ind = randint(a=0, b=conf.pilot_size - BATCH_SIZE)
             ind = word_ind * conf.pilot_size + subword_ind
             # pass through detector
-            soft_estimation = self.detector(rx[ind: ind + BATCH_SIZE], phase='train')
+            soft_estimation = self.detector(rx[ind: ind + BATCH_SIZE].float(), phase='train')
             current_loss = self.run_train_loop(soft_estimation=soft_estimation,
                                                transmitted_words=tx[ind:ind + BATCH_SIZE])
             loss += current_loss

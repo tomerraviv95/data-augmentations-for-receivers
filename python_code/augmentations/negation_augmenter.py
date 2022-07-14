@@ -40,6 +40,9 @@ class NegationAugmenter:
         torch.Tensor, torch.Tensor]:
         random_ind = randint(a=0, b=len(self.degrees) - 1)
         chosen_transformation = self.degrees[random_ind]
+        if len(received_word.shape) == 1:
+            received_word = torch.cat([received_word.unsqueeze(-1), torch.zeros_like(received_word.unsqueeze(-1))],
+                                      dim=1)
         new_angle = torch.view_as_complex(received_word).angle() + chosen_transformation
         new_complex_rx = torch.view_as_complex(received_word).abs() * (torch.cos(new_angle) + 1j * torch.sin(new_angle))
         new_rx = torch.view_as_real(new_complex_rx)
@@ -48,4 +51,7 @@ class NegationAugmenter:
         map = MAPPING_DICT[conf.modulation_type]
         for i in range(random_ind):
             new_tx = torch.tensor([map[x.item()] for x in new_tx])
+
+        if conf.modulation_type == ModulationType.BPSK.name:
+            new_rx = new_rx[:, 0]
         return new_rx, new_tx

@@ -30,16 +30,17 @@ class GeometricSampler:
 
         if conf.channel_type == ChannelModes.SISO.name:
             to_augment_state = self._gt_states[i % self._gt_states.shape[0]]
-            transmitted_word = generate_symbols_by_state(to_augment_state, MEMORY_LENGTH)
+            transmitted_word = generate_symbols_by_state(to_augment_state, MEMORY_LENGTH)[0]
         elif conf.channel_type == ChannelModes.MIMO.name:
             to_augment_state = i % self._n_states
-            transmitted_word = generate_symbols_by_state(to_augment_state, N_USER)
+            transmitted_word = generate_symbols_by_state(to_augment_state, N_USER)[0]
         else:
             raise ValueError("No such channel type!!!")
 
         if conf.channel_type == ChannelModes.SISO.name:
             received_word = self._centers[to_augment_state] + self._stds[to_augment_state] * torch.randn(
                 [1, self._state_size]).to(DEVICE)
+            received_word = received_word[0]
         elif conf.channel_type == ChannelModes.MIMO.name:
             received_word = self._centers[to_augment_state] + self._stds[to_augment_state] * torch.randn(
                 self._centers[to_augment_state].shape).to(DEVICE)

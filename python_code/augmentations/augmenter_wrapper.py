@@ -11,7 +11,6 @@ from python_code.augmentations.translation_augmenter import TranslationAugmenter
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER, N_ANT, MODULATION_NUM_MAPPING
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes, ModulationType
-from python_code.utils.python_utils import normalize_for_modulation
 from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states
 
 conf = Config()
@@ -123,6 +122,7 @@ class AugmenterWrapper:
         for augmentation_name in self._augmentations:
             augmenter = self._augmenters_dict[augmentation_name]
             aug_rx, aug_tx = augmenter.augment(aug_rx, aug_tx)
+        print(aug_rx.shape,aug_tx.shape)
         return aug_rx, aug_tx
 
     def augment_batch(self, h: torch.Tensor, received_words: torch.Tensor, transmitted_words: torch.Tensor):
@@ -145,4 +145,6 @@ class AugmenterWrapper:
                 aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]
             else:
                 aug_rx[i], aug_tx[i] = self.augment_single(i, h, conf.val_snr)
-        return torch.view_as_complex(aug_rx), aug_tx
+        if conf.modulation_type == ModulationType.QPSK.name:
+            aug_rx = torch.view_as_complex(aug_rx)
+        return aug_rx, aug_tx
