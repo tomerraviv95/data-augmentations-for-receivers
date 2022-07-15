@@ -12,10 +12,10 @@ RunParams = namedtuple(
 
 if __name__ == '__main__':
     run_over = False  # whether to run over previous results
-    trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
+    trial_num = 3  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
                                trial_num=trial_num)
-    label_name = 'SNR_non_linear_synth_SISO_fading'
+    label_name = 'SNR_linear_synth_MIMO_fading'
     # figure 1a
     if label_name == 'SNR_linear_SISO':
         params_dicts = [
@@ -52,30 +52,50 @@ if __name__ == '__main__':
     elif label_name == 'SNR_linear_MIMO':
         params_dicts = [
             {'val_snr': 9, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100},
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 10, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100},
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 11, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100},
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 12, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100},
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100},
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100},
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100},
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100},
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100},
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100}
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
         ]
         methods_list = [
             'Regular Training',
             'Combined',
-            'Extended Pilot Training'
+            # 'Extended Pilot Training'
         ]
         plot_by_field = 'val_snr'
         values = list(range(9, 14))
@@ -116,34 +136,51 @@ if __name__ == '__main__':
     elif label_name == 'SNR_linear_synth_MIMO_fading':
         params_dicts = [
             {'val_snr': 9, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 10, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 11, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 12, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
             {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic',
+             'modulation_type': 'QPSK', 'online_repeats_n': 2500,
+             'val_block_length': 11000, 'pilot_size': 500},
         ]
 
         methods_list = [
             'Regular Training',
-            'Negation',
-            'Translation',
-            'Geometric',
             'Combined',
-            'Extended Pilot Training'
+            # 'Extended Pilot Training'
         ]
         plot_by_field = 'val_snr'
         values = list(range(9, 14))

@@ -3,10 +3,12 @@ run_name: 'test' #'augmented_version'
 seed: 0 # run seed
 
 # channel
-channel_type: 'SISO' # Channel type values: ['SISO','MIMO']. For this paper, we only used ISI AWGN/SED.
+channel_type: 'SISO' # Channel type values: ['SISO','MIMO'].
+channel_model: 'Synthetic' # Physical channel models: ['Cost2100','Synthetic']
 detector_type: 'model' # 'model' or 'black_box'
 linear: True # channel linearity. Boolean value.
 fading_in_channel: False # If the channel is fading/non-fading. values: [True, False]
+modulation_type: 'BPSK' # ['BPSK','QPSK']
 
 # sampler
 sampler_type: 'no_sampler' # 'no_sampler','geometric_sampler',  'full_knowledge_sampler'

@@ -105,7 +105,7 @@ class DeepSICTrainer(Trainer):
             self.train_model(model[user][i], b_train_all[user], y_train_all[user])
 
     def online_training(self, b_train: torch.Tensor, y_train: torch.Tensor):
-        if not conf.fading_in_channel:
+        if conf.from_scratch:
             self.initialize_detector()
 
         if conf.modulation_type == ModulationType.BPSK.name:
