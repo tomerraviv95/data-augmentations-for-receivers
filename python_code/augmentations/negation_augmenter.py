@@ -38,7 +38,7 @@ class NegationAugmenter:
 
     def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor) -> Tuple[
         torch.Tensor, torch.Tensor]:
-        random_ind = randint(a=0, b=len(self.degrees) - 1)
+        random_ind = randint(a=1, b=len(self.degrees) - 1)
         chosen_transformation = self.degrees[random_ind]
         if len(received_word.shape) == 1:
             received_word = torch.cat([received_word.unsqueeze(-1), torch.zeros_like(received_word.unsqueeze(-1))],
