@@ -1,10 +1,8 @@
 from collections import defaultdict
-from random import randint, uniform
 from typing import Tuple
 
 import torch
 
-from python_code import DEVICE
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
@@ -13,7 +11,7 @@ from python_code.utils.trellis_utils import calculate_siso_states, calculate_mim
 conf = Config()
 
 
-class TrueTranslationAugmenter:
+class ScalingAugmenter:
     """
     The proposed augmentations scheme. Calculates centers and variances for each class as specified in the paper,
     then smooths the estimate via a window running mean with alpha = 0.3
@@ -48,14 +46,7 @@ class TrueTranslationAugmenter:
         else:
             raise ValueError("No such channel type!!!")
         current_diff = received_word - self._centers[received_word_state]
-        # if received_word_state.item() in self._diffs_dict.keys():
-        #     diffs_for_state = self._diffs_dict[received_word_state.item()]
-        # else:
-        #     diffs_for_state = torch.zeros_like(current_diff).to(DEVICE)
-        # random_ind = randint(a=0, b=len(diffs_for_state) - 1)
-        # sampled_diff = diffs_for_state[random_ind]
-        new_received_word = self._centers[
-                                received_word_state] + self.alpha * current_diff  # + (1 - self.alpha) * sampled_diff
+        new_received_word = self._centers[received_word_state] + self.alpha * current_diff
         return new_received_word, transmitted_word
 
     @property

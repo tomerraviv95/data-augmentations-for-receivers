@@ -25,7 +25,7 @@ MAPPING_DICT = {
 }
 
 
-class NegationAugmenter:
+class RotationAugmenter:
     """
     Rotations Augmentations.
     """

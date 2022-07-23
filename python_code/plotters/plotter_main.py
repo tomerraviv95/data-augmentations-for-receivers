@@ -11,7 +11,7 @@ RunParams = namedtuple(
 )
 
 if __name__ == '__main__':
-    run_over = True  # whether to run over previous results
+    run_over = False  # whether to run over previous results
     trial_num = 1  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
                                trial_num=trial_num)
@@ -346,15 +346,15 @@ if __name__ == '__main__':
             #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
         ]
         methods_list = [
-            # 'Regular Training',
+            'Regular Training',
             'Geometric',
             'Translation',
-            # 'Negation',
+            'Rotation',
             'Combined',
             # 'Extended Pilot Training'
         ]
         plot_by_field = 'val_snr'
-        values = list(range(9, 14))
+        values = list(range(12, 14))
         xlabel, ylabel = 'SNR', 'BER'
     # figure 5b - ablation
     elif label_name == 'SNR_non_linear_synth_MIMO_fading_ablation':
@@ -394,7 +394,7 @@ if __name__ == '__main__':
             'Regular Training',
             'Geometric',
             'Translation',
-            'Negation',
+            'Rotation',
             'Combined',
             # 'Extended Pilot Training'
         ]
@@ -411,7 +411,7 @@ if __name__ == '__main__':
         ]
         methods_list = [
             'Regular Training',
-            'Negation',
+            'Rotation',
             'Translation',
             'Geometric',
             'Combined',

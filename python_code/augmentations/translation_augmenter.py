@@ -1,3 +1,4 @@
+import math
 from collections import defaultdict
 from random import randint, uniform
 from typing import Tuple
@@ -5,13 +6,24 @@ from typing import Tuple
 import torch
 
 from python_code import DEVICE
-from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER
+from python_code.augmentations.rotation_augmenter import DEG_IN_CIRCLE
+from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER, MODULATION_NUM_MAPPING
 from python_code.utils.config_singleton import Config
-from python_code.utils.constants import ChannelModes
+from python_code.utils.constants import ChannelModes, ModulationType
 from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states
 
 conf = Config()
 
+MAPPING_DICT = {
+    ModulationType.BPSK.name:
+        {0: 1,
+         1: 0},
+    ModulationType.QPSK.name:
+        {0: 1,
+         1: 3,
+         3: 2,
+         2: 0}
+}
 
 class TranslationAugmenter:
     """
@@ -33,6 +45,10 @@ class TranslationAugmenter:
         self.populate_diff_list(received_word_states, received_words)
         self.alpha = 0.8
 
+        deg_list = list(range(0, DEG_IN_CIRCLE, DEG_IN_CIRCLE // MODULATION_NUM_MAPPING[conf.modulation_type]))
+        rad_list = [math.radians(degree) for degree in deg_list]
+        self.degrees = torch.Tensor(rad_list).to(DEVICE)
+
     def populate_diff_list(self, received_word_states, received_words):
         self._diffs_dict = defaultdict(list)
         for i in range(len(received_word_states)):
@@ -47,6 +63,13 @@ class TranslationAugmenter:
             received_word_state = calculate_mimo_states(N_USER, transmitted_word.reshape(1, -1))[0]
         else:
             raise ValueError("No such channel type!!!")
+
+        random_ind = randint(a=1, b=len(self.degrees) - 1)
+        new_tx = transmitted_word
+        map = MAPPING_DICT[conf.modulation_type]
+        for i in range(random_ind):
+            new_tx = torch.tensor([map[x.item()] for x in new_tx])
+
         current_diff = received_word - self._centers[received_word_state]
         # if received_word_state.item() in self._diffs_dict.keys():
         #     diffs_for_state = self._diffs_dict[received_word_state.item()]
