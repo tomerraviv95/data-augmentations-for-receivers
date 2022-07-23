@@ -11,13 +11,16 @@ RunParams = namedtuple(
 )
 
 if __name__ == '__main__':
-    run_over = False  # whether to run over previous results
+    run_over = True  # whether to run over previous results
     trial_num = 1  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
                                trial_num=trial_num)
-    # 'SNR_linear_SISO', 'SNR_linear_MIMO', 'SNR_linear_synth_SISO_fading','SNR_linear_synth_MIMO_fading',
-    # 'SNR_non_linear_synth_MIMO_fading', 'SNR_non_linear_synth_SISO_fading'
-    label_name = 'SNR_non_linear_synth_SISO_fading'
+    # 'SNR_linear_SISO', 'SNR_linear_MIMO', 'SNR_linear_synth_SISO_fading', 'SNR_linear_synth_MIMO_fading',
+    # 'SNR_non_linear_synth_SISO_fading', 'SNR_non_linear_synth_MIMO_fading','SNR_linear_COST_2100_SISO',
+    # 'SNR_linear_COST_2100_MIMO', 'SNR_linear_synth_SISO_fading_ablation'
+    # 'SNR_non_linear_synth_MIMO_fading_ablation'
+    label_name = 'SNR_linear_synth_SISO_fading_ablation'
+    print(label_name)
     # figure 1a
     if label_name == 'SNR_linear_SISO':
         params_dicts = [
@@ -49,7 +52,7 @@ if __name__ == '__main__':
         ]
         plot_by_field = 'val_snr'
         values = list(range(9, 14))
-        xlabel, ylabel = 'SNR', 'SER'
+        xlabel, ylabel = 'SNR', 'BER'
     # figure 1b
     elif label_name == 'SNR_linear_MIMO':
         params_dicts = [
@@ -63,16 +66,16 @@ if __name__ == '__main__':
              'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic'},
             {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
              'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic'},
-            # {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic'},
-            # {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic'},
-            # {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic'},
-            # {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic'},
-            # {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic'},
+            {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic'},
+            {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic'},
+            {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic'},
+            {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic'},
+            {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100, 'channel_model': 'Synthetic'},
         ]
         methods_list = [
             'Regular Training',
@@ -81,7 +84,7 @@ if __name__ == '__main__':
         ]
         plot_by_field = 'val_snr'
         values = list(range(9, 14))
-        xlabel, ylabel = 'SNR', 'SER'
+        xlabel, ylabel = 'SNR', 'BER'
     # figure 2a
     elif label_name == 'SNR_linear_synth_SISO_fading':
         params_dicts = [
@@ -113,7 +116,7 @@ if __name__ == '__main__':
         ]
         plot_by_field = 'val_snr'
         values = list(range(9, 14))
-        xlabel, ylabel = 'SNR', 'SER'
+        xlabel, ylabel = 'SNR', 'BER'
     # figure 2b
     elif label_name == 'SNR_linear_synth_MIMO_fading':
         params_dicts = [
@@ -127,16 +130,16 @@ if __name__ == '__main__':
              'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic'},
             {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
              'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic'},
-            # {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic'},
-            # {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic'},
-            # {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic'},
-            # {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic'},
-            # {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic'},
+            {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic'},
+            {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic'},
+            {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic'},
+            {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic'},
+            {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Synthetic'},
         ]
 
         methods_list = [
@@ -146,7 +149,7 @@ if __name__ == '__main__':
         ]
         plot_by_field = 'val_snr'
         values = list(range(9, 14))
-        xlabel, ylabel = 'SNR', 'SER'
+        xlabel, ylabel = 'SNR', 'BER'
         # figure 3a
     elif label_name == 'SNR_non_linear_synth_SISO_fading':
         params_dicts = [
@@ -188,7 +191,7 @@ if __name__ == '__main__':
         ]
         plot_by_field = 'val_snr'
         values = list(range(9, 14))
-        xlabel, ylabel = 'SNR', 'SER'
+        xlabel, ylabel = 'SNR', 'BER'
     # figure 3b
     elif label_name == 'SNR_non_linear_synth_MIMO_fading':
         params_dicts = [
@@ -207,21 +210,21 @@ if __name__ == '__main__':
             {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
              'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'linearity': False,
              'channel_model': 'Synthetic'},
-            # {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'linearity': False,
-            #  'channel_model': 'Synthetic'},
-            # {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'linearity': False,
-            #  'channel_model': 'Synthetic'},
-            # {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'linearity': False,
-            #  'channel_model': 'Synthetic'},
-            # {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'linearity': False,
-            #  'channel_model': 'Synthetic'},
-            # {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'linearity': False,
-            #  'channel_model': 'Synthetic'},
+            {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'linearity': False,
+             'channel_model': 'Synthetic'},
+            {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'linearity': False,
+             'channel_model': 'Synthetic'},
+            {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'linearity': False,
+             'channel_model': 'Synthetic'},
+            {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'linearity': False,
+             'channel_model': 'Synthetic'},
+            {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'linearity': False,
+             'channel_model': 'Synthetic'},
         ]
 
         methods_list = [
@@ -231,7 +234,173 @@ if __name__ == '__main__':
         ]
         plot_by_field = 'val_snr'
         values = list(range(9, 14))
-        xlabel, ylabel = 'SNR', 'SER'
+        xlabel, ylabel = 'SNR', 'BER'
+    # figure 4a
+    elif label_name == 'SNR_linear_COST_2100_SISO':
+        params_dicts = [
+            {'val_snr': 9, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 10, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 11, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 12, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+        ]
+
+        methods_list = [
+            'Regular Training',
+            'Combined',
+            'Extended Pilot Training'
+        ]
+        plot_by_field = 'val_snr'
+        values = list(range(9, 14))
+        xlabel, ylabel = 'SNR', 'BER'
+    # figure 4b
+    elif label_name == 'SNR_linear_COST_2100_MIMO':
+        params_dicts = [
+            {'val_snr': 9, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 10, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 11, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 12, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+            {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'linearity': True,
+             'channel_model': 'Cost2100'},
+        ]
+
+        methods_list = [
+            'Regular Training',
+            'Combined',
+            'Extended Pilot Training'
+        ]
+        plot_by_field = 'val_snr'
+        values = list(range(9, 14))
+        xlabel, ylabel = 'SNR', 'BER'
+    # figure 5a - ablation study
+    elif label_name == 'SNR_linear_synth_SISO_fading_ablation':
+        params_dicts = [
+            # {'val_snr': 9, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
+            # {'val_snr': 10, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
+            # {'val_snr': 11, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
+            {'val_snr': 12, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
+            {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
+            # {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            # {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            # {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            # {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+            # {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+            #  'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
+        ]
+        methods_list = [
+            # 'Regular Training',
+            'Geometric',
+            'Translation',
+            # 'Negation',
+            'Combined',
+            # 'Extended Pilot Training'
+        ]
+        plot_by_field = 'val_snr'
+        values = list(range(9, 14))
+        xlabel, ylabel = 'SNR', 'BER'
+    # figure 5b - ablation
+    elif label_name == 'SNR_non_linear_synth_MIMO_fading_ablation':
+        params_dicts = [
+            {'val_snr': 9, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'linearity': False,
+             'channel_model': 'Synthetic', 'modulation_type': 'QPSK'},
+            {'val_snr': 10, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'linearity': False,
+             'channel_model': 'Synthetic', 'modulation_type': 'QPSK'},
+            {'val_snr': 11, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'linearity': False,
+             'channel_model': 'Synthetic', 'modulation_type': 'QPSK'},
+            {'val_snr': 12, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'linearity': False,
+             'channel_model': 'Synthetic', 'modulation_type': 'QPSK'},
+            {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'linearity': False,
+             'channel_model': 'Synthetic', 'modulation_type': 'QPSK'},
+            # {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+            #  'fading_in_channel': True, 'from_scratch': False, 'linearity': False, 'channel_model': 'Synthetic',
+            #  'modulation_type': 'QPSK'},
+            # {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+            #  'fading_in_channel': True, 'from_scratch': False, 'linearity': False, 'channel_model': 'Synthetic',
+            #  'modulation_type': 'QPSK'},
+            # {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+            #  'fading_in_channel': True, 'from_scratch': False, 'linearity': False, 'channel_model': 'Synthetic',
+            #  'modulation_type': 'QPSK'},
+            # {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+            #  'fading_in_channel': True, 'from_scratch': False, 'linearity': False, 'channel_model': 'Synthetic',
+            #  'modulation_type': 'QPSK'},
+            # {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+            #  'fading_in_channel': True, 'from_scratch': False, 'linearity': False, 'channel_model': 'Synthetic',
+            #  'modulation_type': 'QPSK'},
+        ]
+        methods_list = [
+            'Regular Training',
+            'Geometric',
+            'Translation',
+            'Negation',
+            'Combined',
+            # 'Extended Pilot Training'
+        ]
+        plot_by_field = 'val_snr'
+        values = list(range(9, 14))
+        xlabel, ylabel = 'SNR', 'BER'
     elif label_name == 'Pilots':
         params_dicts = [
             {'val_block_length': 5025, 'pilot_size': 25},

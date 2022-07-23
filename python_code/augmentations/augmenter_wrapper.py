@@ -1,3 +1,4 @@
+import math
 from typing import Tuple, List
 
 import torch
@@ -11,7 +12,8 @@ from python_code.augmentations.translation_augmenter import TranslationAugmenter
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER, N_ANT, MODULATION_NUM_MAPPING
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes, ModulationType
-from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states
+from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states, generate_bits_by_state, \
+    prob_to_BPSK_symbol
 
 conf = Config()
 
@@ -66,6 +68,7 @@ class AugmenterWrapper:
         if conf.modulation_type == ModulationType.QPSK.name:
             received_words = torch.view_as_real(received_words)
         centers, stds, gt_states, n_states, state_size = estimate_params(received_words, transmitted_words)
+
         if self._fading_in_channel:
             self._centers, self._stds = self.smooth_parameters(centers, stds)
         else:
@@ -117,11 +120,14 @@ class AugmenterWrapper:
         :param snr: signal to noise ratio value
         :return: the augmented received and transmitted pairs
         """
+        # aug_rxs, aug_txs = [], []
         aug_rx, aug_tx = self._samplers_dict[conf.sampler_type].sample(i, h, snr)
+        # aug_rxs.append(aug_rx), aug_txs.append(aug_tx)
         # run through the desired augmentations
         for augmentation_name in self._augmentations:
             augmenter = self._augmenters_dict[augmentation_name]
             aug_rx, aug_tx = augmenter.augment(aug_rx, aug_tx)
+            # aug_rxs.append(aug_rx), aug_txs.append(aug_tx)
         return aug_rx, aug_tx
 
     def augment_batch(self, h: torch.Tensor, received_words: torch.Tensor, transmitted_words: torch.Tensor):
@@ -139,6 +145,21 @@ class AugmenterWrapper:
         if conf.modulation_type == ModulationType.QPSK.name:
             received_words = torch.view_as_real(received_words)
         aug_rx = torch.empty([conf.online_repeats_n, *received_words.shape[1:]], dtype=received_words.dtype).to(DEVICE)
+        # i = 0
+        # while True:
+        #     if i < received_words.shape[0]:
+        #         aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]
+        #         i += 1
+        #     else:
+        #         cur_aug_rxs, cur_aug_txs = self.augment_single(i, h, conf.val_snr)
+        #         for cur_aug_rx, cur_aug_tx in zip(cur_aug_rxs, cur_aug_txs):
+        #             aug_rx[i], aug_tx[i] = cur_aug_rx, cur_aug_tx
+        #             i += 1
+        #             if i >= aug_rx.shape[0]:
+        #                 break
+        #
+        #     if i >= aug_rx.shape[0]:
+        #         break
         for i in range(aug_rx.shape[0]):
             if i < received_words.shape[0]:
                 aug_rx[i], aug_tx[i] = received_words[i], transmitted_words[i]

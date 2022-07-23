@@ -130,9 +130,9 @@ class Trainer(object):
         # calculate loss
         loss = self.calc_loss(soft_estimation=soft_estimation, transmitted_words=transmitted_words)
         # if loss is Nan inform the user
-        if torch.sum(torch.isnan(loss)):
-            print('Nan value')
-            return np.nan
+        # if torch.sum(torch.isnan(loss)):
+        #     print('Nan value')
+        #     return np.nan
         current_loss = loss.item()
         # back propagation
         self.optimizer.zero_grad()

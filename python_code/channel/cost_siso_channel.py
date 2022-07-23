@@ -9,16 +9,17 @@ from python_code.utils.config_singleton import Config
 
 conf = Config()
 
-COST_LENGTH = 300
+COST_LENGTH = 200
+COST_STEP = 2
 
 
 class Cost2100SISOChannel:
     @staticmethod
     def calculate_channel(memory_length: int, fading: bool = False, index: int = 0) -> np.ndarray:
-        total_h = np.empty([COST_LENGTH, memory_length])
+        total_h = np.empty([COST_LENGTH // COST_STEP, memory_length])
         for i in range(memory_length):
-            total_h[:, i] = scipy.io.loadmat(os.path.join(SISO_COST2100_DIR, f'h_{i}'))[
-                'h_channel_response_mag'].reshape(-1)
+            h_channel_response = scipy.io.loadmat(os.path.join(SISO_COST2100_DIR, f'h_{i}'))
+            total_h[:, i] = h_channel_response['h_channel_response_mag'].reshape(-1)[:COST_LENGTH][::COST_STEP]
         h = np.reshape(total_h[index], [1, memory_length])
         h *= 0.8
         return h

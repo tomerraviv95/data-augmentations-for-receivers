@@ -16,10 +16,11 @@ class DNNDetector(nn.Module):
     The DNNDetector Network Architecture
     """
 
-    def __init__(self, n_user):
+    def __init__(self, n_user, n_ant):
         super(DNNDetector, self).__init__()
         self.n_user = n_user
-        self.n_states = 2 ** n_user
+        self.n_ant = n_ant
+        self.n_states = MODULATION_NUM_MAPPING[conf.modulation_type] ** n_ant
         self.initialize_dnn()
 
     def initialize_dnn(self):
@@ -35,7 +36,7 @@ class DNNDetector(nn.Module):
         if phase == 'val':
             # Decode the output
             estimated_states = torch.argmax(out, dim=1)
-            estimated_words = calculate_symbols_from_states(self.n_user, estimated_states)
+            estimated_words = calculate_symbols_from_states(self.n_ant, estimated_states)
             return estimated_words.long()
         else:
             return out

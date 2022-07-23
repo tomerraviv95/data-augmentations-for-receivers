@@ -10,35 +10,11 @@ from python_code.detectors.deepsic.deep_sic_detector import DeepSICDetector
 from python_code.detectors.trainer import Trainer
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import HALF, ModulationType, QUARTER
+from python_code.utils.trellis_utils import prob_to_BPSK_symbol, prob_to_QPSK_symbol
 
 conf = Config()
 ITERATIONS = 5
 EPOCHS = 250
-
-
-def prob_to_BPSK_symbol(p: torch.Tensor) -> torch.Tensor:
-    """
-    prob_to_symbol(x:PyTorch/Numpy Tensor/Array)
-    Converts Probabilities to BPSK Symbols by hard threshold: [0,0.5] -> '-1', [0.5,0] -> '+1'
-    :param p: probabilities vector
-    :return: symbols vector
-    """
-    return torch.sign(p - HALF)
-
-
-def prob_to_QPSK_symbol(p: torch.Tensor) -> torch.Tensor:
-    """
-    prob_to_symbol(x:PyTorch/Numpy Tensor/Array)
-    Converts Probabilities to BPSK Symbols by hard threshold: [0,0.5] -> '-1', [0.5,0] -> '+1'
-    :param p: probabilities vector
-    :return: symbols vector
-    """
-    p_real_neg = p[:, :, 0] + p[:, :, 2]
-    first_symbol = (-1) * torch.sign(p_real_neg - HALF)
-    p_img_neg = p[:, :, 1] + p[:, :, 2]
-    second_symbol = (-1) * torch.sign(p_img_neg - HALF)
-    s = torch.cat([first_symbol.unsqueeze(-1), second_symbol.unsqueeze(-1)], dim=-1)
-    return torch.view_as_complex(s)
 
 
 class DeepSICTrainer(Trainer):

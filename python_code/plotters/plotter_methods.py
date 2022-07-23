@@ -45,10 +45,10 @@ def add_avg_ser(all_curves: List[Tuple[float, str]], conf: Config, method_name: 
 
 
 def compute_ser_for_method(all_curves: List[Tuple[float, str]], method: str, params_dict, run_params_obj):
+    conf = Config()
+    conf.load_config(os.path.join(CONFIG_RUNS_DIR, params_dict['channel_type'], f'{method}.yaml'))
     trainer = CHANNEL_TYPE_TO_TRAINER_DICT[params_dict['channel_type']][params_dict['detector_type']]()
     full_method_name = f'{trainer.__str__()} - {method}'
     print(full_method_name)
-    conf = Config()
-    conf.load_config(os.path.join(CONFIG_RUNS_DIR,params_dict['channel_type'], f'{method}.yaml'))
     name = set_method_name(conf, full_method_name, params_dict)
     add_avg_ser(all_curves, conf, full_method_name, name, run_params_obj.run_over, run_params_obj.trial_num, trainer)

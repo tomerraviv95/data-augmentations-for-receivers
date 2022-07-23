@@ -3,11 +3,13 @@ from random import randint
 import torch
 
 from python_code.channel.channels_hyperparams import N_ANT, N_USER
+from python_code.channel.modulator import BPSKModulator, QPSKModulator
 from python_code.detectors.dnn.dnn_detector import DNNDetector
 from python_code.detectors.trainer import Trainer
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ModulationType
-from python_code.utils.trellis_utils import calculate_mimo_states
+from python_code.utils.trellis_utils import calculate_mimo_states, prob_to_BPSK_symbol, prob_to_QPSK_symbol, \
+    qpsk_symbols_to_bits
 
 conf = Config()
 
@@ -37,7 +39,7 @@ class DNNTrainer(Trainer):
         """
             Loads the DNN detector
         """
-        self.detector = DNNDetector(self.n_user)
+        self.detector = DNNDetector(self.n_user, self.n_ant)
 
     def calc_loss(self, soft_estimation: torch.Tensor, transmitted_words: torch.IntTensor) -> torch.Tensor:
         """
@@ -51,8 +53,16 @@ class DNNTrainer(Trainer):
         return loss
 
     def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
-        # detect and decode
-        detected_word = self.detector(y.float(), phase='val')
+
+        if conf.modulation_type == ModulationType.BPSK.name:
+            y = y.float()
+        elif conf.modulation_type == ModulationType.QPSK.name:
+            y = torch.view_as_real(y).float().reshape(y.shape[0], -1)
+        detected_word = self.detector(y, phase='val')
+
+        if conf.modulation_type == ModulationType.QPSK.name:
+            detected_word = qpsk_symbols_to_bits(detected_word)
+
         return detected_word
 
     def online_training(self, tx: torch.Tensor, rx: torch.Tensor):
@@ -67,7 +77,8 @@ class DNNTrainer(Trainer):
         self.deep_learning_setup()
 
         if conf.modulation_type == ModulationType.QPSK.name:
-            raise ValueError("Not implemented DNN for this case!!")
+            rx = torch.view_as_real(rx).float().reshape(rx.shape[0], -1)
+        #     raise ValueError("Not implemented DNN for this case!!")
 
         # run training loops
         loss = 0

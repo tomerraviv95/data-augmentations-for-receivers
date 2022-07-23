@@ -4,6 +4,7 @@ import torch
 from python_code import DEVICE
 from python_code.channel.channels_hyperparams import MODULATION_NUM_MAPPING
 from python_code.utils.config_singleton import Config
+from python_code.utils.constants import HALF, ModulationType
 import itertools
 
 conf = Config()
@@ -54,8 +55,12 @@ def calculate_mimo_states(n_user: int, transmitted_words: torch.Tensor) -> torch
 
 
 def calculate_symbols_from_states(state_size: int, gt_states: torch.Tensor) -> torch.Tensor:
-    mask = 2 ** torch.arange(state_size).to(DEVICE, gt_states.dtype)
-    return gt_states.unsqueeze(-1).bitwise_and(mask).ne(0).long()
+    mask = MODULATION_NUM_MAPPING[conf.modulation_type] ** torch.arange(state_size).to(DEVICE, gt_states.dtype)
+    if conf.modulation_type == ModulationType.BPSK.name:
+        return gt_states.unsqueeze(-1).bitwise_and(mask).ne(0).long()
+    elif conf.modulation_type == ModulationType.QPSK.name:
+        result = (gt_states.unsqueeze(-1) // mask) % MODULATION_NUM_MAPPING[conf.modulation_type]
+        return result
 
 
 def break_transmitted_siso_word_to_symbols(memory_length: int, transmitted_words: np.ndarray) -> np.ndarray:
@@ -67,7 +72,7 @@ def break_transmitted_siso_word_to_symbols(memory_length: int, transmitted_words
     return blockwise_words.squeeze().T
 
 
-def generate_symbols_by_state(state, n_state):
+def generate_bits_by_state(state, n_state):
     combinations = list(itertools.product(range(MODULATION_NUM_MAPPING[conf.modulation_type]), repeat=n_state))
     return torch.Tensor(combinations[state][::-1]).reshape(1, n_state).to(DEVICE)
 
@@ -80,5 +85,38 @@ def break_received_siso_word_to_symbols(memory_length: int, received_words: np.n
                                      axis=1)
     return blockwise_words.squeeze().T[:-memory_length + 1]
 
+
+def prob_to_BPSK_symbol(p: torch.Tensor) -> torch.Tensor:
+    """
+    prob_to_symbol(x:PyTorch/Numpy Tensor/Array)
+    Converts Probabilities to BPSK Symbols by hard threshold: [0,0.5] -> '-1', [0.5,0] -> '+1'
+    :param p: probabilities vector
+    :return: symbols vector
+    """
+    return torch.sign(p - HALF)
+
+
+def prob_to_QPSK_symbol(p: torch.Tensor) -> torch.Tensor:
+    """
+    prob_to_symbol(x:PyTorch/Numpy Tensor/Array)
+    Converts Probabilities to BPSK Symbols by hard threshold: [0,0.5] -> '-1', [0.5,0] -> '+1'
+    :param p: probabilities vector
+    :return: symbols vector
+    """
+    p_real_neg = p[:, :, 0] + p[:, :, 2]
+    first_symbol = (-1) * torch.sign(p_real_neg - HALF)
+    p_img_neg = p[:, :, 1] + p[:, :, 2]
+    second_symbol = (-1) * torch.sign(p_img_neg - HALF)
+    s = torch.cat([first_symbol.unsqueeze(-1), second_symbol.unsqueeze(-1)], dim=-1)
+    return torch.view_as_complex(s)
+
+
 def get_qpsk_classes_from_bits(b):
     return b[::2] + 2 * b[1::2]
+
+def qpsk_symbols_to_bits(target):
+    first_bit = target % 2
+    second_bit = torch.floor(target / 2)
+    target = torch.cat([first_bit.unsqueeze(-1), second_bit.unsqueeze(-1)], dim=2).transpose(1, 2).reshape(
+        2 * first_bit.shape[0], -1)
+    return target

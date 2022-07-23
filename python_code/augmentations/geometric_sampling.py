@@ -6,7 +6,7 @@ from python_code import DEVICE
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
-from python_code.utils.trellis_utils import generate_symbols_by_state
+from python_code.utils.trellis_utils import generate_bits_by_state
 
 conf = Config()
 
@@ -30,10 +30,10 @@ class GeometricSampler:
 
         if conf.channel_type == ChannelModes.SISO.name:
             to_augment_state = self._gt_states[i % self._gt_states.shape[0]]
-            transmitted_word = generate_symbols_by_state(to_augment_state, MEMORY_LENGTH)[0]
+            transmitted_word = generate_bits_by_state(to_augment_state, MEMORY_LENGTH)[0]
         elif conf.channel_type == ChannelModes.MIMO.name:
             to_augment_state = i % self._n_states
-            transmitted_word = generate_symbols_by_state(to_augment_state, N_USER)[0]
+            transmitted_word = generate_bits_by_state(to_augment_state, N_USER)[0]
         else:
             raise ValueError("No such channel type!!!")
 
