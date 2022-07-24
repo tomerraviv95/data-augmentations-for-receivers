@@ -1,23 +1,23 @@
 # general
 run_name: 'test' #'augmented_version'
-seed: 10 # run seed
+seed: 0 # run seed
 
 # channel
-channel_type: 'MIMO' # Channel type values: ['SISO','MIMO'].
+channel_type: 'SISO' # Channel type values: ['SISO','MIMO'].
 channel_model: 'Synthetic' # Physical channel models: ['Cost2100','Synthetic']
 detector_type: 'model' # 'model' or 'black_box'
 linear: True # channel linearity. Boolean value.
 fading_in_channel: True # If the channel is fading/non-fading. values: [True, False]
-modulation_type: 'QPSK' # ['BPSK','QPSK']
+modulation_type: 'BPSK' # ['BPSK','QPSK']
 
 # sampler
 sampler_type: 'geometric_sampler' # 'no_sampler', 'geometric_sampler', 'full_knowledge_sampler'
-aug_type: [ 'translation_augmenter' ] # ['translation_augmenter','rotation_augmenter']
-online_repeats_n: 2500 # number of desired augmented words out of online_total_words. values: online_total_words<=online_repeats_n
+aug_type: [  ] # ['translation_augmenter','rotation_augmenter']
+online_repeats_n: 1000 # number of desired augmented words out of online_total_words. values: online_total_words<=online_repeats_n
 
 # validation hyperparameters
-val_block_length: 10500 # coherence block time, total size of pilot + data. values: int.
-pilot_size: 500 # pilot symbols
+val_block_length: 10200 # coherence block time, total size of pilot + data. values: int.
+pilot_size: 200 # pilot symbols
 blocks_num: 20 # number of validation frames. values: int.
 val_snr: 12 # start SNR value. values: float.
 eval_mode: 'by_word' # Type of evaluation per block - 'by_word'.

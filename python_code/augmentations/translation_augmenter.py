@@ -66,18 +66,15 @@ class TranslationAugmenter:
             rx_transformation *= torch.tensor([rx_map[x.item()] for x in new_tx])[:received_word.shape[0]].reshape(
                 received_word.shape).to(DEVICE)
             new_tx = torch.tensor([tx_map[x.item()] for x in new_tx]).to(DEVICE)
-
         if conf.channel_type == ChannelModes.SISO.name:
             new_state = calculate_siso_states(MEMORY_LENGTH, new_tx)[0]
         elif conf.channel_type == ChannelModes.MIMO.name:
             new_state = calculate_mimo_states(N_USER, new_tx.reshape(1, -1))[0]
         else:
             raise ValueError("No such channel type!!!")
-
         transformed_received = rx_transformation * received_word
         delta = self._centers[new_state.item()] + self._centers[received_word_state.item()]
         new_received_word = self.alpha * delta + transformed_received
-
         return new_received_word, new_tx
 
     @property
