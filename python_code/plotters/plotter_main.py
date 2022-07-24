@@ -19,7 +19,7 @@ if __name__ == '__main__':
     # 'SNR_non_linear_synth_SISO_fading', 'SNR_non_linear_synth_MIMO_fading','SNR_linear_COST_2100_SISO',
     # 'SNR_linear_COST_2100_MIMO', 'SNR_linear_synth_SISO_fading_ablation','SNR_linear_synth_MIMO_fading_ablation'
     # 'pilot_efficiency_siso'
-    label_name = 'SNR_linear_synth_MIMO_fading_ablation'
+    label_name = 'pilot_efficiency_siso'
     print(label_name)
     # figure 1a
     if label_name == 'SNR_linear_SISO':
@@ -360,30 +360,16 @@ if __name__ == '__main__':
         values = list(range(9, 14))
         xlabel, ylabel = 'SNR', 'BER'
     elif label_name == 'pilot_efficiency_siso':
+        values = [100, 200, 300, 400, 500]
         params_dicts = [
-            {'val_snr': 9, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
-            {'val_snr': 10, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
-            {'val_snr': 11, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
-            {'val_snr': 12, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
-            {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
-        ]
-        params_dicts = [
-            {'val_block_length': 5025, 'pilot_size': 25},
-            {'val_block_length': 5050, 'pilot_size': 50},
-            {'val_block_length': 5100, 'pilot_size': 100},
-            {'val_block_length': 5150, 'pilot_size': 150},
-            {'val_block_length': 5200, 'pilot_size': 200}
-        ]
+            {'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'pilot_size': val, 'val_block_length': int(10000 + val)}
+            for val
+            in values]
         methods_list = [
             'Regular Training',
             'Combined',
         ]
-        values = [100, 200, 300, 400, 500, 600]
         xlabel, ylabel = 'Pilots Num', 'BER'
     else:
         raise ValueError('No such plot type!!!')
