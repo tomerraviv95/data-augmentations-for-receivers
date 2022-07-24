@@ -32,6 +32,8 @@ def get_marker(method_name):
         return '>'
     elif 'Translation' in method_name:
         return '<'
+    elif 'Scaling' in method_name:
+        return 'X'
     elif 'Rotation' in method_name:
         return 'v'
     elif 'Combined' in method_name:
@@ -51,6 +53,8 @@ def get_color(method_name):
         return 'orange'
     elif 'Translation' in method_name:
         return 'pink'
+    elif 'Scaling' in method_name:
+        return 'yellow'
     elif 'Rotation' in method_name:
         return 'green'
     elif 'Combined' in method_name:

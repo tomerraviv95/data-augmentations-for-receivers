@@ -46,12 +46,12 @@ class RotationAugmenter:
         new_angle = torch.view_as_complex(received_word).angle() + chosen_transformation
         new_complex_rx = torch.view_as_complex(received_word).abs() * (torch.cos(new_angle) + 1j * torch.sin(new_angle))
         new_rx = torch.view_as_real(new_complex_rx)
+        if conf.modulation_type == ModulationType.BPSK.name:
+            new_rx = new_rx[:, 0]
 
         new_tx = transmitted_word
         map = MAPPING_DICT[conf.modulation_type]
         for i in range(random_ind):
             new_tx = torch.tensor([map[x.item()] for x in new_tx])
 
-        if conf.modulation_type == ModulationType.BPSK.name:
-            new_rx = new_rx[:, 0]
         return new_rx, new_tx.to(DEVICE)

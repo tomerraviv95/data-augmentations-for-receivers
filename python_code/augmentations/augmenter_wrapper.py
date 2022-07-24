@@ -7,7 +7,6 @@ from python_code.augmentations.full_knowledge_sampler import FullKnowledgeSample
 from python_code.augmentations.geometric_sampling import GeometricSampler
 from python_code.augmentations.no_sampler import NoSampler
 from python_code.augmentations.rotation_augmenter import RotationAugmenter
-from python_code.augmentations.scaling_augmenter import ScalingAugmenter
 from python_code.augmentations.translation_augmenter import TranslationAugmenter
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER, N_ANT, MODULATION_NUM_MAPPING
 from python_code.utils.config_singleton import Config
@@ -80,8 +79,7 @@ class AugmenterWrapper:
         }
         self._augmenters_dict = {
             'rotation_augmenter': RotationAugmenter(),
-            'scaling_augmenter': ScalingAugmenter(self._centers, n_states, received_words, transmitted_words),
-            'translation_augmenter': TranslationAugmenter(self._centers, n_states, received_words, transmitted_words),
+            'translation_augmenter': TranslationAugmenter(self._centers),
         }
         self._n_states = n_states
 
