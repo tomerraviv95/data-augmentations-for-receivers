@@ -18,8 +18,8 @@ if __name__ == '__main__':
     # 'SNR_linear_SISO', 'SNR_linear_MIMO', 'SNR_linear_synth_SISO_fading', 'SNR_linear_synth_MIMO_fading',
     # 'SNR_non_linear_synth_SISO_fading', 'SNR_non_linear_synth_MIMO_fading','SNR_linear_COST_2100_SISO',
     # 'SNR_linear_COST_2100_MIMO', 'SNR_linear_synth_SISO_fading_ablation','SNR_linear_synth_MIMO_fading_ablation'
-    # 'pilot_efficiency_siso'
-    label_name = 'pilot_efficiency_siso'
+    # 'pilot_efficiency_siso','pilot_efficiency_mimo'
+    label_name = 'pilot_efficiency_mimo'
     print(label_name)
     # figure 1a
     if label_name == 'SNR_linear_SISO':
@@ -360,10 +360,24 @@ if __name__ == '__main__':
         values = list(range(9, 14))
         xlabel, ylabel = 'SNR', 'BER'
     elif label_name == 'pilot_efficiency_siso':
-        values = [100, 200, 300, 400, 500]
+        values = [100, 200, 300, 400, 500, 600]
         params_dicts = [
             {'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'pilot_size': val, 'val_block_length': int(10000 + val)}
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100,
+             'pilot_size': val, 'val_block_length': int(10000 + val)}
+            for val
+            in values]
+        methods_list = [
+            'Regular Training',
+            'Combined',
+        ]
+        xlabel, ylabel = 'Pilots Num', 'BER'
+    elif label_name == 'pilot_efficiency_mimo':
+        values = [300, 400, 500, 600]
+        params_dicts = [
+            {'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100,
+             'pilot_size': val, 'val_block_length': int(10000 + val)}
             for val
             in values]
         methods_list = [

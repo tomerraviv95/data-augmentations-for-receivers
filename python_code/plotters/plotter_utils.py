@@ -65,19 +65,10 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_n
         mean_sers_dict[method_name] = mean_sers
 
     for method_name in names:
-        if field_name.split('_')[0] == 'SNR':
-            plt.plot(values, mean_sers_dict[method_name], label=method_name,
-                     color=get_color(method_name),
-                     marker=get_marker(method_name),
-                     linestyle=get_linestyle(method_name), linewidth=2.2)
-        elif field_name == 'Pilots':
-            mean_vals = np.array(mean_sers_dict['Regular Training'])
-            plt.plot(values,
-                     -np.log(np.array(mean_sers_dict[method_name]) / mean_vals),
-                     label=method_name,
-                     color=get_color(method_name),
-                     marker=get_marker(method_name),
-                     linestyle=get_linestyle(method_name), linewidth=2.2)
+        plt.plot(values, mean_sers_dict[method_name], label=method_name,
+                 color=get_color(method_name),
+                 marker=get_marker(method_name),
+                 linestyle=get_linestyle(method_name), linewidth=2.2)
 
     plt.xticks(values, values)
     plt.xlabel(xlabel)
