@@ -27,8 +27,8 @@ TX_MAPPING_DICT = {
 
 RX_MAPPING_DICT = {
     ModulationType.BPSK.name:
-        {0: (-1),
-         1: (-1)},
+        {0: [-1],
+         1: [-1]},
     ModulationType.QPSK.name:
         {0: [-1, 1],
          1: [1, -1],
@@ -63,7 +63,8 @@ class TranslationAugmenter:
         rx_map = RX_MAPPING_DICT[conf.modulation_type]
         rx_transformation = torch.ones(received_word.shape).to(DEVICE)
         for i in range(random_ind):
-            rx_transformation *= torch.tensor([rx_map[x.item()] for x in new_tx]).to(DEVICE)
+            rx_transformation *= torch.tensor([rx_map[x.item()] for x in new_tx])[:received_word.shape[0]].reshape(
+                received_word.shape).to(DEVICE)
             new_tx = torch.tensor([tx_map[x.item()] for x in new_tx]).to(DEVICE)
 
         if conf.channel_type == ChannelModes.SISO.name:
