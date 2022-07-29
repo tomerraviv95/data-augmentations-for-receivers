@@ -103,7 +103,7 @@ class MIMOChannel:
             b = get_qpsk_symbols_from_bits(b)
         return b, y.T
 
-    def get_values(self, snr, index):
+    def get_vectors(self, snr: float, index: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         # get channel values
         if conf.channel_model == ChannelModels.Synthetic.name:
             h = SEDChannel.calculate_channel(N_ANT, N_USER, index, conf.fading_in_channel)
@@ -158,7 +158,7 @@ class ChannelModelDataset(Dataset):
                           dtype=complex if conf.modulation_type == ModulationType.QPSK.name else float)
         # accumulate words until reaches desired number
         for index in range(self.blocks_num):
-            b, h, y = self.channel_type.get_values(snr, index)
+            b, h, y = self.channel_type.get_vectors(snr, index)
             # accumulate
             b_full[index] = b
             y_full[index] = y

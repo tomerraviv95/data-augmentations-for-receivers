@@ -43,7 +43,7 @@ class DeepSICTrainer(Trainer):
         else:
             raise ValueError("No such constellation!")
 
-    def initialize_detector(self):
+    def _initialize_detector(self):
         self.detector = [[DeepSICDetector().to(DEVICE) for _ in range(ITERATIONS)] for _ in
                          range(self.n_user)]  # 2D list for Storing the DeepSIC Networks
 
@@ -80,13 +80,13 @@ class DeepSICTrainer(Trainer):
         for user in range(self.n_user):
             self.train_model(model[user][i], tx_all[user], rx_all[user])
 
-    def online_training(self, tx: torch.Tensor, rx: torch.Tensor):
+    def _online_training(self, tx: torch.Tensor, rx: torch.Tensor):
         """
         Main training function for DeepSIC trainer. Initializes the probabilities, then propagates them through the
         network, training sequentially each network and not by end-to-end manner (each one individually).
         """
         if conf.from_scratch:
-            self.initialize_detector()
+            self._initialize_detector()
 
         if conf.modulation_type == ModulationType.BPSK.name:
             initial_probs = tx.clone()

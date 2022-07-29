@@ -29,14 +29,14 @@ class Trainer(object):
     """
     def __init__(self):
         # initialize matrices, datasets and detector
-        self.initialize_dataloader()
-        self.initialize_detector()
+        self._initialize_dataloader()
+        self._initialize_detector()
         self.softmax = torch.nn.Softmax(dim=1)  # Single symbol probability inference
 
     def get_name(self):
         return self.__name__()
 
-    def initialize_detector(self):
+    def _initialize_detector(self):
         """
         Every trainer must have some base detector model
         """
@@ -72,7 +72,7 @@ class Trainer(object):
         else:
             raise NotImplementedError("No such loss function implemented!!!")
 
-    def initialize_dataloader(self):
+    def _initialize_dataloader(self):
         """
         Sets up the data loader - a generator from which we draw batches, in iterations
         """
@@ -81,7 +81,7 @@ class Trainer(object):
                                                    blocks_num=conf.blocks_num)
         self.dataloader = torch.utils.data.DataLoader(self.channel_dataset)
 
-    def online_training(self, tx: torch.Tensor, rx: torch.Tensor):
+    def _online_training(self, tx: torch.Tensor, rx: torch.Tensor):
         """
         Every detector trainer must have some function to adapt it online
         """
@@ -126,7 +126,7 @@ class Trainer(object):
                 augmenter_wrapper.update_hyperparams(rx_pilot, tx_pilot)
                 y_aug, x_aug = augmenter_wrapper.augment_batch(h, rx_pilot, tx_pilot)
                 # re-train the detector
-                self.online_training(x_aug, y_aug)
+                self._online_training(x_aug, y_aug)
             # detect data part after training on the pilot part
             detected_word = self.forward(rx_data, self.probs_vec)
             # calculate accuracy

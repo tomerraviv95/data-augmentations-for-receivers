@@ -15,11 +15,11 @@ class SEDChannel:
         H_column = np.tile(H_column, [n_ant, 1])
         H = np.exp(-np.abs(H_row - H_column))
         if fading:
-            H = SEDChannel.add_fading(H, n_ant, frame_ind)
+            H = SEDChannel._add_fading(H, n_ant, frame_ind)
         return H
 
     @staticmethod
-    def add_fading(H: np.ndarray, n_ant: int, frame_ind: int) -> np.ndarray:
+    def _add_fading(H: np.ndarray, n_ant: int, frame_ind: int) -> np.ndarray:
         degs_array = np.array([51, 39, 33, 21])
         center = 0.8
         fade_mat = center + (1 - center) * np.cos(2 * np.pi * frame_ind / degs_array)
@@ -28,7 +28,15 @@ class SEDChannel:
 
     @staticmethod
     def transmit(s: np.ndarray, h: np.ndarray, snr: float) -> np.ndarray:
-        conv = SEDChannel.compute_channel_signal_convolution(h, s)
+        """
+        The MIMO SED Channel
+        :param s: to transmit symbol words
+        :param snr: signal-to-noise value
+        :param h: channel function
+        :return: received word
+        """
+
+        conv = SEDChannel._compute_channel_signal_convolution(h, s)
         sigma = 10 ** (-0.1 * snr)
         w = np.sqrt(sigma) * np.random.randn(N_ANT, s.shape[1])
         y = conv + w
@@ -37,6 +45,6 @@ class SEDChannel:
         return y
 
     @staticmethod
-    def compute_channel_signal_convolution(h: np.ndarray, s: np.ndarray) -> np.ndarray:
+    def _compute_channel_signal_convolution(h: np.ndarray, s: np.ndarray) -> np.ndarray:
         conv = np.matmul(h, s)
         return conv

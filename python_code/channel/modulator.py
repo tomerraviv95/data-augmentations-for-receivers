@@ -30,9 +30,13 @@ class QPSKModulator:
     @staticmethod
     def modulate(c: np.ndarray) -> np.ndarray:
         """
-        QPSK modulation 0->1, 1->-1
+        QPSK modulation
+        [0,0] -> [1/sqrt(2),1/sqrt(2)]
+        [0,1] -> [1/sqrt(2),-1/sqrt(2)]
+        [1,0] -> [-1/sqrt(2),1/sqrt(2)]
+        [1,1] -> [-1/sqrt(2),-1/sqrt(2)]
         :param c: the binary codeword
-        :return: binary modulated signal
+        :return: modulated signal
         """
         x = (-1) ** c[:, ::2] / np.sqrt(2) + (-1) ** c[:, 1::2] / np.sqrt(2) * 1j
         return x

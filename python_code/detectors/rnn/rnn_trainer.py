@@ -30,7 +30,7 @@ class RNNTrainer(Trainer):
     def __str__(self):
         return 'RNN Detector'
 
-    def initialize_detector(self):
+    def _initialize_detector(self):
         """
         Loads the RNN detector
         """
@@ -52,7 +52,7 @@ class RNNTrainer(Trainer):
         detected_word = self.detector(rx.float(), phase='val')
         return detected_word
 
-    def online_training(self, tx: torch.Tensor, rx: torch.Tensor):
+    def _online_training(self, tx: torch.Tensor, rx: torch.Tensor):
         """
         Online training module - trains on the detected word.
         Start from the previous weights, or from scratch.
@@ -60,7 +60,7 @@ class RNNTrainer(Trainer):
         :param rx: received word
         """
         if conf.from_scratch:
-            self.initialize_detector()
+            self._initialize_detector()
         self.deep_learning_setup()
 
         # run training loops

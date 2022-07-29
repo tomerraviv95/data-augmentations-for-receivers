@@ -28,13 +28,20 @@ class Cost2100MIMOChannel:
 
     @staticmethod
     def transmit(s: np.ndarray, h: np.ndarray, snr: float) -> np.ndarray:
-        conv = Cost2100MIMOChannel.compute_channel_signal_convolution(h, s)
+        """
+        The MIMO COST2100 Channel
+        :param s: to transmit symbol words
+        :param snr: signal-to-noise value
+        :param h: channel coefficients
+        :return: received word
+        """
+        conv = Cost2100MIMOChannel._compute_channel_signal_convolution(h, s)
         sigma = 10 ** (-0.1 * snr)
         w = np.sqrt(sigma) * np.random.randn(N_ANT, s.shape[1])
         y = conv + w
         return y
 
     @staticmethod
-    def compute_channel_signal_convolution(h: np.ndarray, s: np.ndarray) -> np.ndarray:
+    def _compute_channel_signal_convolution(h: np.ndarray, s: np.ndarray) -> np.ndarray:
         conv = np.matmul(h, s)
         return conv

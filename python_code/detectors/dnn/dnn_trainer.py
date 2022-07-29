@@ -33,7 +33,7 @@ class DNNTrainer(Trainer):
     def __str__(self):
         return 'DNN Detector'
 
-    def initialize_detector(self):
+    def _initialize_detector(self):
         """
             Loads the DNN detector
         """
@@ -63,7 +63,7 @@ class DNNTrainer(Trainer):
 
         return detected_word
 
-    def online_training(self, tx: torch.Tensor, rx: torch.Tensor):
+    def _online_training(self, tx: torch.Tensor, rx: torch.Tensor):
         """
         Online training module - trains on the detected word.
         Start from the previous weights, or from scratch.
@@ -71,7 +71,7 @@ class DNNTrainer(Trainer):
         :param rx: received word
         """
         if conf.from_scratch:
-            self.initialize_detector()
+            self._initialize_detector()
         self.deep_learning_setup()
 
         if conf.modulation_type == ModulationType.QPSK.name:

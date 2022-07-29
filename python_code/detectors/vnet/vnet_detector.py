@@ -45,9 +45,9 @@ class VNETDetector(nn.Module):
         self.n_states = n_states
         self.transition_table_array = create_transition_table(n_states)
         self.transition_table = torch.Tensor(self.transition_table_array).to(DEVICE)
-        self.initialize_dnn()
+        self._initialize_dnn()
 
-    def initialize_dnn(self):
+    def _initialize_dnn(self):
         layers = [nn.Linear(1, HIDDEN1_SIZE),
                   nn.ReLU(),
                   nn.Linear(HIDDEN1_SIZE, self.n_states)]
