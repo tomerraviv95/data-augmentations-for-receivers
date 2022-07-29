@@ -17,7 +17,7 @@ from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes, ChannelModels, ModulationType
 from python_code.utils.python_utils import normalize_for_modulation
 from python_code.utils.trellis_utils import calculate_siso_states, \
-    break_transmitted_siso_word_to_symbols, get_qpsk_classes_from_bits, generate_bits_by_state
+    break_transmitted_siso_word_to_symbols, get_qpsk_symbols_from_bits, generate_bits_by_state
 
 conf = Config()
 
@@ -100,7 +100,7 @@ class MIMOChannel:
         else:
             raise ValueError("No such channel model!!!")
         if conf.modulation_type == ModulationType.QPSK.name:
-            b = get_qpsk_classes_from_bits(b)
+            b = get_qpsk_symbols_from_bits(b)
         return b, y.T
 
     def get_values(self, snr, index):
@@ -118,7 +118,7 @@ class MIMOChannel:
         # generate random pilots block of bits
         b_pilots = self.bits_generator.integers(0, 2, size=(self.pilots_length, N_USER))
         if conf.modulation_type == ModulationType.QPSK.name:
-            b_pilots = get_qpsk_classes_from_bits(b_pilots)
+            b_pilots = get_qpsk_symbols_from_bits(b_pilots)
 
         # ensure that you have each state
         unique_states_num = MODULATION_NUM_MAPPING[conf.modulation_type] ** N_USER

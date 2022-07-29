@@ -1,28 +1,19 @@
-from typing import Tuple
-
 import torch
 
-from python_code import DEVICE
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ModulationType
-from python_code.utils.trellis_utils import qpsk_symbols_to_bits
+from python_code.utils.trellis_utils import get_bits_from_qpsk_symbols
 
 conf = Config()
 
 
-def calculate_error_rates(prediction: torch.Tensor, target: torch.Tensor) -> Tuple[float, float, torch.Tensor]:
+def calculate_ber(prediction: torch.Tensor, target: torch.Tensor) -> float:
     """
-    Returns the ber,fer and error indices
+    Returns the calculated ber of the prediction and the target (ground truth transmitted word)
     """
     prediction = prediction.long()
     target = target.long()
     if conf.modulation_type == ModulationType.QPSK.name:
-        target = qpsk_symbols_to_bits(target)
+        target = get_bits_from_qpsk_symbols(target)
     bits_acc = torch.mean(torch.eq(prediction, target).float()).item()
-    all_bits_sum_vector = torch.sum(torch.abs(prediction - target), 1).long()
-    frames_acc = torch.eq(all_bits_sum_vector, torch.LongTensor(1).fill_(0).to(device=DEVICE)).float().mean().item()
-    return max([1 - bits_acc, 0.0]), max([1 - frames_acc, 0.0]), torch.nonzero(all_bits_sum_vector,
-                                                                               as_tuple=False).reshape(-1)
-
-
-
+    return 1 - bits_acc

@@ -9,7 +9,7 @@ from python_code.detectors.trainer import Trainer
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ModulationType
 from python_code.utils.trellis_utils import calculate_mimo_states, prob_to_BPSK_symbol, prob_to_QPSK_symbol, \
-    qpsk_symbols_to_bits
+    get_bits_from_qpsk_symbols
 
 conf = Config()
 
@@ -61,7 +61,7 @@ class DNNTrainer(Trainer):
         detected_word = self.detector(y, phase='val')
 
         if conf.modulation_type == ModulationType.QPSK.name:
-            detected_word = qpsk_symbols_to_bits(detected_word)
+            detected_word = get_bits_from_qpsk_symbols(detected_word)
 
         return detected_word
 

@@ -11,7 +11,7 @@ RunParams = namedtuple(
 )
 
 if __name__ == '__main__':
-    run_over = False  # whether to run over previous results
+    run_over = True  # whether to run over previous results
     trial_num = 1  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
                                trial_num=trial_num)
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     # 'SNR_non_linear_synth_SISO_fading', 'SNR_non_linear_synth_MIMO_fading','SNR_linear_COST_2100_SISO',
     # 'SNR_linear_COST_2100_MIMO', 'SNR_linear_synth_SISO_fading_ablation','SNR_linear_synth_MIMO_fading_ablation'
     # 'pilot_efficiency_siso','pilot_efficiency_mimo'
-    label_name = 'pilot_efficiency_mimo'
+    label_name = 'SNR_linear_synth_SISO_fading'
     print(label_name)
     # figure 1a
     if label_name == 'SNR_linear_SISO':
@@ -78,8 +78,8 @@ if __name__ == '__main__':
         ]
         methods_list = [
             'Regular Training',
-            'Combined',
-            'Extended Pilot Training'
+            # 'Combined',
+            # 'Extended Pilot Training'
         ]
         values = list(range(9, 14))
         xlabel, ylabel = 'SNR', 'BER'
@@ -109,8 +109,8 @@ if __name__ == '__main__':
         ]
         methods_list = [
             'Regular Training',
-            'Combined',
-            'Extended Pilot Training'
+            # 'Combined',
+            # 'Extended Pilot Training'
         ]
         values = list(range(9, 14))
         xlabel, ylabel = 'SNR', 'BER'
@@ -265,9 +265,9 @@ if __name__ == '__main__':
         ]
 
         methods_list = [
-            'Regular Training',
+            # 'Regular Training',
             'Combined',
-            'Extended Pilot Training'
+            # 'Extended Pilot Training'
         ]
         values = list(range(9, 14))
         xlabel, ylabel = 'SNR', 'BER'
@@ -307,9 +307,9 @@ if __name__ == '__main__':
         ]
 
         methods_list = [
-            'Regular Training',
+            # 'Regular Training',
             'Combined',
-            'Extended Pilot Training'
+            # 'Extended Pilot Training'
         ]
         values = list(range(9, 14))
         xlabel, ylabel = 'SNR', 'BER'
