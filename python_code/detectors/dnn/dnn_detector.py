@@ -31,8 +31,8 @@ class DNNDetector(nn.Module):
                   nn.Linear(HIDDEN_SIZE, self.n_states)]
         self.net = nn.Sequential(*layers).to(DEVICE)
 
-    def forward(self, y: torch.Tensor, phase: str) -> torch.Tensor:
-        out = self.net(y)
+    def forward(self, rx: torch.Tensor, phase: str) -> torch.Tensor:
+        out = self.net(rx)
         if phase == 'val':
             # Decode the output
             estimated_states = torch.argmax(out, dim=1)

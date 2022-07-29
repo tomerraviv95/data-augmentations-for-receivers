@@ -12,7 +12,7 @@ HIDDEN_SIZE = 64
 
 class RNNDetector(nn.Module):
     """
-    This class implements an LSTM detector
+    This class implements an RNN detector
     """
 
     def __init__(self):
@@ -21,27 +21,23 @@ class RNNDetector(nn.Module):
         self.lstm = nn.LSTM(INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS).to(DEVICE)
         self.linear = nn.Linear(HIDDEN_SIZE, self.output_size).to(DEVICE)
 
-    def forward(self, y: torch.Tensor, phase: str, snr: float = None, gamma: float = None,
-                count: int = None) -> torch.Tensor:
+    def forward(self, rx: torch.Tensor, phase: str) -> torch.Tensor:
         """
-        The forward pass of the LSTM detector
-        :param y: input values, size [batch_size,transmission_length]
+        The forward pass of the RNN detector
+        :param rx: input values, size [batch_size,transmission_length]
         :param phase: 'train' or 'val'
-        :param snr: channel snr
-        :param gamma: channel coefficient
         :return: if in 'train' - the estimated bitwise prob [batch_size,transmission_length,N_CLASSES]
         if in 'val' - the detected words [n_batch,transmission_length]
         """
-
         # Set initial states
         h_n = torch.zeros(NUM_LAYERS, 1, HIDDEN_SIZE).to(DEVICE)
         c_n = torch.zeros(NUM_LAYERS, 1, HIDDEN_SIZE).to(DEVICE)
 
-        # Forward propagate LSTM - lstm_out: tensor of shape (seq_length, batch_size, input_size)
-        lstm_out, _ = self.lstm(y.unsqueeze(1), (h_n.contiguous(), c_n.contiguous()))
+        # Forward propagate rnn_out: tensor of shape (seq_length, batch_size, input_size)
+        rnn_out, _ = self.lstm(rx.unsqueeze(1), (h_n.contiguous(), c_n.contiguous()))
 
         # Linear layer output
-        out = self.linear(lstm_out.squeeze(1))
+        out = self.linear(rnn_out.squeeze(1))
         if phase == 'val':
             # Decode the output
             estimated_states = torch.argmax(out, dim=1)

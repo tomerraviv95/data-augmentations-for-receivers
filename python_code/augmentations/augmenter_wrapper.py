@@ -16,11 +16,11 @@ from python_code.utils.trellis_utils import calculate_siso_states, calculate_mim
 conf = Config()
 
 
-def estimate_params(received_words: torch.Tensor, transmitted_words: torch.Tensor) -> Tuple[
+def estimate_params(rx: torch.Tensor, transmitted_words: torch.Tensor) -> Tuple[
     torch.Tensor, torch.Tensor, torch.Tensor, int, int]:
     """
     Estimate parameters of centers and stds in the jth step based on the known states of the pilot word.
-    :param received_words: float words of channel values
+    :param rx: float words of channel values
     :param transmitted_words: binary word
     :return: updated centers and stds values
     """
@@ -35,12 +35,12 @@ def estimate_params(received_words: torch.Tensor, transmitted_words: torch.Tenso
     else:
         raise ValueError("No such channel type!!!")
 
-    centers = torch.empty([n_states, *received_words.shape[1:]]).to(DEVICE)
-    stds = torch.empty([n_states, *received_words.shape[1:]]).to(DEVICE)
+    centers = torch.empty([n_states, *rx.shape[1:]]).to(DEVICE)
+    stds = torch.empty([n_states, *rx.shape[1:]]).to(DEVICE)
 
     for state in range(n_states):
         state_ind = (gt_states == state)
-        state_received = received_words[state_ind]
+        state_received = rx[state_ind]
         if state_received.shape[0] > 0:
             stds[state] = torch.std(state_received, dim=0)
             centers[state] = torch.mean(state_received.real, dim=0)

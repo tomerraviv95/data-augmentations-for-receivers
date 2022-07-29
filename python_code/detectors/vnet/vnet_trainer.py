@@ -33,20 +33,20 @@ class VNETTrainer(Trainer):
         """
         self.detector = VNETDetector(n_states=self.n_states)
 
-    def calc_loss(self, soft_estimation: torch.Tensor, transmitted_words: torch.IntTensor) -> torch.Tensor:
+    def calc_loss(self, est: torch.Tensor, tx: torch.IntTensor) -> torch.Tensor:
         """
         Cross Entropy loss - distribution over states versus the gt state label
-        :param soft_estimation: [1,transmission_length,n_states], each element is a probability
-        :param transmitted_words: [1, transmission_length]
+        :param est: [1,transmission_length,n_states], each element is a probability
+        :param tx: [1, transmission_length]
         :return: loss value
         """
-        gt_states = calculate_siso_states(self.memory_length, transmitted_words)
-        loss = self.criterion(input=soft_estimation, target=gt_states)
+        gt_states = calculate_siso_states(self.memory_length, tx)
+        loss = self.criterion(input=est, target=gt_states)
         return loss
 
-    def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
+    def forward(self, rx: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
         # detect and decode
-        detected_word = self.detector(y.float(), phase='val')
+        detected_word = self.detector(rx.float(), phase='val')
         return detected_word
 
     def online_training(self, tx: torch.Tensor, rx: torch.Tensor):
@@ -66,5 +66,5 @@ class VNETTrainer(Trainer):
         for i in range(EPOCHS):
             # pass through detector
             soft_estimation = self.detector(rx.float(), phase='train')
-            current_loss = self.run_train_loop(soft_estimation=soft_estimation, transmitted_words=tx)
+            current_loss = self.run_train_loop(est=soft_estimation, tx=tx)
             loss += current_loss

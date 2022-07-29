@@ -22,6 +22,11 @@ np.random.seed(conf.seed)
 
 
 class Trainer(object):
+    """
+    Implements the meta-trainer class. Every trainer must inherent from this base class.
+    It implements the evaluation method, initializes the dataloader and the detector.
+    It also defines some functions that every inherited trainer must implement.
+    """
     def __init__(self):
         # initialize matrices, datasets and detector
         self.initialize_dataloader()
@@ -38,7 +43,7 @@ class Trainer(object):
         self.detector = None
 
     # calculate train loss
-    def calc_loss(self, soft_estimation: torch.Tensor, transmitted_words: torch.Tensor) -> torch.Tensor:
+    def calc_loss(self, est: torch.Tensor, tx: torch.Tensor) -> torch.Tensor:
         """
          Every trainer must have some loss calculation
         """
@@ -77,12 +82,21 @@ class Trainer(object):
         self.dataloader = torch.utils.data.DataLoader(self.channel_dataset)
 
     def online_training(self, tx: torch.Tensor, rx: torch.Tensor):
+        """
+        Every detector trainer must have some function to adapt it online
+        """
         pass
 
-    def forward(self, y: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
+    def forward(self, rx: torch.Tensor, probs_vec: torch.Tensor = None) -> torch.Tensor:
+        """
+        Every trainer must have some forward pass for its detector
+        """
         pass
 
     def init_priors(self):
+        """
+        DeepSIC employs this initialization
+        """
         pass
 
     def evaluate(self) -> Union[float, np.ndarray]:
@@ -93,29 +107,30 @@ class Trainer(object):
         """
         print(conf.sampler_type, conf.aug_type)
         total_ser = 0
-        # draw words of given gamma for all snrs
+        # draw words for a given snr
         transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr])
+        # either None or in case of DeepSIC intializes the priors
         self.init_priors()
         ser_by_word = np.zeros(transmitted_words.shape[0])
+        # initialize the augmentations class instance
         augmenter_wrapper = AugmenterWrapper(conf.aug_type, conf.fading_in_channel)
+        # detect sequentially
         for block_ind in range(conf.blocks_num):
             # get current word and channel
-            transmitted_word = transmitted_words[block_ind]
-            h = hs[block_ind]
-            received_word = received_words[block_ind]
+            tx, h, rx = transmitted_words[block_ind], hs[block_ind], received_words[block_ind]
             # split words into data and pilot part
-            x_pilot, x_data = transmitted_word[:conf.pilot_size], transmitted_word[conf.pilot_size:]
-            y_pilot, y_data = received_word[:conf.pilot_size], received_word[conf.pilot_size:]
+            tx_pilot, tx_data = tx[:conf.pilot_size], tx[conf.pilot_size:]
+            rx_pilot, rx_data = rx[:conf.pilot_size], rx[conf.pilot_size:]
             if conf.is_online_training:
                 # augment received words by the number of desired repeats
-                augmenter_wrapper.update_hyperparams(y_pilot, x_pilot)
-                y_aug, x_aug = augmenter_wrapper.augment_batch(h, y_pilot, x_pilot)
-                # train
+                augmenter_wrapper.update_hyperparams(rx_pilot, tx_pilot)
+                y_aug, x_aug = augmenter_wrapper.augment_batch(h, rx_pilot, tx_pilot)
+                # re-train the detector
                 self.online_training(x_aug, y_aug)
-            # detect data part
-            detected_word = self.forward(y_data, self.probs_vec)
+            # detect data part after training on the pilot part
+            detected_word = self.forward(rx_data, self.probs_vec)
             # calculate accuracy
-            ser = calculate_ber(detected_word, x_data[:, :received_word.shape[1]])
+            ser = calculate_ber(detected_word, tx_data[:, :rx.shape[1]])
             print('*' * 20)
             print(f'current: {block_ind, ser}')
             total_ser += ser
@@ -126,13 +141,9 @@ class Trainer(object):
         print(f'Final ser: {total_ser}')
         return total_ser
 
-    def run_train_loop(self, soft_estimation: torch.Tensor, transmitted_words: torch.Tensor) -> float:
+    def run_train_loop(self, est: torch.Tensor, tx: torch.Tensor) -> float:
         # calculate loss
-        loss = self.calc_loss(soft_estimation=soft_estimation, transmitted_words=transmitted_words)
-        # if loss is Nan inform the user
-        # if torch.sum(torch.isnan(loss)):
-        #     print('Nan value')
-        #     return np.nan
+        loss = self.calc_loss(est=est, tx=tx)
         current_loss = loss.item()
         # back propagation
         self.optimizer.zero_grad()
@@ -141,6 +152,10 @@ class Trainer(object):
         return current_loss
 
     def plot_regions(self):
+        """
+        Used in the augmentations plotting method under plotters module. Used for drawing the relevant figures for
+        the paper.
+        """
         # draw words of given gamma for all snrs
         transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr])
         augmenter_wrapper = AugmenterWrapper(conf.aug_type, conf.fading_in_channel)

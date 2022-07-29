@@ -36,7 +36,7 @@ def acs_block(in_prob: torch.Tensor, llrs: torch.Tensor, transition_table: torch
 
 class VNETDetector(nn.Module):
     """
-    This implements the VA decoder by an NN on each stage
+    This implements the VA decoder by a parameterization of the cost calculation by an NN for each stage
     """
 
     def __init__(self, n_states: int):
@@ -53,23 +53,21 @@ class VNETDetector(nn.Module):
                   nn.Linear(HIDDEN1_SIZE, self.n_states)]
         self.net = nn.Sequential(*layers).to(DEVICE)
 
-    def forward(self, y: torch.Tensor, phase: str) -> torch.Tensor:
+    def forward(self, rx: torch.Tensor, phase: str) -> torch.Tensor:
         """
         The forward pass of the ViterbiNet algorithm
-        :param y: input values, size [batch_size,transmission_length]
+        :param rx: input values, size [batch_size,transmission_length]
         :param phase: 'train' or 'val'
-        :param snr: channel snr
-        :param gamma: channel coefficient
         :returns if in 'train' - the estimated priors [batch_size,transmission_length,n_states]
         if in 'val' - the detected words [n_batch,transmission_length]
         """
         # initialize input probabilities
         in_prob = torch.zeros([1, self.n_states]).to(DEVICE)
-        priors = self.net(y)
+        priors = self.net(rx)
 
         if phase == 'val':
-            detected_word = torch.zeros(y.shape).to(DEVICE)
-            for i in range(y.shape[0]):
+            detected_word = torch.zeros(rx.shape).to(DEVICE)
+            for i in range(rx.shape[0]):
                 # get the lsb of the state
                 detected_word[i] = torch.argmin(in_prob, dim=1) % 2
                 # run one Viterbi stage
