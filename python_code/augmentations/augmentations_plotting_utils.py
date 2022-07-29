@@ -22,11 +22,11 @@ mpl.rcParams['font.family'] = 'STIXGeneral'
 colors_dict = {0: 'red', 1: 'orange', 2: 'blue', 3: 'green'}
 
 
-def online_plotting(transmitted_words: torch.Tensor, received_words: torch.Tensor, h: torch.Tensor):
+def online_plotting(tx: torch.Tensor, rx: torch.Tensor, h: torch.Tensor):
     if N_USER != 2 or N_ANT != 2:
         raise ValueError("Only valid for N_user=2 and N_ant=2! Please change in config")
-    received_array = received_words.cpu().numpy()
-    transmitted_array = transmitted_words.cpu().numpy()
+    received_array = rx.cpu().numpy()
+    transmitted_array = tx.cpu().numpy()
     color_codings = np.sum(np.array([2, 1]) * transmitted_array, axis=1)
     s = BPSKModulator.modulate(transmitted_array)
     true_received_centers = np.matmul(s, h.cpu().numpy())

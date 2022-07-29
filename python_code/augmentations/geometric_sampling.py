@@ -13,8 +13,7 @@ conf = Config()
 
 class GeometricSampler:
     """
-    The proposed augmentations scheme. Calculates centers and variances for each class as specified in the paper,
-    then smooths the estimate via a window running mean with alpha = 0.3
+    A proposed augmentations scheme. Based on the calculated centers and variances for each class, it draws samples.
     """
 
     def __init__(self, centers: torch.Tensor, stds: torch.Tensor, n_states: int, state_size: int,

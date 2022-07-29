@@ -1,5 +1,3 @@
-import math
-from collections import defaultdict
 from random import randint
 from typing import Tuple
 
@@ -39,8 +37,7 @@ RX_MAPPING_DICT = {
 
 class TranslationAugmenter:
     """
-    The proposed augmentations scheme. Calculates centers and variances for each class as specified in the paper,
-    then smooths the estimate via a window running mean with alpha = 0.3
+    One of the proposed augmentations schemes. Translates a given point to another cluster.
     """
 
     def __init__(self, centers: torch.Tensor):
@@ -49,22 +46,23 @@ class TranslationAugmenter:
         self.alpha = 0.5
         self.degrees = list(range(0, DEG_IN_CIRCLE, DEG_IN_CIRCLE // MODULATION_NUM_MAPPING[conf.modulation_type]))
 
-    def augment(self, received_word: torch.Tensor, transmitted_word: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def augment(self, rx: torch.Tensor, tx: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         if conf.channel_type == ChannelModes.SISO.name:
-            received_word_state = calculate_siso_states(MEMORY_LENGTH, transmitted_word)[0]
+            received_word_state = calculate_siso_states(MEMORY_LENGTH, tx)[0]
         elif conf.channel_type == ChannelModes.MIMO.name:
-            received_word_state = calculate_mimo_states(N_USER, transmitted_word.reshape(1, -1))[0]
+            received_word_state = calculate_mimo_states(N_USER, tx.reshape(1, -1))[0]
         else:
             raise ValueError("No such channel type!!!")
-
+        # choose the new cluster / class randomly
         random_ind = randint(a=1, b=len(self.degrees) - 1)
-        new_tx = transmitted_word
+        new_tx = tx
         tx_map = TX_MAPPING_DICT[conf.modulation_type]
         rx_map = RX_MAPPING_DICT[conf.modulation_type]
-        rx_transformation = torch.ones(received_word.shape).to(DEVICE)
+        rx_transformation = torch.ones(rx.shape).to(DEVICE)
+        # apply the transformations to get the new transformed tx and rx
         for i in range(random_ind):
-            rx_transformation *= torch.tensor([rx_map[x.item()] for x in new_tx])[:received_word.shape[0]].reshape(
-                received_word.shape).to(DEVICE)
+            rx_transformation *= torch.tensor([rx_map[x.item()] for x in new_tx])[:rx.shape[0]].reshape(
+                rx.shape).to(DEVICE)
             new_tx = torch.tensor([tx_map[x.item()] for x in new_tx]).to(DEVICE)
         if conf.channel_type == ChannelModes.SISO.name:
             new_state = calculate_siso_states(MEMORY_LENGTH, new_tx)[0]
@@ -72,10 +70,11 @@ class TranslationAugmenter:
             new_state = calculate_mimo_states(N_USER, new_tx.reshape(1, -1))[0]
         else:
             raise ValueError("No such channel type!!!")
-        transformed_received = rx_transformation * received_word
+        # apply the transformation to rx to get the new transformed rx, check out the paper for more details
+        transformed_received = rx_transformation * rx
         delta = self._centers[new_state.item()] + self._centers[received_word_state.item()]
-        new_received_word = self.alpha * delta + transformed_received
-        return new_received_word, new_tx
+        new_rx = self.alpha * delta + transformed_received
+        return new_rx, new_tx
 
     @property
     def centers(self) -> torch.Tensor:

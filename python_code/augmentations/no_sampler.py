@@ -11,8 +11,7 @@ conf = Config()
 
 class NoSampler:
     """
-    The proposed augmentations scheme. Calculates centers and variances for each class as specified in the paper,
-    then smooths the estimate via a window running mean with alpha = 0.3
+    No sampling approach. Return the sample by index / randomly.
     """
 
     def __init__(self, received_words: torch.Tensor, transmitted_words: torch.Tensor):

@@ -8,7 +8,7 @@ from torch.optim import RMSprop, Adam, SGD
 
 from python_code import DEVICE
 from python_code.augmentations.augmenter_wrapper import AugmenterWrapper
-from python_code.augmentations.plotting_utils import online_plotting
+from python_code.augmentations.augmentations_plotting_utils import online_plotting
 from python_code.channel.channel_dataset import ChannelModelDataset
 from python_code.utils.config_singleton import Config
 from python_code.utils.metrics import calculate_ber
