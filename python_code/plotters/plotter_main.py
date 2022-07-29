@@ -1,14 +1,6 @@
-from collections import namedtuple
-
-from python_code.plotters.plotter_methods import compute_ser_for_method
+from python_code.plotters.plotter_methods import compute_ser_for_method, RunParams
 from python_code.plotters.plotter_utils import plot_by_values
 from python_code.utils.constants import ChannelModes, DetectorType
-
-RunParams = namedtuple(
-    "RunParams",
-    "run_over trial_num",
-    defaults=[False, 1]
-)
 
 if __name__ == '__main__':
     run_over = True  # whether to run over previous results
@@ -394,4 +386,4 @@ if __name__ == '__main__':
         for params_dict in params_dicts:
             print(params_dict)
             compute_ser_for_method(all_curves, method, params_dict, run_params_obj)
-    plot_by_values(all_curves, label_name, values, xlabel, ylabel)
+    plot_by_values(all_curves, values, xlabel, ylabel)

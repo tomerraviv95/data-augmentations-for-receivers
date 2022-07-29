@@ -14,7 +14,7 @@ mpl.rcParams['mathtext.fontset'] = 'stix'
 mpl.rcParams['font.family'] = 'STIXGeneral'
 
 
-def get_linestyle(method_name):
+def get_linestyle(method_name: str) -> str:
     if 'ViterbiNet' in method_name or 'DeepSIC' in method_name:
         return 'solid'
     elif 'RNN' in method_name or 'DNN' in method_name:
@@ -23,7 +23,7 @@ def get_linestyle(method_name):
         raise ValueError('No such detector!!!')
 
 
-def get_marker(method_name):
+def get_marker(method_name: str) -> str:
     if 'Regular Training' in method_name:
         return '.'
     elif 'FK Genie' in method_name:
@@ -42,7 +42,7 @@ def get_marker(method_name):
         raise ValueError('No such method!!!')
 
 
-def get_color(method_name):
+def get_color(method_name: str) -> str:
     if 'Regular Training' in method_name:
         return 'b'
     elif 'FK Genie' in method_name:

@@ -1,6 +1,6 @@
 import datetime
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -40,7 +40,7 @@ def get_ser_plot(dec: Trainer, run_over: bool, method_name: str, trial=None):
     return ser_total
 
 
-def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_name, values: List[float], xlabel: str,
+def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], values: List[float], xlabel: str,
                    ylabel: str):
     # path for the saved figure
     current_day_time = datetime.datetime.now()
@@ -48,22 +48,16 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_n
     if not os.path.isdir(os.path.join(FIGURES_DIR, folder_name)):
         os.makedirs(os.path.join(FIGURES_DIR, folder_name))
 
+    # extract names from simulated plots
     plt.figure()
     names = []
     for i in range(len(all_curves)):
         if all_curves[i][1] not in names:
             names.append(all_curves[i][1])
 
-    mean_sers_dict = {}
-    for method_name in names:
-        mean_sers = []
-        for ser, cur_name in all_curves:
-            mean_ser = np.mean(ser)
-            if cur_name != method_name:
-                continue
-            mean_sers.append(mean_ser)
-        mean_sers_dict[method_name] = mean_sers
+    cur_name, mean_sers_dict = populate_mean_sers_dict(all_curves, names)
 
+    # plots all methods
     for method_name in names:
         plt.plot(values, mean_sers_dict[method_name], label=method_name,
                  color=get_color(method_name),
@@ -80,3 +74,16 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], field_n
     plt.savefig(os.path.join(FIGURES_DIR, folder_name, f'coded_ber_versus_snrs_{trainer_name}.png'),
                 bbox_inches='tight')
     plt.show()
+
+
+def populate_mean_sers_dict(all_curves: List[float, str], names: List[str]) -> Tuple[str, Dict[str, List[np.ndarray]]]:
+    mean_sers_dict = {}
+    for method_name in names:
+        mean_sers = []
+        for ser, cur_name in all_curves:
+            mean_ser = np.mean(ser)
+            if cur_name != method_name:
+                continue
+            mean_sers.append(mean_ser)
+        mean_sers_dict[method_name] = mean_sers
+    return cur_name, mean_sers_dict
