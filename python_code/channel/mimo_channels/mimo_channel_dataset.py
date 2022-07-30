@@ -22,9 +22,9 @@ class MIMOChannel:
         self._block_length = block_length
         self._pilots_length = pilots_length
         self._bits_generator = default_rng(seed=conf.seed)
-        self.b_length = N_USER
+        self.tx_length = N_USER
         self.h_shape = [N_ANT, N_USER]
-        self.y_length = N_ANT
+        self.rx_length = N_ANT
 
     def _transmit(self, h: np.ndarray, snr: float) -> Tuple[np.ndarray, np.ndarray]:
         tx_pilots = self._generate_all_classes_pilots()

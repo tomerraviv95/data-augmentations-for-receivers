@@ -3,11 +3,11 @@ from python_code.plotters.plotter_methods import compute_ser_for_method, RunPara
 from python_code.plotters.plotter_utils import plot_by_values
 
 if __name__ == '__main__':
-    run_over = True  # whether to run over previous results
-    trial_num = 1  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
+    run_over = False  # whether to run over previous results
+    trial_num = 2  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
                                trial_num=trial_num)
-    label_name = PlotType.SNR_linear_MIMO.name
+    label_name = PlotType.pilot_efficiency_mimo.name
     print(label_name)
     params_dicts, methods_list, values, xlabel, ylabel = get_config(label_name)
     all_curves = []

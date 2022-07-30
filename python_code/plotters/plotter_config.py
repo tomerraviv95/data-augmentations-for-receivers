@@ -372,7 +372,7 @@ def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
         ]
         xlabel, ylabel = 'Pilots Num', 'BER'
     elif label_name == PlotType.pilot_efficiency_mimo.name:
-        values = [300, 400, 500, 600]
+        values = [300, 400, 500, 650, 800, 1000]
         params_dicts = [
             {'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
              'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100,

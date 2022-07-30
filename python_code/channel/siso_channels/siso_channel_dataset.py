@@ -25,9 +25,9 @@ class SISOChannel:
         self._block_length = block_length
         self._pilots_length = pilots_length
         self._bits_generator = default_rng(seed=conf.seed)
-        self.b_length = MEMORY_LENGTH
+        self.tx_length = MEMORY_LENGTH
         self.h_shape = [1, MEMORY_LENGTH]
-        self.y_length = 1
+        self.rx_length = 1
 
     def _transmit(self, h: np.ndarray, snr: float) -> Tuple[np.ndarray, np.ndarray]:
         # create pilots and data

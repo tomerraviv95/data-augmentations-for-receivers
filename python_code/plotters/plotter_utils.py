@@ -136,7 +136,7 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], values:
     plt.show()
 
 
-def populate_mean_sers_dict(all_curves: List[float, str], names: List[str]) -> Tuple[str, Dict[str, List[np.ndarray]]]:
+def populate_mean_sers_dict(all_curves: List[Tuple[float,str]], names: List[str]) -> Tuple[str, Dict[str, List[np.ndarray]]]:
     mean_sers_dict = {}
     for method_name in names:
         mean_sers = []
