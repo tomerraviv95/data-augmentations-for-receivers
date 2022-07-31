@@ -16,7 +16,7 @@ aug_type: [] # ['translation_augmenter','rotation_augmenter']
 online_repeats_n: 1000 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
 
 # validation hyperparameters
-val_block_length: 12000 # coherence block time, total size of pilot + data. values: int.
+val_block_length: 11000 # coherence block time, total size of pilot + data. values: int.
 pilot_size: 1000 # pilot symbols
 blocks_num: 10 # number of validation frames. values: int.
 val_snr: 12 # start SNR value. values: float.

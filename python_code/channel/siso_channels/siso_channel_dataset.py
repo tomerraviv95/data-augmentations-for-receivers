@@ -42,7 +42,7 @@ class SISOChannel:
         # modulation
         s = MODULATION_DICT[conf.modulation_type].modulate(padded_b)
         # transmit through noisy channel
-        rx = SISO_CHANNELS_DICT[conf.channel_model]._transmit(s=s, h=h, snr=snr, memory_length=MEMORY_LENGTH)
+        rx = SISO_CHANNELS_DICT[conf.channel_model].transmit(s=s, h=h, snr=snr, memory_length=MEMORY_LENGTH)
         symbols, rx = break_transmitted_siso_word_to_symbols(MEMORY_LENGTH, b), rx.T
         return symbols[:-MEMORY_LENGTH + 1], rx[:-MEMORY_LENGTH + 1]
 
