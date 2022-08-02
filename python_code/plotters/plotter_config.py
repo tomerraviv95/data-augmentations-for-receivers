@@ -5,18 +5,18 @@ from python_code.utils.constants import ChannelModes, DetectorType
 
 
 class PlotType(Enum):
-    SNR_linear_SISO = 'SNR_linear_SISO'
-    SNR_linear_MIMO = 'SNR_linear_MIMO'
-    SNR_linear_synth_SISO_fading = 'SNR_linear_synth_SISO_fading'
-    SNR_linear_synth_MIMO_fading = 'SNR_linear_synth_MIMO_fading'
-    SNR_non_linear_synth_SISO_fading = 'SNR_non_linear_synth_SISO_fading'
-    SNR_non_linear_synth_MIMO_fading = 'SNR_non_linear_synth_MIMO_fading'
-    SNR_linear_COST_2100_SISO = 'SNR_linear_COST_2100_SISO'
-    SNR_linear_COST_2100_MIMO = 'SNR_linear_COST_2100_MIMO'
-    SNR_linear_synth_SISO_fading_ablation = 'SNR_linear_synth_SISO_fading_ablation'
-    SNR_linear_synth_MIMO_fading_ablation = 'SNR_linear_synth_MIMO_fading_ablation'
-    pilot_efficiency_siso = 'pilot_efficiency_siso'
-    pilot_efficiency_mimo = 'pilot_efficiency_mimo'
+    SNR_linear_SISO = 'SNR_linear_SISO'  # DONE
+    SNR_linear_MIMO = 'SNR_linear_MIMO'  # NO GAINS - CHECK
+    SNR_linear_synth_SISO_fading = 'SNR_linear_synth_SISO_fading'  # DONE
+    SNR_linear_synth_MIMO_fading = 'SNR_linear_synth_MIMO_fading'  # DONE
+    SNR_non_linear_synth_SISO_fading = 'SNR_non_linear_synth_SISO_fading'  # NO GAINS - CHECK
+    SNR_non_linear_synth_MIMO_fading = 'SNR_non_linear_synth_MIMO_fading'  # RUNNING NOW
+    SNR_linear_COST_2100_SISO = 'SNR_linear_COST_2100_SISO'  # DONE
+    SNR_linear_COST_2100_MIMO = 'SNR_linear_COST_2100_MIMO'  # SMALL GAINS - CHECK
+    SNR_linear_synth_SISO_fading_ablation = 'SNR_linear_synth_SISO_fading_ablation'  # NO GAINS - CHECK
+    SNR_linear_synth_MIMO_fading_ablation = 'SNR_linear_synth_MIMO_fading_ablation'  # NO GAINS - CHECK
+    pilot_efficiency_siso = 'pilot_efficiency_siso'  # DONE
+    pilot_efficiency_mimo = 'pilot_efficiency_mimo'  # WEIRD BUMP - CHECK
 
 
 def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
@@ -352,7 +352,7 @@ def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
         ]
         xlabel, ylabel = 'Pilots Num', 'BER'
     elif label_name == PlotType.pilot_efficiency_mimo.name:
-        values = [300, 400, 500, 650, 800, 1000]
+        values = [512, 650, 800, 1000, 1200]
         params_dicts = [
             {'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
              'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100,

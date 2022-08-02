@@ -27,7 +27,7 @@ mpl.rcParams['font.family'] = 'STIXGeneral'
 conf = Config()
 
 MIN_BER_COEF = 0.2
-MARKER_EVERY = 10
+MARKER_EVERY = 5
 
 
 def get_linestyle(method_name: str) -> str:
@@ -121,7 +121,7 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], values:
     for method_name in names:
         plt.plot(values, mean_sers_dict[method_name], label=method_name,
                  color=get_color(method_name),
-                 marker=get_marker(method_name),
+                 marker=get_marker(method_name), markersize=11,
                  linestyle=get_linestyle(method_name), linewidth=2.2)
 
     plt.xticks(values, values)
@@ -136,7 +136,8 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], values:
     plt.show()
 
 
-def populate_mean_sers_dict(all_curves: List[Tuple[float,str]], names: List[str]) -> Tuple[str, Dict[str, List[np.ndarray]]]:
+def populate_mean_sers_dict(all_curves: List[Tuple[float, str]], names: List[str]) -> Tuple[
+    str, Dict[str, List[np.ndarray]]]:
     mean_sers_dict = {}
     for method_name in names:
         mean_sers = []

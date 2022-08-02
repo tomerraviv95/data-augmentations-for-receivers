@@ -43,7 +43,7 @@ class TranslationAugmenter:
     def __init__(self, centers: torch.Tensor):
         super().__init__()
         self._centers = centers
-        self.alpha = 0.5
+        self.alpha = 1 if conf.modulation_type == ModulationType.QPSK.name else 1
         self.degrees = list(range(0, DEG_IN_CIRCLE, DEG_IN_CIRCLE // MODULATION_NUM_MAPPING[conf.modulation_type]))
 
     def augment(self, rx: torch.Tensor, tx: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -72,7 +72,7 @@ class TranslationAugmenter:
             raise ValueError("No such channel type!!!")
         # apply the transformation to rx to get the new transformed rx, check out the paper for more details
         transformed_received = rx_transformation * rx
-        delta = self._centers[new_state.item()] + self._centers[received_word_state.item()]
+        delta = self._centers[new_state.item()] - rx_transformation * self._centers[received_word_state.item()]
         new_rx = self.alpha * delta + transformed_received
         return new_rx, new_tx
 
