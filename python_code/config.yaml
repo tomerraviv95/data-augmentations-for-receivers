@@ -8,16 +8,15 @@ channel_model: 'Synthetic' # Physical channel models: ['Cost2100','Synthetic']
 detector_type: 'model' # 'model' or 'black_box'
 linear: True # channel linearity. Boolean value.
 fading_in_channel: True # If the channel is fading/non-fading. values: [True, False]
-modulation_type: 'BPSK' # ['BPSK','QPSK']
+modulation_type: 'QPSK' # ['BPSK','QPSK']
 
 # sampler
-sampler_type: 'no_sampler' # 'no_sampler','geometric_sampler',  'full_knowledge_sampler'
-aug_type: [ 'translation_augmenter' ] # ['translation_augmenter','rotation_augmenter','geometric_augmenter']
-online_repeats_n: 2002 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
+aug_type: [ ] # ['geometric_augmenter','translation_augmenter','rotation_augmenter']
+online_repeats_n: 5 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
 
 # validation hyperparameters
-val_block_length: 10400 # coherence block time, total size of pilot + data. values: int.
-pilot_size: 400 # pilot bits
+val_block_length: 10500 # coherence block time, total size of pilot + data. values: int.
+pilot_size: 500 # pilot bits
 blocks_num: 100 # number of validation frames. values: int.
 val_snr: 12 # start SNR value. values: float.
 eval_mode: 'by_word' # Type of evaluation per block - 'by_word'.

@@ -3,7 +3,6 @@ from typing import Tuple, List
 import torch
 
 from python_code import DEVICE
-from python_code.augmentations.full_knowledge_sampler import FullKnowledgeSampler
 from python_code.augmentations.geometric_augmenter import GeometricAugmenter
 from python_code.augmentations.no_sampler import NoSampler
 from python_code.augmentations.rotation_augmenter import RotationAugmenter
@@ -14,8 +13,6 @@ from python_code.utils.constants import ChannelModes, ModulationType
 from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states
 
 conf = Config()
-
-DEBUG = True
 
 
 def estimate_params(rx: torch.Tensor, tx: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, int, int]:
@@ -62,10 +59,7 @@ class AugmenterWrapper:
         self._fading_in_channel = fading_in_channel
         self._centers = None
         self._stds = None
-        if DEBUG:
-            self.active_augmentations_num = 1
-        else:
-            self.active_augmentations_num = len(self._augmentations)
+        self.active_augmentations_num = max(len(self._augmentations), 1)
 
     def update_hyperparams(self, received_words: torch.Tensor, transmitted_words: torch.Tensor):
         if conf.modulation_type == ModulationType.QPSK.name:
@@ -77,11 +71,7 @@ class AugmenterWrapper:
         else:
             self._centers, self._stds = centers, stds
 
-        self._samplers_dict = {
-            'geometric_sampler': GeometricSampler(self._centers, self._stds, n_states, state_size, gt_states),
-            'no_sampler': NoSampler(received_words, transmitted_words),
-            'full_knowledge_sampler': FullKnowledgeSampler(),
-        }
+        self._sampler = NoSampler(received_words, transmitted_words)
 
         self._augmenters_dict = {
             'rotation_augmenter': RotationAugmenter(),
@@ -125,8 +115,11 @@ class AugmenterWrapper:
         :return: the augmented received and transmitted pairs
         """
         aug_rxs, aug_txs = [], []
-        # sample via the desired sampling method
-        rx, tx = self._samplers_dict[conf.sampler_type].sample(i, h, snr)
+        # sample via the sampling method
+        rx, tx = self._sampler.sample(i, h, snr)
+        if len(self._augmentations) == 0:
+            return rx, tx
+
         # run through the desired augmentations
         for augmentation_name in self._augmentations:
             augmenter = self._augmenters_dict[augmentation_name]
@@ -148,10 +141,10 @@ class AugmenterWrapper:
         :param tx: transmitted word
         :return: the augmented batch of (rx,tx)
         """
-        aug_tx = torch.empty([conf.online_repeats_n, tx.shape[1]]).to(DEVICE)
+        aug_tx = torch.empty([conf.online_repeats_n * tx.shape[0], tx.shape[1]]).to(DEVICE)
         if conf.modulation_type == ModulationType.QPSK.name:
             rx = torch.view_as_real(rx)
-        aug_rx = torch.empty([conf.online_repeats_n, *rx.shape[1:]], dtype=rx.dtype).to(DEVICE)
+        aug_rx = torch.empty([conf.online_repeats_n * rx.shape[0], *rx.shape[1:]], dtype=rx.dtype).to(DEVICE)
         i = 0
         while i < aug_rx.shape[0]:
             # copy |Q| first samples into Q*

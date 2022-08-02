@@ -105,7 +105,7 @@ class Trainer(object):
         data blocks for the paper.
         :return: np.ndarray
         """
-        print(conf.sampler_type, conf.aug_type)
+        print(conf.aug_type)
         total_ser = 0
         # draw words for a given snr
         transmitted_words, received_words, hs = self.channel_dataset.__getitem__(snr_list=[conf.val_snr])

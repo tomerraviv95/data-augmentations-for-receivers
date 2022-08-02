@@ -11,12 +11,11 @@ fading_in_channel: False # If the channel is fading/non-fading. values: [True, F
 modulation_type: 'QPSK' # ['BPSK','QPSK']
 
 # sampler
-sampler_type: 'no_sampler' # 'no_sampler','geometric_sampler',  'full_knowledge_sampler'
-aug_type: [ 'translation_augmenter' ] # ['translation_augmenter','rotation_augmenter']
-online_repeats_n: 2500 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
+aug_type: ['translation_augmenter'] # ['geometric_augmenter','translation_augmenter','rotation_augmenter']
+online_repeats_n: 6 # number of desired augmented words out of online_total_words. values: 0<=online_repeats_n<=online_total_words
 
 # validation hyperparameters
-val_block_length: 11000 # coherence block time, total size of pilot + data. values: int.
+val_block_length: 10500 # coherence block time, total size of pilot + data. values: int.
 pilot_size: 500 # pilot symbols
 blocks_num: 100 # number of validation frames. values: int.
 val_snr: 12 # start SNR value. values: float.
