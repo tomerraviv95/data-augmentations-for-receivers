@@ -141,10 +141,12 @@ class AugmenterWrapper:
         :param tx: transmitted word
         :return: the augmented batch of (rx,tx)
         """
-        aug_tx = torch.empty([conf.online_repeats_n * tx.shape[0], tx.shape[1]]).to(DEVICE)
+        aug_tx = torch.empty([self.active_augmentations_num * conf.online_repeats_n * tx.shape[0] + tx.shape[0], tx.shape[1]]).to(
+            DEVICE)
         if conf.modulation_type == ModulationType.QPSK.name:
             rx = torch.view_as_real(rx)
-        aug_rx = torch.empty([conf.online_repeats_n * rx.shape[0], *rx.shape[1:]], dtype=rx.dtype).to(DEVICE)
+        aug_rx = torch.empty([self.active_augmentations_num * conf.online_repeats_n * rx.shape[0] + rx.shape[0], *rx.shape[1:]],
+                             dtype=rx.dtype).to(DEVICE)
         i = 0
         while i < aug_rx.shape[0]:
             # copy |Q| first samples into Q*

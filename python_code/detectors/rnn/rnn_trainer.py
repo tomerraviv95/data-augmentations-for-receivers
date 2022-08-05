@@ -66,7 +66,7 @@ class RNNTrainer(Trainer):
         # run training loops
         loss = 0
         for i in range(EPOCHS):
-            word_ind = randint(a=0, b=conf.online_repeats_n // conf.pilot_size - 1)
+            word_ind = randint(a=0, b=conf.online_repeats_n)
             subword_ind = randint(a=0, b=conf.pilot_size - BATCH_SIZE)
             ind = word_ind * conf.pilot_size + subword_ind
             # pass through detector

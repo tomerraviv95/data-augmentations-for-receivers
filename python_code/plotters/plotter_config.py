@@ -296,15 +296,15 @@ def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
     elif label_name == PlotType.SNR_linear_synth_SISO_fading_ablation.name:
         params_dicts = [
             {'val_snr': 9, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
             {'val_snr': 10, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
             {'val_snr': 11, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
             {'val_snr': 12, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
             {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
-             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'online_repeats_n': 2000},
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100},
         ]
         methods_list = [
             'Regular Training',
