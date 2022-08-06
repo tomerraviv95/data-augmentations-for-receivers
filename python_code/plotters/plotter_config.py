@@ -5,18 +5,18 @@ from python_code.utils.constants import ChannelModes, DetectorType
 
 
 class PlotType(Enum):
-    SNR_linear_SISO = 'SNR_linear_SISO'  # Need to run combined & extended again
-    SNR_linear_MIMO = 'SNR_linear_MIMO'  # Done
-    SNR_linear_synth_SISO_fading = 'SNR_linear_synth_SISO_fading'  # Need to run combined & extended again
-    SNR_linear_synth_MIMO_fading = 'SNR_linear_synth_MIMO_fading'  # Need to re-run combined & extended and finished what's needed
+    SNR_linear_SISO = 'SNR_linear_SISO'
+    SNR_linear_MIMO = 'SNR_linear_MIMO'
+    SNR_linear_synth_SISO_fading = 'SNR_linear_synth_SISO_fading'
+    SNR_linear_synth_MIMO_fading = 'SNR_linear_synth_MIMO_fading'
     SNR_non_linear_synth_SISO_fading = 'SNR_non_linear_synth_SISO_fading'  #
-    SNR_non_linear_synth_MIMO_fading = 'SNR_non_linear_synth_MIMO_fading'  # Need to re-run combined & extended and finished what's needed
+    SNR_non_linear_synth_MIMO_fading = 'SNR_non_linear_synth_MIMO_fading'  #
     SNR_linear_COST_2100_SISO = 'SNR_linear_COST_2100_SISO'  #
-    SNR_linear_COST_2100_MIMO = 'SNR_linear_COST_2100_MIMO'  # Need to re-run combined & extended and finished what's needed
-    SNR_linear_synth_SISO_fading_ablation = 'SNR_linear_synth_SISO_fading_ablation'  # Need to re-run all since changed sizes
-    SNR_linear_synth_MIMO_fading_ablation = 'SNR_linear_synth_MIMO_fading_ablation'  # Need to re-run all since changed sizes
-    pilot_efficiency_siso = 'pilot_efficiency_siso'  # Need to re-run combined only
-    pilot_efficiency_mimo = 'pilot_efficiency_mimo'  # Need to re-run combined only
+    SNR_linear_COST_2100_MIMO = 'SNR_linear_COST_2100_MIMO'  #
+    SNR_linear_synth_SISO_fading_ablation = 'SNR_linear_synth_SISO_fading_ablation'  #
+    SNR_linear_synth_MIMO_fading_ablation = 'SNR_linear_synth_MIMO_fading_ablation'  #
+    pilot_efficiency_siso = 'pilot_efficiency_siso'  #
+    pilot_efficiency_mimo = 'pilot_efficiency_mimo'  #
 
 
 def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
@@ -45,7 +45,7 @@ def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
              'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100},
         ]
         methods_list = [
-            # 'Regular Training',
+            'Regular Training',
             'Combined',
             'Extended Pilot Training'
         ]
