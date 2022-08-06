@@ -8,7 +8,7 @@
 
 Python repository for the extended paper "Data Augmentation for Deep Receivers".
 
-Please cite our [paper](https://arxiv.org/abs/2103.13483), if the code is used for publishing research.
+Please cite our [paper](https://ieeexplore.ieee.org/abstract/document/9833983/), if the code is used for publishing research.
 
 # Table of Contents
 
@@ -108,7 +108,7 @@ This code was simulated with GeForce RTX 2060 with driver version 432.00 and CUD
 
 10. Select Existing environment and navigate to where the python.exe executable of the deep_ensemble environment is installed under the interpreter setting
 
-  - For windows its usually found at C:\users\<username>\anaconda3\envs\metanet\python.exe)
+  - For windows its usually found at C:\users\<username>\anaconda3\envs\environment\python.exe)
 
   - For linux its usually found at /home/<username>/anaconda3
   
