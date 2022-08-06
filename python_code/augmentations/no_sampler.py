@@ -4,7 +4,7 @@ from typing import Tuple
 import torch
 
 from python_code.utils.config_singleton import Config
-from python_code.utils.constants import ChannelModes
+from python_code.utils.constants import ChannelModes, ModulationType
 
 conf = Config()
 
@@ -26,4 +26,9 @@ class NoSampler:
             ind = randint(a=0, b=self._received_words.shape[0] - 1)
         else:
             raise ValueError("No such channel type!!!")
-        return self._received_words[ind], self._transmitted_words[ind]
+        reshaped_tx = self._transmitted_words[ind].reshape(1, -1)
+        if conf.modulation_type == ModulationType.QPSK.name:
+            reshaped_rx = self._received_words[ind].reshape(1, -1, 2)
+        else:
+            reshaped_rx = self._received_words[ind].reshape(1, -1)
+        return reshaped_rx, reshaped_tx

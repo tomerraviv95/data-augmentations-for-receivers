@@ -5,18 +5,18 @@ from python_code.utils.constants import ChannelModes, DetectorType
 
 
 class PlotType(Enum):
-    SNR_linear_SISO = 'SNR_linear_SISO'  # DONE
-    SNR_linear_MIMO = 'SNR_linear_MIMO'  # NO GAINS - CHECK
-    SNR_linear_synth_SISO_fading = 'SNR_linear_synth_SISO_fading'  # DONE
-    SNR_linear_synth_MIMO_fading = 'SNR_linear_synth_MIMO_fading'  # DONE
-    SNR_non_linear_synth_SISO_fading = 'SNR_non_linear_synth_SISO_fading'  # NO GAINS - CHECK
-    SNR_non_linear_synth_MIMO_fading = 'SNR_non_linear_synth_MIMO_fading'  # RUNNING NOW
-    SNR_linear_COST_2100_SISO = 'SNR_linear_COST_2100_SISO'  # DONE
-    SNR_linear_COST_2100_MIMO = 'SNR_linear_COST_2100_MIMO'  # SMALL GAINS - CHECK
-    SNR_linear_synth_SISO_fading_ablation = 'SNR_linear_synth_SISO_fading_ablation'  # NO GAINS - CHECK
-    SNR_linear_synth_MIMO_fading_ablation = 'SNR_linear_synth_MIMO_fading_ablation'  # NO GAINS - CHECK
-    pilot_efficiency_siso = 'pilot_efficiency_siso'  # DONE
-    pilot_efficiency_mimo = 'pilot_efficiency_mimo'  # WEIRD BUMP - CHECK
+    SNR_linear_SISO = 'SNR_linear_SISO'  #
+    SNR_linear_MIMO = 'SNR_linear_MIMO'  # Done
+    SNR_linear_synth_SISO_fading = 'SNR_linear_synth_SISO_fading'  # Need to check RNN - Combined
+    SNR_linear_synth_MIMO_fading = 'SNR_linear_synth_MIMO_fading'  # Done
+    SNR_non_linear_synth_SISO_fading = 'SNR_non_linear_synth_SISO_fading'  #
+    SNR_non_linear_synth_MIMO_fading = 'SNR_non_linear_synth_MIMO_fading'  #
+    SNR_linear_COST_2100_SISO = 'SNR_linear_COST_2100_SISO'  #
+    SNR_linear_COST_2100_MIMO = 'SNR_linear_COST_2100_MIMO'  #
+    SNR_linear_synth_SISO_fading_ablation = 'SNR_linear_synth_SISO_fading_ablation'  # Done
+    SNR_linear_synth_MIMO_fading_ablation = 'SNR_linear_synth_MIMO_fading_ablation'  # Done
+    pilot_efficiency_siso = 'pilot_efficiency_siso'  # Need to re-run on 350, 500, 650 cause of bump
+    pilot_efficiency_mimo = 'pilot_efficiency_mimo'  # Done
 
 
 def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:

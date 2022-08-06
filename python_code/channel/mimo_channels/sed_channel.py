@@ -41,7 +41,7 @@ class SEDChannel:
         w = np.sqrt(sigma) * np.random.randn(N_ANT, s.shape[1])
         y = conv + w
         if not conf.linear:
-            y = np.tanh(y)
+            y = np.tanh(0.5 * y)
         return y
 
     @staticmethod

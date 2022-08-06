@@ -126,12 +126,11 @@ class AugmenterWrapper:
             aug_rx, aug_tx = augmenter.augment(rx.clone(), tx.clone())
             aug_rxs.append(aug_rx), aug_txs.append(aug_tx)
 
+        reshaped_aug_txs = torch.cat(aug_txs).to(DEVICE).reshape(self.active_augmentations_num, -1)
         if conf.modulation_type == ModulationType.QPSK.name:
-            return torch.cat(aug_rxs).to(DEVICE).reshape(self.active_augmentations_num, -1, 2), torch.cat(aug_txs).to(
-                DEVICE).reshape(self.active_augmentations_num, -1)
+            return torch.cat(aug_rxs).to(DEVICE).reshape(self.active_augmentations_num, -1, 2), reshaped_aug_txs
         else:
-            return torch.cat(aug_rxs).to(DEVICE).reshape(self.active_augmentations_num, -1), torch.cat(aug_txs).to(
-                DEVICE).reshape(self.active_augmentations_num, -1)
+            return torch.cat(aug_rxs).to(DEVICE).reshape(self.active_augmentations_num, -1), reshaped_aug_txs
 
     def augment_batch(self, h: torch.Tensor, rx: torch.Tensor, tx: torch.Tensor):
         """
@@ -141,12 +140,13 @@ class AugmenterWrapper:
         :param tx: transmitted word
         :return: the augmented batch of (rx,tx)
         """
-        aug_tx = torch.empty([self.active_augmentations_num * conf.online_repeats_n * tx.shape[0] + tx.shape[0], tx.shape[1]]).to(
-            DEVICE)
+        aug_tx = torch.empty([self.active_augmentations_num * conf.online_repeats_n * tx.shape[0] + tx.shape[0],
+                              tx.shape[1]]).to(DEVICE)
         if conf.modulation_type == ModulationType.QPSK.name:
             rx = torch.view_as_real(rx)
-        aug_rx = torch.empty([self.active_augmentations_num * conf.online_repeats_n * rx.shape[0] + rx.shape[0], *rx.shape[1:]],
-                             dtype=rx.dtype).to(DEVICE)
+        aug_rx = torch.empty(
+            [self.active_augmentations_num * conf.online_repeats_n * rx.shape[0] + rx.shape[0], *rx.shape[1:]],
+            dtype=rx.dtype).to(DEVICE)
         i = 0
         while i < aug_rx.shape[0]:
             # copy |Q| first samples into Q*
@@ -155,9 +155,17 @@ class AugmenterWrapper:
                 i += 1
             # synthesize the rest of samples in Q*
             else:
-                aug_rx[i:i + self.active_augmentations_num], aug_tx[i:i + self.active_augmentations_num] = \
-                    self.augment_single(i, h, conf.val_snr)
-                i += self.active_augmentations_num
+                cur_aug_rx, cur_aug_tx = self.augment_single(i, h, conf.val_snr)
+                # if SISO, order of samples matters. so place only 1 sample out randomly of the active augmentations.
+                if conf.channel_type == ChannelModes.SISO.name:
+                    j = (i // tx.shape[0]) % self.active_augmentations_num
+                    aug_rx[i] = cur_aug_rx[j]
+                    aug_tx[i] = cur_aug_tx[j]
+                    i += 1
+                else:
+                    aug_rx[i:i + self.active_augmentations_num] = cur_aug_rx
+                    aug_tx[i:i + self.active_augmentations_num] = cur_aug_tx
+                    i += self.active_augmentations_num
 
         if conf.modulation_type == ModulationType.QPSK.name:
             aug_rx = torch.view_as_complex(aug_rx)
