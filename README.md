@@ -108,7 +108,7 @@ This code was simulated with GeForce RTX 2060 with driver version 432.00 and CUD
 
 10. Select Existing environment and navigate to where the python.exe executable of the deep_ensemble environment is installed under the interpreter setting
 
-  - For windows its usually found at C:\users\<username>\anaconda3\envs\metanet\python.exe)
+  - For windows its usually found at C:\users\<username>\anaconda3\envs\environment\python.exe)
 
   - For linux its usually found at /home/<username>/anaconda3
   
