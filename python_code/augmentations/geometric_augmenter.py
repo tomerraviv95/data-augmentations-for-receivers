@@ -6,7 +6,7 @@ from python_code import DEVICE
 from python_code.channel.channels_hyperparams import MEMORY_LENGTH, N_USER
 from python_code.utils.config_singleton import Config
 from python_code.utils.constants import ChannelModes
-from python_code.utils.trellis_utils import generate_bits_by_state, calculate_siso_states, calculate_mimo_states
+from python_code.utils.trellis_utils import calculate_siso_states, calculate_mimo_states
 
 conf = Config()
 
@@ -29,17 +29,17 @@ class GeometricAugmenter:
         if conf.channel_type == ChannelModes.SISO.name:
             to_augment_state = calculate_siso_states(MEMORY_LENGTH, tx)[0]
         elif conf.channel_type == ChannelModes.MIMO.name:
-            to_augment_state = calculate_mimo_states(N_USER, tx.reshape(1, -1))[0]
+            to_augment_state = calculate_mimo_states(N_USER, tx)[0]
         else:
             raise ValueError("No such channel type!!!")
 
         if conf.channel_type == ChannelModes.SISO.name:
             rx = self._centers[to_augment_state] + self._stds[to_augment_state] * torch.randn(
                 [1, self._state_size]).to(DEVICE)
-            rx = rx[0]
         elif conf.channel_type == ChannelModes.MIMO.name:
             rx = self._centers[to_augment_state] + self._stds[to_augment_state] * torch.randn(
                 self._centers[to_augment_state].shape).to(DEVICE)
+            rx = rx.unsqueeze(0)
         else:
             raise ValueError("No such channel type!!!")
         return rx, tx

@@ -51,11 +51,12 @@ class TranslationAugmenter:
             received_word_state = calculate_siso_states(MEMORY_LENGTH, tx)[0]
         elif conf.channel_type == ChannelModes.MIMO.name:
             received_word_state = calculate_mimo_states(N_USER, tx.reshape(1, -1))[0]
+            rx = rx[0]
         else:
             raise ValueError("No such channel type!!!")
         # choose the new cluster / class randomly
         random_ind = randint(a=1, b=len(self.degrees) - 1)
-        new_tx = tx
+        new_tx = tx[0]
         tx_map = TX_MAPPING_DICT[conf.modulation_type]
         rx_map = RX_MAPPING_DICT[conf.modulation_type]
         rx_transformation = torch.ones(rx.shape).to(DEVICE)
@@ -74,6 +75,9 @@ class TranslationAugmenter:
         transformed_received = rx_transformation * rx
         delta = self._centers[new_state.item()] - rx_transformation * self._centers[received_word_state.item()]
         new_rx = self.alpha * delta + transformed_received
+        new_tx = new_tx.unsqueeze(0)
+        if conf.channel_type == ChannelModes.MIMO.name:
+            new_rx = new_rx.unsqueeze(0)
         return new_rx, new_tx
 
     @property

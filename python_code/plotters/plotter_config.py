@@ -45,7 +45,7 @@ def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
              'fading_in_channel': False, 'from_scratch': True, 'blocks_num': 100},
         ]
         methods_list = [
-            'Regular Training',
+            # 'Regular Training',
             'Combined',
             'Extended Pilot Training'
         ]
