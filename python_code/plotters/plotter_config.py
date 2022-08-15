@@ -5,18 +5,18 @@ from python_code.utils.constants import ChannelModes, DetectorType
 
 
 class PlotType(Enum):
-    SNR_linear_SISO = 'SNR_linear_SISO'
-    SNR_linear_MIMO = 'SNR_linear_MIMO'
-    SNR_linear_synth_SISO_fading = 'SNR_linear_synth_SISO_fading'
-    SNR_linear_synth_MIMO_fading = 'SNR_linear_synth_MIMO_fading'
-    SNR_non_linear_synth_SISO_fading = 'SNR_non_linear_synth_SISO_fading'  #
-    SNR_non_linear_synth_MIMO_fading = 'SNR_non_linear_synth_MIMO_fading'  #
-    SNR_linear_COST_2100_SISO = 'SNR_linear_COST_2100_SISO'  #
-    SNR_linear_COST_2100_MIMO = 'SNR_linear_COST_2100_MIMO'  #
-    SNR_linear_synth_SISO_fading_ablation = 'SNR_linear_synth_SISO_fading_ablation'  #
-    SNR_linear_synth_MIMO_fading_ablation = 'SNR_linear_synth_MIMO_fading_ablation'  #
-    pilot_efficiency_siso = 'pilot_efficiency_siso'  #
-    pilot_efficiency_mimo = 'pilot_efficiency_mimo'  #
+    SNR_linear_SISO = 'SNR_linear_SISO'  # Done
+    SNR_linear_MIMO = 'SNR_linear_MIMO'  # Done
+    SNR_linear_synth_SISO_fading = 'SNR_linear_synth_SISO_fading'  # Done
+    SNR_linear_synth_MIMO_fading = 'SNR_linear_synth_MIMO_fading'  # Done
+    SNR_non_linear_synth_SISO_fading = 'SNR_non_linear_synth_SISO_fading'  # Need 3
+    SNR_non_linear_synth_MIMO_fading = 'SNR_non_linear_synth_MIMO_fading'  # Need 3
+    SNR_linear_COST_2100_SISO = 'SNR_linear_COST_2100_SISO'  # Need 3
+    SNR_linear_COST_2100_MIMO = 'SNR_linear_COST_2100_MIMO'  # Need 3
+    SNR_linear_synth_SISO_fading_ablation = 'SNR_linear_synth_SISO_fading_ablation'  # Done
+    SNR_linear_synth_MIMO_fading_ablation = 'SNR_linear_synth_MIMO_fading_ablation'  # Done
+    pilot_efficiency_siso = 'pilot_efficiency_siso'  # Done
+    pilot_efficiency_mimo = 'pilot_efficiency_mimo'  # Done
 
 
 def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
@@ -264,25 +264,25 @@ def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
     elif label_name == PlotType.SNR_linear_COST_2100_MIMO.name:
         params_dicts = [
             {'val_snr': 9, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Cost2100'},
+             'from_scratch': False, 'channel_model': 'Cost2100', 'val_block_length': 11000, 'pilot_size': 1000},
             {'val_snr': 10, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Cost2100'},
+             'from_scratch': False, 'channel_model': 'Cost2100', 'val_block_length': 11000, 'pilot_size': 1000},
             {'val_snr': 11, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Cost2100'},
+             'from_scratch': False, 'channel_model': 'Cost2100', 'val_block_length': 11000, 'pilot_size': 1000},
             {'val_snr': 12, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Cost2100'},
+             'from_scratch': False, 'channel_model': 'Cost2100', 'val_block_length': 11000, 'pilot_size': 1000},
             {'val_snr': 13, 'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Cost2100'},
+             'from_scratch': False, 'channel_model': 'Cost2100', 'val_block_length': 11000, 'pilot_size': 1000},
             {'val_snr': 9, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Cost2100'},
+             'from_scratch': False, 'channel_model': 'Cost2100', 'val_block_length': 11000, 'pilot_size': 1000},
             {'val_snr': 10, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Cost2100'},
+             'from_scratch': False, 'channel_model': 'Cost2100', 'val_block_length': 11000, 'pilot_size': 1000},
             {'val_snr': 11, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Cost2100'},
+             'from_scratch': False, 'channel_model': 'Cost2100', 'val_block_length': 11000, 'pilot_size': 1000},
             {'val_snr': 12, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Cost2100'},
+             'from_scratch': False, 'channel_model': 'Cost2100', 'val_block_length': 11000, 'pilot_size': 1000},
             {'val_snr': 13, 'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
-             'fading_in_channel': False, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Cost2100'},
+             'from_scratch': False, 'channel_model': 'Cost2100', 'val_block_length': 11000, 'pilot_size': 1000},
         ]
 
         methods_list = [
