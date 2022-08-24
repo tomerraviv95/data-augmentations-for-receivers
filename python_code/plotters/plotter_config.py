@@ -5,18 +5,20 @@ from python_code.utils.constants import ChannelModes, DetectorType
 
 
 class PlotType(Enum):
-    SNR_linear_SISO = 'SNR_linear_SISO'  # Done
-    SNR_linear_MIMO = 'SNR_linear_MIMO'  # Done
-    SNR_linear_synth_SISO_fading = 'SNR_linear_synth_SISO_fading'  # Done
-    SNR_linear_synth_MIMO_fading = 'SNR_linear_synth_MIMO_fading'  # Done
-    SNR_non_linear_synth_SISO_fading = 'SNR_non_linear_synth_SISO_fading'  # Need 3
-    SNR_non_linear_synth_MIMO_fading = 'SNR_non_linear_synth_MIMO_fading'  # Need 3
-    SNR_linear_COST_2100_SISO = 'SNR_linear_COST_2100_SISO'  # Need 3
-    SNR_linear_COST_2100_MIMO = 'SNR_linear_COST_2100_MIMO'  # Need 3
-    SNR_linear_synth_SISO_fading_ablation = 'SNR_linear_synth_SISO_fading_ablation'  # Done
-    SNR_linear_synth_MIMO_fading_ablation = 'SNR_linear_synth_MIMO_fading_ablation'  # Done
-    pilot_efficiency_siso = 'pilot_efficiency_siso'  # Done
-    pilot_efficiency_mimo = 'pilot_efficiency_mimo'  # Done
+    SNR_linear_SISO = 'SNR_linear_SISO'
+    SNR_linear_MIMO = 'SNR_linear_MIMO'
+    SNR_linear_synth_SISO_fading = 'SNR_linear_synth_SISO_fading'
+    SNR_linear_synth_MIMO_fading = 'SNR_linear_synth_MIMO_fading'
+    SNR_non_linear_synth_SISO_fading = 'SNR_non_linear_synth_SISO_fading'
+    SNR_non_linear_synth_MIMO_fading = 'SNR_non_linear_synth_MIMO_fading'
+    SNR_linear_COST_2100_SISO = 'SNR_linear_COST_2100_SISO'
+    SNR_linear_COST_2100_MIMO = 'SNR_linear_COST_2100_MIMO'
+    pilot_efficiency_siso = 'pilot_efficiency_siso'
+    pilot_efficiency_mimo = 'pilot_efficiency_mimo'
+    pilot_efficiency_siso_cost = 'pilot_efficiency_siso_cost'
+    pilot_efficiency_mimo_cost = 'pilot_efficiency_mimo_cost'
+    SNR_linear_synth_SISO_fading_ablation = 'SNR_linear_synth_SISO_fading_ablation'
+    SNR_linear_synth_MIMO_fading_ablation = 'SNR_linear_synth_MIMO_fading_ablation'
 
 
 def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
@@ -309,8 +311,8 @@ def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
         methods_list = [
             'Regular Training',
             'Geometric',
+            'CC Rotation',
             'Translation',
-            'Rotation',
             'Combined',
         ]
         values = list(range(9, 14))
@@ -332,8 +334,8 @@ def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
         methods_list = [
             'Regular Training',
             'Geometric',
+            'CC Rotation',
             'Translation',
-            'Rotation',
             'Combined',
         ]
         values = list(range(9, 14))
@@ -346,6 +348,12 @@ def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
              'pilot_size': val, 'val_block_length': int(10000 + val)}
             for val
             in values]
+        params_dicts.extend([
+            {'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100,
+             'pilot_size': val, 'val_block_length': int(10000 + val)}
+            for val
+            in values])
         methods_list = [
             'Regular Training',
             'Combined',
@@ -359,6 +367,54 @@ def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
              'pilot_size': val, 'val_block_length': int(10000 + val)}
             for val
             in values]
+        params_dicts.extend([
+            {'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100,
+             'pilot_size': val, 'val_block_length': int(10000 + val)}
+            for val
+            in values])
+        methods_list = [
+            'Regular Training',
+            'Combined',
+        ]
+        xlabel, ylabel = 'Pilots Num', 'BER'
+    elif label_name == PlotType.pilot_efficiency_siso_cost.name:
+        values = [100, 200, 300, 400, 500, 600]
+        params_dicts = [
+            {'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Cost2100',
+             'pilot_size': val, 'val_block_length': int(10000 + val)}
+            for val
+            in values]
+        params_dicts.extend(
+            [
+                {'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+                 'fading_in_channel': True, 'from_scratch': False, 'channel_model': 'Cost2100',
+                 'pilot_size': val, 'val_block_length': int(10000 + val)}
+                for val
+                in values]
+        )
+        methods_list = [
+            'Regular Training',
+            'Combined',
+        ]
+        xlabel, ylabel = 'Pilots Num', 'BER'
+    elif label_name == PlotType.pilot_efficiency_mimo_cost.name:
+        values = [512, 650, 800, 1000, 1200]
+        params_dicts = [
+            {'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.MIMO.name,
+             'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Cost2100',
+             'pilot_size': val, 'val_block_length': int(10000 + val)}
+            for val
+            in values]
+        params_dicts.extend(
+            [
+                {'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.MIMO.name,
+                 'fading_in_channel': True, 'from_scratch': False, 'channel_model': 'Cost2100',
+                 'pilot_size': val, 'val_block_length': int(10000 + val)}
+                for val
+                in values]
+        )
         methods_list = [
             'Regular Training',
             'Combined',
