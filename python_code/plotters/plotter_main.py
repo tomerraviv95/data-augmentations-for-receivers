@@ -7,7 +7,7 @@ if __name__ == '__main__':
     trial_num = 1  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
                                trial_num=trial_num)
-    label_name = PlotType.SNR_linear_synth_MIMO_fading_ablation # pilot_efficiency_siso_cost
+    label_name = PlotType.pilot_efficiency_siso_cost # pilot_efficiency_siso_cost
     print(label_name.name)
     params_dicts, methods_list, values, xlabel, ylabel = get_config(label_name.name)
     all_curves = []

@@ -381,7 +381,7 @@ def get_config(label_name: str) -> Tuple[List[Dict], list, list, str, str]:
     elif label_name == PlotType.pilot_efficiency_siso_cost.name:
         values = [100, 200, 300, 400, 500, 600]
         params_dicts = [
-            {'detector_type': DetectorType.black_box.name, 'channel_type': ChannelModes.SISO.name,
+            {'detector_type': DetectorType.model.name, 'channel_type': ChannelModes.SISO.name,
              'fading_in_channel': True, 'from_scratch': False, 'blocks_num': 100, 'channel_model': 'Cost2100',
              'pilot_size': val, 'val_block_length': int(10000 + val)}
             for val
