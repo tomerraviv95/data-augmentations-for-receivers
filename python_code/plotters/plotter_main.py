@@ -4,10 +4,11 @@ from python_code.plotters.plotter_utils import plot_by_values
 
 if __name__ == '__main__':
     run_over = False  # whether to run over previous results
-    trial_num = 1  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
+    trial_num = 5  # number of trials per point estimate, used to reduce noise by averaging results of multiple runs
     run_params_obj = RunParams(run_over=run_over,
                                trial_num=trial_num)
-    label_name = PlotType.pilot_efficiency_siso_cost # pilot_efficiency_siso_cost
+    label_name = PlotType.pilot_efficiency_siso_cost  # pilot_efficiency_siso_cost
+    legend_loc = 'upper right'  # 'upper right','lower_left'
     print(label_name.name)
     params_dicts, methods_list, values, xlabel, ylabel = get_config(label_name.name)
     all_curves = []
@@ -18,4 +19,4 @@ if __name__ == '__main__':
             print(params_dict)
             compute_ser_for_method(all_curves, method, params_dict, run_params_obj)
 
-    plot_by_values(all_curves, values, xlabel, ylabel)
+    plot_by_values(all_curves, legend_loc, values, xlabel, ylabel)

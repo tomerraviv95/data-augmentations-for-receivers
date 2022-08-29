@@ -100,7 +100,8 @@ def get_ser_plot(dec: Trainer, run_over: bool, method_name: str, trial=None):
     return ser_total
 
 
-def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], values: List[float], xlabel: str,
+def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], legend_loc: str, values: List[float],
+                   xlabel: str,
                    ylabel: str):
     # path for the saved figure
     current_day_time = datetime.datetime.now()
@@ -128,7 +129,7 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], values:
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.grid(which='both', ls='--')
-    plt.legend(loc='lower left', prop={'size': 15})
+    plt.legend(loc=legend_loc, prop={'size': 15})
     plt.yscale('log')
     trainer_name = cur_name.split(' ')[0]
     plt.savefig(os.path.join(FIGURES_DIR, folder_name, f'coded_ber_versus_snrs_{trainer_name}.png'),
