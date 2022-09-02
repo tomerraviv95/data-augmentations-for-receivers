@@ -10,6 +10,8 @@ Python repository for the extended paper "Data Augmentation for Deep Receivers".
 
 Please cite our [paper](https://ieeexplore.ieee.org/abstract/document/9833983/), if the code is used for publishing research.
 
+A YouTube tutorial is available at [this link](https://www.youtube.com/watch?v=N5QfLlH-Lqw).
+
 # Table of Contents
 
 - [Introduction](#introduction)
