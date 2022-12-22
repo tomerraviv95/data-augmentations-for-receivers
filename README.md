@@ -10,6 +10,8 @@ Python repository for the extended paper "Data Augmentation for Deep Receivers".
 
 Please cite our [paper](https://ieeexplore.ieee.org/abstract/document/9833983/), if the code is used for publishing research.
 
+A YouTube tutorial is available at [this link](https://www.youtube.com/watch?v=N5QfLlH-Lqw).
+
 # Table of Contents
 
 - [Introduction](#introduction)
@@ -29,7 +31,7 @@ Please cite our [paper](https://ieeexplore.ieee.org/abstract/document/9833983/),
 
 # Introduction
 
-This repository implements the proposed augmentation scheme for [ViterbiNet](https://ieeexplore.ieee.org/document/8815457), a machine-learning model-based detector, for the a channel with memory of L. Our proposed novel method incorporates (1) spatial and temporal clustering (2) takes into account classes diversity and (3) keeps low complexity, tailored for online communication scenarios. We explain on the different directories and subdirectories below.
+This repository implements the proposed augmentations scheme for deep receivers. Our proposed novel method incorporates (1) spatial and temporal clustering (2) takes into account classes diversity and (3) keeps low complexity, tailored for online communication scenarios. There exist three augmentations: (i) geomtric augmentation, (ii) constellation-conserving projection and (iii) translation augmentations. We explain on the different directories and subdirectories below.
 
 # Folders Structure
 
@@ -39,26 +41,16 @@ The python simulations of the simplified communication chain: symbols generation
 
 ### augmentations
 
-The proposed augmentation scheme, and the three baselines: regular training (no augmentations applied), partial-knowledge genie and full-knowledge genie. See the paper for more details on these augmentation methods. Algorithm 1 specifies our proposed self-supervised augmentation scheme.
+The proposed augmentations scheme, and the regular training/extended pilots baselines. See the paper for more details on these augmentation methods.
 
 ### channel 
 
 Includes all relevant channel functions and classes. The class in "channel_dataset.py" implements the main class for aggregating pairs of (transmitted,received) samples. 
-In "channel.py", the ISI AWGN channel is implemented. "channel_estimation.py" is for the calculation of the h values. Lastly, the channel BPSK modulator lies in "channel_modulator.py".
+In "channel.py", the SISO and MIMO channels are implemented. "channel_estimation.py" is for the calculation of the h values. Lastly, the channel BPSK/QPSK modulators lies in "channel_modulator.py".
 
 ### plotters
 
-Plotting of the BER versus SNR, for Figures 3 and 4 in the paper.
-
-### vnet 
-
-Includes three files:
-
-(1) The backbone detector in "vnet_detector.py" module;
-
-(2) A basic "trainer.py" class, includes the main evaluation function. It is also used for parsing the config.yaml file and preparing the deep learning setup (loss, optimizer, ...).
-
-(3) The ViterbiNet trainer, in "vnet_trainer.py", which inherets from the basic trainer class, extending it as needed.
+Plotting of the BER versus SNR / pilots size. Plotting all the relevant Figures for the paper, including the ablation study.
 
 ### utils
 
@@ -70,7 +62,7 @@ Controls all parameters and hyperparameters.
 
 ## resources
 
-Keeps the channel coefficients vectors (4 taps, each with 300 blocks).
+Keeps the channel coefficients vectors (4 taps, each with 300 blocks) and configs used to run the different setups.
 
 ## dir_definitions 
 
@@ -84,7 +76,7 @@ Then install the environment, follow the installation setup below.
 
 At last, open PyCharm in the root directory. You may run either the trainers or one of the plotters.
 
-This code was simulated with GeForce RTX 2060 with driver version 432.00 and CUDA 10.1. 
+This code was simulated with GeForce RTX 3060 with CUDA 12. 
 
 ## Environment Installation
 
