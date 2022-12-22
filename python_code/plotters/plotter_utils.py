@@ -41,8 +41,6 @@ def get_linestyle(method_name: str) -> str:
 
 def get_marker(method_name: str) -> str:
     if 'Regular Training' in method_name:
-        return '.'
-    elif 'FK Genie' in method_name:
         return 'X'
     elif 'Geometric' in method_name:
         return '>'
@@ -72,7 +70,7 @@ def get_color(method_name: str) -> str:
     elif 'Combined' in method_name:
         return 'red'
     elif 'Extended Pilot Training' in method_name:
-        return 'royalblue'
+        return 'black'
     else:
         raise ValueError('No such method!!!')
 
@@ -129,7 +127,7 @@ def plot_by_values(all_curves: List[Tuple[np.ndarray, np.ndarray, str]], legend_
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.grid(which='both', ls='--')
-    plt.legend(loc=legend_loc, prop={'size': 15})
+    leg = plt.legend(loc=legend_loc, prop={'size': 15},handlelength=4)
     plt.yscale('log')
     trainer_name = cur_name.split(' ')[0]
     plt.savefig(os.path.join(FIGURES_DIR, folder_name, f'coded_ber_versus_snrs_{trainer_name}.png'),

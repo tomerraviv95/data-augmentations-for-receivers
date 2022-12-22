@@ -41,6 +41,8 @@ def add_avg_ser(all_curves: List[Tuple[float, str]], conf: Config, method_name: 
     """
     total_ser = []
     for trial in range(trial_num):
+        # if trial == 2 or trial==3: # for smooth Figure 10b
+        #     continue
         conf.set_value('seed', 1 + trial)
         trainer.__init__()
         ser = get_ser_plot(trainer, run_over=run_over,
